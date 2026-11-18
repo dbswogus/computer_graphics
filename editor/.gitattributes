@@ -1,0 +1,16 @@
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.obj text eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

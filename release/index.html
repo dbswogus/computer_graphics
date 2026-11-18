@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>데굴데굴 옹기</title>
+<link rel="stylesheet" href="assets/styles/game.css">
+</head>
+<body>
+<canvas id="game" tabindex="0" aria-label="옹기 게임"></canvas>
+<p id="error" role="alert">WebGL을 시작할 수 없습니다.</p>
+<p id="player-loading" role="status">게임과 로컬 에셋을 준비하고 있습니다… ZIP 안에서 열었다면 먼저 전체 압축을 푼 뒤 폴더의 index.html을 여세요. 준비가 계속되면 src와 assets 폴더가 있는지 확인하세요.</p>
+<script defer src="src/data/project.js"></script>
+
+<script defer src="src/config/UILayout.js"></script>
+<script defer src="src/config/GameConfig.js"></script>
+<script defer src="src/config/UIText.js"></script>
+<script defer src="src/render/Renderer.js"></script>
+<script defer src="src/models/Onggi.js"></script>
+<script defer src="src/data/onggiData.js"></script>
+<script defer src="src/map/StageData.js"></script>
+<script defer src="src/map/BlockMap.js"></script>
+<script defer src="src/data/ProjectData.js"></script>
+<script defer src="src/game/GyroInput.js"></script>
+<script defer src="src/game/OnggiPhysics.js"></script>
+<script defer src="src/game/Physics.js"></script>
+<script defer src="src/map/Map.js"></script>
+<script defer src="src/core/Game.js"></script>
+<script defer src="src/ui/UI.js"></script>
+<script defer src="src/camera/Camera.js"></script>
+<script defer src="src/game/Input.js"></script>
+<script defer src="src/render/AssetBank.js"></script>
+<script defer src="src/ui/UISettings.js"></script>
+<script defer src="src/main.js"></script>
+<script defer src="src/core/PlayerGame.js"></script>
+</body>
+</html>

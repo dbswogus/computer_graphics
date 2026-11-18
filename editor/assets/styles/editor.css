@@ -1,0 +1,72 @@
+
+/* 편집기 전용 화면. 게임 UI 및 배포본에는 포함하지 않습니다. */
+#map-editor { background:#eef1ec; padding:24px clamp(12px,3vw,48px); font:15px/1.65 "Malgun Gothic",sans-serif; color:#263b31; }
+#map-editor .editor-top { padding:14px; background:#fff; border:1px solid #dbe3d8; border-radius:14px; gap:8px; }
+#map-editor h1 { font-size:22px; letter-spacing:-.7px; }
+#map-editor h1 small { display:block; font-size:12px; font-weight:500; color:#718176; letter-spacing:1px; }
+#map-editor button { min-height:40px; transition:background .15s; }
+#map-editor button:hover:not(:disabled) { background:#e2ecdf; }
+#map-editor button.active, #map-editor #editor-play { background:#37684b; color:#fff; border-color:#37684b; }
+#map-editor button:focus-visible,#map-editor input:focus-visible,#map-editor select:focus-visible,#map-editor textarea:focus-visible { outline:3px solid #77a8d1; outline-offset:2px; }
+#map-editor input:not([type=checkbox]):not([type=range]),#map-editor select,#map-editor textarea { max-width:100%; background:#fff; padding:9px 11px; border:1px solid #c4d0c2; border-radius:8px; color:#263b31; font:inherit; }
+#map-editor .editor-grid { grid-template-columns:170px minmax(320px,816px) minmax(220px,280px); gap:20px; }
+#map-editor #editor-properties { background:#fff; border:1px solid #dbe3d8; padding:18px; gap:12px; }
+#map-editor #editor-properties label { grid-template-columns:1fr; }
+#map-editor #editor-properties small { color:#627566; }
+#map-editor #editor-board { border-radius:12px; box-shadow:0 8px 24px #263b3110; }
+#map-editor .editor-help { line-height:1.8; color:#647267; }
+#map-editor #editor-status,#map-editor #studio-notice { background:#e1eade; padding:10px 14px; border-radius:8px; min-height:42px; }
+#map-editor .editor-workflow { border-left:4px solid #548665; padding:12px 16px; background:#fff; border-radius:8px; }
+#studio-design { margin-top:28px; padding:22px; background:#fff; border:1px solid #dbe3d8; border-radius:18px; }
+#studio-design .studio-heading h2 { margin:0; font-size:23px; letter-spacing:-.5px; }
+#studio-design .studio-heading p { margin:5px 0 18px; color:#66766a; }
+#studio-design .studio-tabs { display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid #dce4d9; padding-bottom:14px; }
+#studio-design section[hidden] { display:none; }
+#studio-design details { border:0; background:#fafbf8; padding:20px; border-radius:12px; }
+#studio-design summary { font-size:18px; cursor:pointer; margin-bottom:12px; }
+#studio-design p { max-width:940px; color:#617163; line-height:1.8; }
+#studio-design label { display:inline-flex; flex-direction:column; gap:5px; margin:8px 14px 12px 0; font-weight:600; min-width:180px; }
+#studio-design button { margin:4px 4px 4px 0; }
+#studio-design #asset-drop { padding:24px; border:2px dashed #95b69d; border-radius:12px; background:#f0f6ed; }
+#studio-design #asset-drop.dropping { background:#d9ead3; }
+#studio-design #asset-list { display:flex; flex-wrap:wrap; gap:5px; margin:14px 0; max-height:240px; overflow:auto; }
+#studio-design .studio-card-group { margin-top:22px; padding:20px; background:#fff; border:1px solid #dbe3d8; border-radius:12px; }
+#studio-design h3 { margin:0 0 8px; }
+#studio-design .sfx-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid #dce4d9; }
+#studio-design .sfx-row label { margin:0; min-width:260px; }
+#studio-design .sfx-row small { color:#66766a; }
+#studio-design #physics-properties { display:flex; flex-wrap:wrap; gap:12px; }
+#studio-design .studio-ui-grid { display:grid; grid-template-columns:minmax(300px,800px) minmax(180px,280px); gap:20px; }
+#studio-design #ui-preview { width:100%; height:auto; border-radius:10px; touch-action:none; border:1px solid #d5dfd1; }
+#studio-design #ui-text-value { display:block; width:min(100%,800px); resize:vertical; }
+#studio-design #ui-properties label { display:flex; min-width:0; margin-right:0; }
+@media(max-width:1000px){#map-editor .editor-grid{grid-template-columns:150px minmax(300px,1fr)}#map-editor #editor-properties{grid-column:1/-1}#studio-design .studio-ui-grid{grid-template-columns:1fr}}
+@media(max-width:600px){#map-editor .editor-grid{display:block}#studio-design{padding:12px}#studio-design details{padding:12px}#studio-design .sfx-row label{min-width:0;width:100%}}
+
+#team-files{margin-top:24px;padding:24px;border:1px solid #dbe3d8;border-radius:18px;background:#fff}#team-files h2{margin-top:0}#team-files p{color:#607064}#team-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}#team-files .team-card{padding:18px;border:1px solid #dbe3d8;border-radius:12px;background:#fafbf8}#team-files code{display:block;overflow-wrap:anywhere;margin-bottom:12px}#team-files button{margin:4px}#team-status{padding:12px;background:#e1eade;border-radius:8px}@media(max-width:850px){#team-cards{grid-template-columns:1fr}}
+
+/* 간결한 편집 작업 공간 */
+#map-editor [hidden]{display:none!important}
+#map-editor .editor-top{position:sticky;top:0;z-index:5;flex-wrap:nowrap;box-shadow:0 4px 16px #263b3108;padding:12px 16px}
+#map-editor h1{font-size:19px;white-space:nowrap;margin-right:12px}
+#map-editor .workspace-picker{display:flex;gap:8px;align-items:center;color:#738075;font-size:13px}
+#map-editor .editor-primary{margin-left:auto;display:flex;gap:8px;align-items:center}
+#map-editor .editor-menu{position:relative}
+#map-editor .editor-menu>summary{cursor:pointer;list-style:none;border:1px solid #c4d0c2;border-radius:9px;padding:9px 14px;background:#fff;white-space:nowrap}
+#map-editor .editor-menu>summary::after{content:' ▾';color:#7b897e}
+#map-editor .editor-menu>div{position:absolute;right:0;top:calc(100% + 8px);min-width:230px;max-width:300px;display:grid;gap:5px;padding:12px;border:1px solid #dbe3d8;border-radius:12px;background:#fff;box-shadow:0 12px 32px #263b3122;z-index:20}
+#map-editor .editor-menu:not([open])>div{display:none}
+#map-editor .editor-mapbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
+#map-editor .editor-mapbar label{display:flex;gap:8px;align-items:center}
+#map-editor #editor-map-name{max-width:220px}
+#map-editor .editor-view-hint{color:#697a6d;margin:10px 0 18px;font-size:13px}
+#map-editor #editor-tools{display:flex;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid #dbe3d8;border-radius:12px;padding:12px}
+#map-editor #editor-tool-picker{width:100%;margin-top:6px}
+#map-editor .editor-help-drawer{font-size:13px;color:#68796b;margin:12px 0;padding:10px;border-radius:8px;background:#e7ece3}
+#map-editor .editor-help-drawer summary{cursor:pointer}
+#studio-design,#team-files{margin-top:16px}
+#studio-design .asset-quick-actions{display:flex;gap:10px;align-items:center;padding:12px;background:#eef3e9;border-radius:10px;margin-bottom:16px}
+#studio-design .asset-quick-actions label{margin:0;min-width:220px}
+#studio-design .studio-heading p{display:none}
+#map-editor #team-cards{gap:16px}
+@media(max-width:650px){#map-editor .editor-top{flex-wrap:wrap;position:static}#map-editor h1{width:100%}#map-editor .workspace-picker{flex:1}#map-editor .editor-primary{margin:0}#map-editor .editor-menu>div{right:0}#map-editor .editor-mapbar{gap:6px}#studio-design .asset-quick-actions{flex-wrap:wrap}#studio-design .asset-quick-actions label{min-width:0}}

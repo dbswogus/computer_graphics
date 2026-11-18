@@ -1,0 +1,13 @@
+{
+  "name": "daegool-onggi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline onggi game, editor and standalone player build",
+  "scripts": {
+    "build": "node tools/build-folder.mjs",
+    "test": "node tests/run.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#f4ecda">
+  <title>데굴데굴 옹기 · 내 자리로 돌아가는 길</title>
+  <style>
+    * { box-sizing:border-box; }
+    html,body { width:100%;height:100%;margin:0;overflow:hidden;background:#292f2a; }
+    body { display:flex;align-items:center;justify-content:center; }
+    canvas { display:block;width:100%;height:100%;object-fit:contain;touch-action:none;outline:none; }
+    #error { display:none;padding:32px;color:#fff;font:20px/1.7 sans-serif;max-width:650px; }
+  </style>
+</head>
+<body>
+<canvas id="game" tabindex="0" aria-label="데굴데굴 옹기 3D 탑뷰 게임. 화면 가운데 아래 조이스틱 또는 키보드 화살표로 움직이세요. 구멍과 움직이는 장애물을 피하세요."></canvas>
+<p id="error" role="alert">WebGL을 시작하지 못했어요. 브라우저의 하드웨어 가속 설정을 확인하고 최신 브라우저에서 다시 열어 주세요.</p>
+<script defer src="src/config/UILayout.js"></script>
+<script defer src="src/config/GameConfig.js"></script>
+<script defer src="src/config/UIText.js"></script>
+<script defer src="src/render/Renderer.js"></script>
+<script defer src="src/models/Onggi.js"></script>
+<script defer src="src/data/onggiData.js"></script>
+<script defer src="src/map/StageData.js"></script>
+<script defer src="src/editor/BlockMap.js"></script>
+<script defer src="src/editor/ProjectData.js"></script>
+<script defer src="src/editor/GameDocument.js"></script>
+<script defer src="src/game/GyroInput.js"></script>
+<script defer src="src/game/OnggiPhysics.js"></script>
+<script defer src="src/game/Physics.js"></script>
+<script defer src="src/map/Map.js"></script>
+<script defer src="src/core/Game.js"></script>
+<script defer src="src/ui/UI.js"></script>
+<script defer src="src/camera/Camera.js"></script>
+<script defer src="src/game/Input.js"></script>
+<script defer src="src/editor/AssetBank.js"></script>
+<script defer src="src/editor/StudioUI.js"></script>
+<script defer src="src/main.js"></script>
+<script defer src="src/data/EditorProject.js"></script>
+<script defer src="src/config/UIConfig.js"></script>
+<script defer src="src/config/MapConfig.js"></script>
+<script defer src="src/config/PhysicsConfig.js"></script>
+<script defer src="src/editor/TeamSource.js"></script>
+<script defer src="src/editor/MapEditor.js"></script>
+<script defer src="src/editor/StudioBootstrap.js"></script>
+<script defer src="src/export/FolderExport.js"></script>
+<script defer src="src/export/FolderBundle.js"></script>
+<script defer src="src/export/GameExport.js"></script>
+<script defer src="src/editor/TeamFiles.js"></script>
+<script defer src="src/editor/EditorShell.js"></script>
+</body>
+</html>

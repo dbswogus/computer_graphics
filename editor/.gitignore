@@ -1,0 +1,6 @@
+/src/export/*Bundle.js
+/src/data/EditorProject.js
+/content/project.generated.json
+/node_modules/
+/content-import/
+*.log
