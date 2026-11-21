@@ -22,7 +22,7 @@ export function readContentProject(base) {
     const absolute=fs.realpathSync(path.resolve(base,record.file)),relative=path.relative(assetRoot,absolute);
     if(relative.startsWith('..')||path.isAbsolute(relative))throw Error('에셋 파일은 assets 폴더 안에 있어야 합니다.');
     const spec=formats[path.extname(absolute).slice(1).toLowerCase()];if(!spec)throw Error('지원하지 않는 에셋: '+record.file);
-    const bytes=fs.readFileSync(absolute);if(bytes.length>8*1024*1024)throw Error('에셋은 개별 8MB 이하여야 합니다.');
+    const bytes=fs.readFileSync(absolute);if(bytes.length>20*1024*1024)throw Error('에셋은 개별 20MB 이하여야 합니다.');
     return {id:record.id,name:record.name||path.basename(absolute),kind:spec[0],data:'data:'+spec[1]+';base64,'+bytes.toString('base64')};
   });
   return {kind:'onggi-project',version:4,maps,ui,assets};

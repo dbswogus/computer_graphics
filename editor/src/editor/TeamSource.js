@@ -50,7 +50,7 @@ const TeamSource = (() => {
   /** 읽기 4. @param role {string} 담당 종류. @param text {string} 내보낸 JS 원문.
    * @returns {object} 정확한 상수 선언 안의 JSON만 해석. import/eval/스크립트 실행은 하지 않습니다. */
   function parse(role,text) {
-    const info=roles[role];if(!info || typeof text!=='string' || text.length>45*1024*1024)throw Error('담당 파일을 확인하세요.');
+    const info=roles[role];if(!info || typeof text!=='string' || text.length>100*1024*1024)throw Error('담당 파일을 확인하세요.');
     const clean=text.replace(/^\s*\/\/[^\n]*(?:\n|$)/,'').trim();
     const prefix='const '+info.symbol+' = ';
     if(!clean.startsWith(prefix)||!clean.endsWith(';'))throw Error(info.name+' 형식이 아닙니다. 편집기에서 내보낸 파일을 선택하세요.');

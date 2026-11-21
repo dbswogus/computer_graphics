@@ -1,3 +1,4 @@
+import {runAssetLimitTests} from './asset-limits.test.mjs';
 import {runTeamSourceTests} from './team-source.test.mjs';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -21,3 +22,5 @@ console.log(runTeamSourceTests(base));
 function syntax(dir){for(const item of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,item.name);if(item.isDirectory())syntax(file);else if(file.endsWith('.js'))new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});}}
 syntax(path.join(base,'src'));
 console.log('PASS: all source JavaScript syntax');
+
+console.log(await runAssetLimitTests(base));

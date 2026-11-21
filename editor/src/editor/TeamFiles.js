@@ -26,7 +26,7 @@ const TeamFiles = (() => {
   async function importRole(role,file) {
     if(!file)return false;
     try {
-      if(file.size>45*1024*1024)throw Error('파일은 45MB 이하여야 합니다.');
+      if(file.size>100*1024*1024)throw Error('파일은 100MB 이하여야 합니다.');
       const current=MapEditor.exportProject(),parts={};
       for(const key of Object.keys(TeamSource.roles))parts[key]=TeamSource.part(key,current);
       parts[role]=TeamSource.parse(role,await file.text());

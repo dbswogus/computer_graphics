@@ -232,7 +232,7 @@ const MapEditor = (() => {
     if(!file)return;
     panel.inert=true;
     try {
-      if(file.size>45*1024*1024)throw Error('프로젝트 JSON은 45MB 이하여야 합니다.');
+      if(file.size>100*1024*1024)throw Error('프로젝트 JSON은 100MB 이하여야 합니다.');
       const next=GameDocument.extractProject(await file.text());
       const nextUI=StudioUI.validate(next.ui);
       const prepared=await AssetBank.prepare(next.assets);

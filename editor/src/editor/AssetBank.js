@@ -65,7 +65,7 @@ const AssetBank = (() => {
     try {
       for(const item of list){
         if(!item||typeof item.id!=='string'||!/^[\w-]{1,80}$/.test(item.id)||next.has(item.id)||typeof item.name!=='string'||typeof item.data!=='string')throw Error('에셋 ID/이름/데이터가 잘못되었습니다.');
-        if(item.data.length>12*1024*1024||(total+=item.data.length)>32*1024*1024)throw Error('에셋은 개별 8MB, 프로젝트 합계 약 24MB 이하로 줄여 주세요.');
+        if(item.data.length>(Math.ceil(20*1024*1024/3)*4+128)||(total+=item.data.length)>80*1024*1024)throw Error('에셋은 개별 20MB, 프로젝트 합계 약 60MB 이하로 줄여 주세요.');
         const record={id:item.id,name:item.name.slice(0,120),kind:item.kind,data:item.data};
         next.set(record.id,await decode(record));clean.push(record);
       }
@@ -84,7 +84,7 @@ const AssetBank = (() => {
     const added=[];
     for(const file of Array.from(files)) {
       const spec=extensions[file.name.split('.').pop().toLowerCase()];if(!spec)throw Error('지원 파일: PNG/JPG/WebP/GIF, 폰트, MP3/WAV/OGG, OBJ. GLB/FBX/MTL은 지원하지 않습니다.');
-      if(file.size>8*1024*1024)throw Error('파일 하나는 8MB 이하여야 합니다.');
+      if(file.size>20*1024*1024)throw Error('파일 하나는 20MB 이하여야 합니다.');
       const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(`data:${spec[1]};base64,${String(reader.result).split(',')[1]}`);reader.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));reader.readAsDataURL(file);});
       added.push({id:'asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),name:file.name,kind:spec[0],data});
     }
