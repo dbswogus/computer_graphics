@@ -7,7 +7,7 @@ const PlayerGame = (() => {
   function start() {
     if(!ready)return;
     AssetBank.unlockEffects();
-    failures=0;totalTime=0;simulationTime=0;startStage(0);screen='play';dirty=true;
+    failures=0;totalTime=0;simulationTime=0;startStage(0);screen='play';PageUI.enterStage(true);dirty=true;
     const sound=StudioUI.settings.bgmAssetId;
     if(sound)AssetBank.playSound(sound).catch(()=>notify('소리가 차단되었습니다. 상단 소리 버튼으로 다시 재생할 수 있어요.',4));
   }
@@ -15,7 +15,7 @@ const PlayerGame = (() => {
   /** 매개변수 없음. @returns {boolean} 다음 프로젝트 맵이 있으면 이동 후 true, 마지막이면 false. */
   function advance() {
     if(stage>=STAGES.length-1)return false;
-    startStage(stage+1);screen='play';dirty=true;return true;
+    startStage(stage+1);screen='play';PageUI.enterStage(false);dirty=true;return true;
   }
 
   /** 매개변수 없음. @returns {Promise<void>} 내장 JSON/에셋을 검증·로딩하고 타이틀/조작 선택 시작. 실패하면 안내 문구 표시. */

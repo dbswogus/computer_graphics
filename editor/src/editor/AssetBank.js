@@ -4,13 +4,15 @@
 const AssetBank = (() => {
   let records=[], resources=new Map(), selectedId='', floorProgram=null,imageProgram=null, plane=null, audio=null, surfaceProgram=null, muted=false;
   const effects=new Set(), sources=new Set();
-  let effectContext=null, soundEpoch=0;
+  let effectContext=null, soundEpoch=0,revision=0;
+  let importQueue=Promise.resolve();
   const extensions={png:['image','image/png'],jpg:['image','image/jpeg'],jpeg:['image','image/jpeg'],webp:['image','image/webp'],gif:['image','image/gif'],ttf:['font','font/ttf'],otf:['font','font/otf'],woff:['font','font/woff'],woff2:['font','font/woff2'],mp3:['audio','audio/mpeg'],wav:['audio','audio/wav'],ogg:['audio','audio/ogg'],obj:['model','text/plain']};
 
   /** @param text {string} OBJ 원문. @returns {object} mesh에 전달할 {vertices,normals}. 음수 인덱스·다각형 지원. 텍스처/MTL 미지원. */
   function parseOBJ(text) {
     const points=[], triangles=[];
-    for(const line of text.split(/\r?\n/)) {
+    for(const match of text.matchAll(/[^\r\n]+/g)) {
+      const line=match[0];
       const parts=line.split('#')[0].trim().split(/\s+/);
       if(parts[0]==='v') {
         const v=parts.slice(1,4).map(Number);
@@ -31,8 +33,17 @@ const AssetBank = (() => {
     for(const v of points)for(let j=0;j<3;j++){min[j]=Math.min(min[j],v[j]);max[j]=Math.max(max[j],v[j]);}
     const size=Math.max(...max.map((v,i)=>v-min[i]));if(size<1e-8||!Number.isFinite(size))throw Error('OBJ 크기가 올바르지 않습니다.');
     const normalized=points.map(v=>[(v[0]-(min[0]+max[0])/2)/size,(v[1]-min[1])/size,(v[2]-(min[2]+max[2])/2)/size]);
-    const vertices=[],normals=[];
-    for(let i=0;i<triangles.length;i+=3){const [a,b,c]=triangles.slice(i,i+3).map(j=>normalized[j]);const u=b.map((v,j)=>v-a[j]),v=c.map((x,j)=>x-a[j]);const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const len=Math.hypot(...n)||1;for(const point of [a,b,c]){vertices.push(...point);normals.push(...n.map(x=>x/len));}}
+    // 삼각형 수에 맞춰 한 번만 메모리를 할당하고 큰 일반 배열의 재복사를 피합니다.
+    const vertices=new Float32Array(triangles.length*3),normals=new Float32Array(triangles.length*3);
+    for(let i=0;i<triangles.length;i+=3){
+      const a=normalized[triangles[i]],b=normalized[triangles[i+1]],c=normalized[triangles[i+2]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,len=Math.hypot(nx,ny,nz)||1;
+      for(let j=0;j<3;j++){
+        const offset=(i+j)*3;vertices.set(normalized[triangles[i+j]],offset);
+        normals[offset]=nx/len;normals[offset+1]=ny/len;normals[offset+2]=nz/len;
+      }
+    }
     return {vertices,normals};
   }
 
@@ -61,34 +72,63 @@ const AssetBank = (() => {
   /** @param list {object[]} JSON 에셋 목록. @returns {Promise<object>} 전체 검증·디코드된 후보. 실패하면 생성 중인 GPU 리소스도 해제. */
   async function prepare(list) {
     if(!Array.isArray(list)||list.length>30)throw Error('에셋은 최대 30개입니다.');
-    const next=new Map(),clean=[];let total=0;
+    const next=new Map(),created=new Map(),clean=[],baseRevision=revision;
+    const oldRecords=new Map(records.map(r=>[r.id,r]));let total=0;
     try {
       for(const item of list){
         if(!item||typeof item.id!=='string'||!/^[\w-]{1,80}$/.test(item.id)||next.has(item.id)||typeof item.name!=='string'||typeof item.data!=='string')throw Error('에셋 ID/이름/데이터가 잘못되었습니다.');
-        if(item.data.length>12*1024*1024||(total+=item.data.length)>32*1024*1024)throw Error('에셋은 개별 8MB, 프로젝트 합계 약 24MB 이하로 줄여 주세요.');
-        const record={id:item.id,name:item.name.slice(0,120),kind:item.kind,data:item.data};
-        next.set(record.id,await decode(record));clean.push(record);
+        if(item.data.length>(Math.ceil(20*1024*1024/3)*4+128)||(total+=item.data.length)>80*1024*1024)throw Error('에셋은 개별 20MB, 프로젝트 합계 약 60MB 이하로 줄여 주세요.');
+        const record={id:item.id,name:item.name.slice(0,120),kind:item.kind,data:item.data},old=oldRecords.get(item.id);
+        let resource;
+        if(old && old.kind===record.kind && old.name===record.name && old.data===record.data && resources.has(record.id))resource=resources.get(record.id);
+        else {resource=await decode(record);created.set(record.id,resource);}
+        next.set(record.id,resource);clean.push(record);
       }
-      return {records:clean,resources:next};
-    }catch(error){release(next);throw error;}
+      return {records:clean,resources:next,created,baseRevision,consumed:false};
+    }catch(error){release(created);throw error;}
   }
 
   /** @param bank {Map} 해제 대상. @returns {void} GPU/폰트 리소스를 해제. */
   function release(bank) {for(const resource of bank.values()){if(resource.texture)gl.deleteTexture(resource.texture);if(resource.mesh){gl.deleteBuffer(resource.mesh.b);gl.deleteBuffer(resource.mesh.nb);}if(resource.font)document.fonts.delete(resource.font);}}
 
   /** @param candidate {object} prepare 반환값. @returns {void} 리소스를 원자적으로 교체. */
-  function applyPrepared(candidate) {stopSound();release(resources);records=candidate.records;resources=candidate.resources;selectedId=records[0]?.id||'';for(const r of resources.values())if(r.font)document.fonts.add(r.font);}
+  function applyPrepared(candidate) {
+    if(candidate.consumed)throw Error('이미 처리한 에셋 후보입니다.');
+    candidate.consumed=true;
+    if(candidate.baseRevision!==revision){release(candidate.created);throw Error('에셋이 먼저 변경되었습니다. 다시 불러와 주세요.');}
+    stopSound();
+    // 재사용하는 GPU 메시/이미지/폰트는 해제하지 않습니다.
+    release(new Map([...resources].filter(([id,r])=>candidate.resources.get(id)!==r)));
+    records=candidate.records;resources=candidate.resources;revision++;
+    if(!records.some(r=>r.id===selectedId))selectedId=records[0]?.id||'';
+    for(const r of resources.values())if(r.font)document.fonts.add(r.font);
+  }
 
   /** @param files {FileList|File[]} 드롭/파일 선택 결과. @returns {Promise<void>} 허용 파일을 추가. 전부 성공한 경우에만 목록 교체. */
-  async function addFiles(files) {
-    const added=[];
-    for(const file of Array.from(files)) {
+  function addFiles(files) {
+    const input=Array.from(files);
+    const task=importQueue.then(()=>importFiles(input));
+    importQueue=task.catch(()=>{});return task;
+  }
+
+  /** @param files {File[]} 한 번의 추가 요청. @returns {Promise<void>} 순서대로 읽고 중복 파일은 재사용.
+   * 개수/전체 용량을 읽는 도중 확인해 불필요한 대용량 파일 누적을 막습니다. */
+  async function importFiles(files) {
+    if(files.length>30)throw Error('한 번에 최대 30개 파일을 선택하세요.');
+    const added=[];let total=records.reduce((sum,r)=>sum+r.data.length,0),lastId=selectedId;
+    for(const file of files) {
       const spec=extensions[file.name.split('.').pop().toLowerCase()];if(!spec)throw Error('지원 파일: PNG/JPG/WebP/GIF, 폰트, MP3/WAV/OGG, OBJ. GLB/FBX/MTL은 지원하지 않습니다.');
-      if(file.size>8*1024*1024)throw Error('파일 하나는 8MB 이하여야 합니다.');
-      const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(`data:${spec[1]};base64,${String(reader.result).split(',')[1]}`);reader.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));reader.readAsDataURL(file);});
-      added.push({id:'asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),name:file.name,kind:spec[0],data});
+      if(file.size>20*1024*1024)throw Error('파일 하나는 20MB 이하여야 합니다.');
+      const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve('data:'+spec[1]+';base64,'+String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));reader.onabort=()=>reject(Error('파일 읽기가 취소되었습니다.'));reader.readAsDataURL(file);});
+      const duplicate=[...records,...added].find(r=>r.name===file.name&&r.kind===spec[0]&&r.data===data);
+      if(duplicate){lastId=duplicate.id;continue;}
+      if(records.length+added.length>=30)throw Error('에셋은 최대 30개입니다.');
+      total+=data.length;if(total>80*1024*1024)throw Error('프로젝트 에셋 합계를 약 60MB 이하로 줄여 주세요.');
+      const id='asset-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
+      added.push({id,name:file.name,kind:spec[0],data});lastId=id;
     }
-    const prepared=await prepare([...records,...added]);applyPrepared(prepared);selectedId=added.at(-1)?.id||selectedId;
+    if(added.length)applyPrepared(await prepare([...records,...added]));
+    selectedId=lastId;
   }
 
   /** @param parent {Float32Array} 기울어진 월드 행렬. @param stage {object} placedAssets가 있는 스테이지.
@@ -105,7 +145,11 @@ const AssetBank = (() => {
   }
 
   /** @param context {CanvasRenderingContext2D} UI 캔버스. @returns {void} StudioUI의 이미지 위치/크기로 배치. */
-  function drawOverlay(context) {const setting=StudioUI.settings;const r=resources.get(setting.imageAssetId);if(r?.image)context.drawImage(r.image,setting.imageX,setting.imageY,setting.imageW,setting.imageH);}
+  function drawOverlay(context) {
+    const setting=StudioUI.settings,r=resources.get(setting.imageAssetId);if(!r?.image)return;
+    const e=PageUI.resolve('image',{x:setting.imageX,y:setting.imageY,width:setting.imageW,height:setting.imageH,text:'UI 이미지'});
+    if(!e.hidden)context.drawImage(r.image,e.x,e.y,e.width,e.height);
+  }
 
   /** @param id {string} 오디오 에셋 ID. @returns {Promise<void>} 사용자 클릭으로 재생. 디코드/권한 오류는 호출부에서 안내. */
   async function playSound(id) {muted=false;stopSound();const record=records.find(r=>r.id===id&&r.kind==='audio');if(!record)throw Error('사운드 에셋을 선택하세요.');audio=new Audio(record.data);audio.loop=true;audio.volume=0.4;await audio.play();}
@@ -243,7 +287,7 @@ const AssetBank = (() => {
     if(!resource.soundBufferPromise) {
       const binary=atob(record.data.split(',')[1]);
       const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
-      resource.soundBufferPromise=effectContext.decodeAudioData(bytes.buffer);
+      resource.soundBufferPromise=effectContext.decodeAudioData(bytes.buffer).catch(error=>{resource.soundBufferPromise=null;throw error;});
     }
     return resource.soundBufferPromise;
   }
@@ -252,7 +296,7 @@ const AssetBank = (() => {
   function setMuted(value) { muted=Boolean(value);if(muted)stopSound(); }
 
   return {skinId,drawSurface,drawFloorSkins,drawBlock,playEffect,unlockEffects,setMuted,drawOnggi,drawFloor,parseOBJ,prepare,applyPrepared,addFiles,drawWorld,drawOverlay,playSound,stopSound,
-    exportData:()=>JSON.parse(JSON.stringify(records)),list:()=>records.map(({data,...r})=>r),
+    exportData:()=>records.map(r=>({...r})),list:()=>records.map(({data,...r})=>r),
     select:id=>{selectedId=id;},selected:()=>selectedId,fontFamily:id=>resources.get(id)?.family,
     image:id=>resources.get(id)?.image};
 })();

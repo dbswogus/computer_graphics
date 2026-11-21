@@ -11,7 +11,7 @@ const EditorShell = (() => {
     for(const [id,active]of [['workspace-map','map'],['editor-mapbar','map'],['studio-design','design'],['team-files','team']])document.getElementById(id).hidden=value!==active;
     document.getElementById('editor-workspace').value=value;
     document.getElementById('editor-view-hint').textContent={map:'블록을 고르고 격자에 그리세요. 맵 추가·삭제는 맵 관리에 있습니다.',design:'에셋·효과음·물리·UI 중 필요한 탭만 선택하세요.',team:'이름이 붙은 담당 파일만 내보내고 editor/src/config의 같은 파일을 교체하세요.'}[value];
-    if(value==='design')StudioUI.preview();
+    if(value==='design'){StudioUI.preview();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();}
   }
 
   /** 매개변수 없음. @returns {void} 선택 에셋 종류에 맞는 활용 메뉴만 표시.

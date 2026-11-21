@@ -20,9 +20,11 @@ const MapEditor = (() => {
 
   /** 매개변수 없음. @returns {void} 현재 문서를 자동 저장. file:// 저장소가 차단되면 JSON 저장을 안내. */
   function persist() {
+    if(typeof StudioUI.invalidateAssetUndo==='function')StudioUI.invalidateAssetUndo();
     maps[activeMap]=map;
-    try { localStorage.setItem(storageKey, JSON.stringify(exportProject())); }
-    catch { status('자동 저장을 사용할 수 없습니다. JSON 저장 버튼으로 파일을 보관하세요.', true); }
+    SaveStatus.changed();SaveStatus.saving();
+    try { localStorage.setItem(storageKey, JSON.stringify(exportProject()));SaveStatus.saved(); }
+    catch(error) {SaveStatus.failed(error);status('자동 저장 실패: 프로젝트 백업 버튼으로 파일을 보관하세요.', true);}
   }
 
   /** @param before {object} 수정 전 맵. @returns {void} 최대 80회 실행 취소 기록, 자동 저장, 화면 갱신. */
@@ -68,7 +70,7 @@ const MapEditor = (() => {
     lastCell = key;
     const hit = hitBlock(point);
     if (erase || tool === 'erase') {
-      if (hit) map.blocks = map.blocks.filter(b => b.id !== hit.id);
+      if (hit){map.blocks = map.blocks.filter(b => b.id !== hit.id);SaveStatus.changed();}
       selectedId = null;
     } else if (tool === 'select') {
       selectedId = hit?.id || null;
@@ -79,7 +81,7 @@ const MapEditor = (() => {
       if (tool === 'start' || tool === 'goal') map.blocks = map.blocks.filter(b => b.type !== tool);
       const block = { id: `b-${Date.now()}-${Math.random().toString(36).slice(2,9)}`, type: tool, ...point, w:1, d:1, rotation:0, period:5, amp:1, axis:'x' };
       if(tool==='asset')block.assetId=AssetBank.selected();
-      map.blocks.push(block); selectedId = block.id;
+      map.blocks.push(block); selectedId = block.id;SaveStatus.changed();
     }
     render();
   }
@@ -136,6 +138,7 @@ const MapEditor = (() => {
     const nameInput=panel.querySelector('#editor-map-name');
     if(document.activeElement!==nameInput)nameInput.value=map.name;
     renderProperties();
+    if(typeof PageDesigner!=='undefined')PageDesigner.renderMini();
   }
 
   /** 매개변수 없음. @returns {void} 선택한 블록의 속성 폼 생성. 속성은 텍스트/DOM API로만 표시. */
@@ -202,7 +205,7 @@ const MapEditor = (() => {
       if (!testing) originalStages = [...STAGES];
       for(const st of STAGES)releaseGeometry(st);
       STAGES.splice(0,STAGES.length,...custom); testing=true;
-      rebuild(); startStage(0); screen='play';dirty=true;
+      rebuild(); startStage(0); screen='play';PageUI.enterStage(true);dirty=true;
       panel.hidden=true;launchButton.textContent='편집으로 돌아가기';clearInput();canvas.focus();
     } catch(error) { status(error.message,true); }
   }
@@ -218,13 +221,14 @@ const MapEditor = (() => {
   /** 매개변수 없음. @returns {void} 현재 문서를 검증하고 JSON 다운로드. 브라우저가 저장 위치를 결정. */
   function download() {
     AssetBank.unlockEffects();
-    finishStroke();
+    finishStroke();if(typeof PageDesigner!=='undefined')PageDesigner.finishDrag();
     try {
       const valid=ProjectData.validate(exportProject()),url=URL.createObjectURL(new Blob([JSON.stringify(valid,null,2)],{type:'application/json'}));
       const link=document.createElement('a');link.href=url;link.download='onggi-project-v4.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      SaveStatus.backupRequested();
       void AssetBank.playEffect('projectSave');
-      status('프로젝트 JSON을 저장했습니다. 아무 폴더에 보관한 뒤 이 화면의 불러오기로 선택하세요.');
-    }catch(error){status(error.message,true);}
+      status('프로젝트 백업 다운로드를 요청했습니다. 다운로드된 파일을 확인하고 보관하세요.');
+    }catch(error){SaveStatus.backupFailed(error.message);status(error.message,true);}
   }
 
   /** @param file {File} 사용자가 고른 JSON(최대 1MB). @returns {Promise<void>} 검증 후 원자적으로 교체. 실패하면 기존 문서 유지. */
@@ -232,13 +236,14 @@ const MapEditor = (() => {
     if(!file)return;
     panel.inert=true;
     try {
-      if(file.size>45*1024*1024)throw Error('프로젝트 JSON은 45MB 이하여야 합니다.');
+      if(file.size>100*1024*1024)throw Error('프로젝트 JSON은 100MB 이하여야 합니다.');
       const next=GameDocument.extractProject(await file.text());
       const nextUI=StudioUI.validate(next.ui);
       const prepared=await AssetBank.prepare(next.assets);
+      AssetBank.applyPrepared(prepared);
       maps=next.maps;activeMap=0;map=maps[0];selectedId=null;undoStack=[];redoStack=[];
-      AssetBank.applyPrepared(prepared);StudioUI.apply(nextUI);StudioUI.refreshAssets();
-      persist();render();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.');return true;
+      StudioUI.apply(nextUI,{history:false});UIHistory.reset();StudioUI.refreshAssets();
+      persist();render();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.');return true;
     }catch(error){status('불러오기 실패: '+error.message,true);return false;}finally{panel.inert=false;}
   }
 
@@ -252,9 +257,17 @@ const MapEditor = (() => {
     });
     board.addEventListener('pointermove',e=>{if(dragging){const point=position(e);if(point)editCell(point,(e.buttons&2)!==0);}});
     for(const name of ['pointerup','pointercancel','lostpointercapture'])board.addEventListener(name,finishStroke);
-    window.addEventListener('blur',finishStroke);
+    window.addEventListener('blur',()=>{finishStroke();if(typeof PageDesigner!=='undefined')PageDesigner.finishDrag();});
     window.addEventListener('keydown',e=>{
       if(panel.hidden||['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))return;
+      const workspace=typeof EditorShell!=='undefined'?EditorShell.workspace:'map';
+      if(workspace!=='map'){
+        if(workspace==='design'&&!document.getElementById('pane-ui').hidden){
+          if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?UIHistory.redo():UIHistory.undo();}
+          if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();UIHistory.redo();}
+        }
+        return;
+      }
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();history(!e.shiftKey);}
       if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();history(false);}
       if(e.key==='Delete'&&selectedId){const before=snapshot();map.blocks=map.blocks.filter(b=>b.id!==selectedId);selectedId=null;commit(before);}
@@ -308,7 +321,7 @@ const MapEditor = (() => {
     const hint=document.createElement('p');hint.className='editor-help';hint.textContent='JSON은 특정 폴더에 넣을 필요가 없습니다. 다운로드/문서 등 원하는 곳에 보관하고 위의 불러오기에서 선택하세요. 전체 맵·UI·에셋을 한 파일로 저장합니다.';panel.append(hint);
     const studio=document.createElement('section');studio.id='studio-design';panel.append(studio);
     StudioUI.mount(studio,()=>{persist();render();},id=>{AssetBank.select(id);tool='asset';panel.querySelector('#editor-tool-picker').value='asset';for(const b of brush.children)b.classList.toggle('active',b.dataset.tool===tool);status('이미지/모델 배치 도구가 선택되었습니다. 바닥 위의 칸을 누르세요.');});
-    bindEvents();render();
+    SaveStatus.mount(panel);bindEvents();render();
   }
 
   /** 매개변수 없음. @returns {object} 모든 맵과 현재 편집 번호의 복사본. undo용으로 에셋 바이너리는 복사하지 않음. */
@@ -318,7 +331,7 @@ const MapEditor = (() => {
   /** 매개변수 없음. @returns {object} 전체 맵·UI·에셋을 담은 재사용 가능한 v4 프로젝트. */
   function exportProject(){maps[activeMap]=map;return {kind:'onggi-project',version:4,maps:clone(maps),ui:StudioUI.exportData(),assets:AssetBank.exportData()};}
   /** @param index {number} 편집할 맵의 0부터 시작하는 번호. @returns {void} 현재 맵 보존 후 전환. */
-  function switchMap(index){finishStroke();if(!Number.isInteger(index)||!maps[index])return;maps[activeMap]=map;activeMap=index;map=maps[index];selectedId=null;render();persist();}
+  function switchMap(index){finishStroke();if(!Number.isInteger(index)||!maps[index])return;maps[activeMap]=map;activeMap=index;map=maps[index];selectedId=null;render();}
   /** 매개변수 없음. @returns {void} 맵 선택 목록과 삭제 버튼 상태를 갱신. */
   function refreshMaps(){const select=panel.querySelector('#editor-map-select');select.replaceChildren();maps[activeMap]=map;maps.forEach((m,i)=>{const option=document.createElement('option');option.value=i;option.textContent=(i+1)+'. '+m.name;select.append(option);});select.value=activeMap;panel.querySelector('#map-delete').disabled=maps.length===1;}
   /** @param kind {string} add/copy/delete/up/down. @returns {void} 맵 개수/순서를 변경하고 실행 취소 기록. */
@@ -329,10 +342,16 @@ const MapEditor = (() => {
     if(to>=0&&to<maps.length&&to!==activeMap){[maps[activeMap],maps[to]]=[maps[to],maps[activeMap]];activeMap=to;}
     map=maps[activeMap];selectedId=null;commit(before);status('맵 목록을 변경했습니다. 실행 취소로 되돌릴 수 있습니다.');}
   /** 매개변수 없음. @returns {boolean} 연속 테스트의 다음 맵으로 이동했다면 true. 마지막이면 false. */
-  function advance(){if(testing&&stage<STAGES.length-1){startStage(stage+1);screen='play';dirty=true;return true;}return false;}
+  function advance(){if(testing&&stage<STAGES.length-1){startStage(stage+1);screen='play';PageUI.enterStage(false);dirty=true;return true;}return false;}
 
   createInterface();
   /** 매개변수 없음. @returns {void} 편집기를 열어 검증 오류를 볼 수 있게 한 뒤 전체 프로젝트를 플레이. */
   function playProject(){open();panel.querySelector('#editor-all-maps').checked=true;play();}
-  return { open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
+  /** @param id {string} 블록 ID. @returns {object|null} 에셋 화면에서 선택해도 본 격자와 같은 선택/속성을 사용. */
+  function selectBlock(id){finishStroke();selectedId=map.blocks.some(b=>b.id===id)?id:null;render();return getSelected();}
+  /** 매개변수 없음. @returns {object|null} 선택 블록 복사본. */
+  function getSelected(){const b=map.blocks.find(b=>b.id===selectedId);return b?clone(b):null;}
+  /** 매개변수 없음. @returns {object[]} 맵 이름 목록. 에셋과 전체 프로젝트를 복사하지 않는 화면 갱신용 API. */
+  function listMaps(){return maps.map((m,i)=>({name:i===activeMap?map.name:m.name}));}
+  return {listMaps, selectBlock,getSelected,setSelectedSkin:id=>updateProperty('skinAssetId',id),getActiveMap:()=>activeMap,open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
 })();

@@ -1,6 +1,6 @@
-const StudioUI=(()=>{const defaults={fontFamily:'sans-serif',fontScale:1,imageAssetId:'',imageX:1100,imageY:300,imageW:200,imageH:200,bgmAssetId:'',floorAssetId:'',onggiAssets:{},onggiPhysics:{},texts:{},onggiTexts:{}};let settings={...defaults};const defaultLayout=JSON.parse(JSON.stringify(UI_LAYOUT));const defaultTexts={...UI_TEXT},defaultOnggiTexts=collectOnggiText();
+const StudioUI=(()=>{const defaults={fontFamily:'sans-serif',fontScale:1,imageAssetId:'',imageX:1100,imageY:300,imageW:200,imageH:200,bgmAssetId:'',floorAssetId:'',onggiAssets:{},onggiPhysics:{},pageDesign:{},texts:{},onggiTexts:{}};let settings={...defaults};const defaultLayout=JSON.parse(JSON.stringify(UI_LAYOUT));const defaultTexts={...UI_TEXT},defaultOnggiTexts=collectOnggiText();
 function collectOnggiText(){const result={};COLLECTION.forEach((item,i)=>{for(const field of ['name','shape','question'])result[i+'.'+field]=item[field];item.lines.forEach((line,j)=>{result[i+'.lines.'+j]=line;});});return result;}
-function applyTextSettings(next){Object.assign(UI_TEXT,next.texts);for(const [key,value]of Object.entries(next.onggiTexts)){const [id,field,index]=key.split('.');if(field==='lines')COLLECTION[id].lines[Number(index)]=value;else COLLECTION[id][field]=value;}refreshNarrativeText();if(typeof GyroInput!=='undefined')GyroInput.refreshLabels();}
+function applyTextSettings(next){Object.assign(UI_TEXT,next.texts);for(const [key,value]of Object.entries(next.onggiTexts)){const [id,field,index]=key.split('.');if(field==='lines')COLLECTION[id].lines[Number(index)]=value;else COLLECTION[id][field]=value;}refreshNarrativeText();PageUI.syncNarrative(next.pageDesign);if(typeof GyroInput!=='undefined')GyroInput.refreshLabels();}
 function validate(value={}) {
     const next={...defaults,layout:JSON.parse(JSON.stringify(defaultLayout)),texts:{...defaultTexts},onggiTexts:{...defaultOnggiTexts},onggiAssets:{}};
     if(value.fontFamily!==undefined){if(typeof value.fontFamily!=='string'||value.fontFamily.length>150)throw Error('폰트 이름이 올바르지 않습니다.');next.fontFamily=value.fontFamily;}
@@ -32,6 +32,7 @@ function validate(value={}) {
       if (typeof value.sfxVolume !== 'number' || !Number.isFinite(value.sfxVolume) || value.sfxVolume < 0 || value.sfxVolume > 1) throw Error('효과음 음량은 0~1입니다.');
       next.sfxVolume = value.sfxVolume;
     }
+    next.pageDesign=UIPageData.validate(value.pageDesign||{});
     next.onggiPhysics=OnggiPhysics.validate(value.onggiPhysics||{});
     if(value.layout){for(const [screen,items]of Object.entries(value.layout)){
       if(!Object.hasOwn(defaultLayout,screen)||!items||typeof items!=='object')throw Error('알 수 없는 UI 화면입니다.');

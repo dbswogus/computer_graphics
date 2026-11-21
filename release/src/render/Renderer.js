@@ -272,10 +272,10 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 function mesh(v, n) {
   const b = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, b);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, v instanceof Float32Array ? v : new Float32Array(v), gl.STATIC_DRAW);
   const nb = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, nb);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(n), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, n instanceof Float32Array ? n : new Float32Array(n), gl.STATIC_DRAW);
   return {
     b,
     nb,

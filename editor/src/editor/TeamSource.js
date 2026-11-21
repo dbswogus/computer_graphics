@@ -2,7 +2,7 @@
  * UI: 유리 / 맵: 다유 / 물리: 재현. 파일명은 안정적으로 두고 이름은 주석과 편집기에 표시합니다. */
 const TeamSource = (() => {
   const roles={ui:{owner:'유리',name:'UIConfig.js',symbol:'TEAM_UI_SOURCE'},map:{owner:'다유',name:'MapConfig.js',symbol:'TEAM_MAP_SOURCE'},physics:{owner:'재현',name:'PhysicsConfig.js',symbol:'TEAM_PHYSICS_SOURCE'}};
-  const uiKeys=['fontFamily','fontScale','imageAssetId','imageX','imageY','imageW','imageH','bgmAssetId','onggiAssets','texts','onggiTexts','layout','sfx','sfxVolume'];
+  const uiKeys=['fontFamily','fontScale','imageAssetId','imageX','imageY','imageW','imageH','bgmAssetId','onggiAssets','texts','onggiTexts','layout','sfx','sfxVolume','pageDesign'];
 
   /** 읽기 1. @param role {string} ui/map/physics. @param project {object} 검증된 프로젝트.
    * @returns {object} 담당 설정과 그 설정이 실제 사용하는 에셋만 포함한 독립 데이터. */
@@ -50,7 +50,7 @@ const TeamSource = (() => {
   /** 읽기 4. @param role {string} 담당 종류. @param text {string} 내보낸 JS 원문.
    * @returns {object} 정확한 상수 선언 안의 JSON만 해석. import/eval/스크립트 실행은 하지 않습니다. */
   function parse(role,text) {
-    const info=roles[role];if(!info || typeof text!=='string' || text.length>45*1024*1024)throw Error('담당 파일을 확인하세요.');
+    const info=roles[role];if(!info || typeof text!=='string' || text.length>100*1024*1024)throw Error('담당 파일을 확인하세요.');
     const clean=text.replace(/^\s*\/\/[^\n]*(?:\n|$)/,'').trim();
     const prefix='const '+info.symbol+' = ';
     if(!clean.startsWith(prefix)||!clean.endsWith(';'))throw Error(info.name+' 형식이 아닙니다. 편집기에서 내보낸 파일을 선택하세요.');

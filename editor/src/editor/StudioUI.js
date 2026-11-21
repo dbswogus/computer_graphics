@@ -1,8 +1,9 @@
 /* 읽기: validate → apply → mount → preview. UI_LAYOUT를 직접 수정하므로 실제 버튼 판정도 같이 바뀝니다. */
 const StudioUI = (() => {
-  const defaults={fontFamily:'sans-serif',fontScale:1,imageAssetId:'',imageX:1100,imageY:300,imageW:200,imageH:200,bgmAssetId:'',floorAssetId:'',onggiAssets:{},onggiPhysics:{},texts:{},onggiTexts:{}};
+  const defaults={fontFamily:'sans-serif',fontScale:1,imageAssetId:'',imageX:1100,imageY:300,imageW:200,imageH:200,bgmAssetId:'',floorAssetId:'',onggiAssets:{},onggiPhysics:{},pageDesign:{},texts:{},onggiTexts:{}};
   let settings={...defaults}, host, scene='drawTitle', element='',textKey=Object.keys(UI_TEXT)[0],physicsId='0', previewCanvas, propertyBox, saved=()=>{}, chooseAsset=()=>{};
   const screens={drawTitle:'시작',drawSelect:'옹기 선택',drawGuide:'설명',drawPlay:'게임 중',drawFinish:'결과',drawStory:'도입 이야기',drawMonologue:'스테이지 대사'};
+  let deletedProject=null;
   const defaultLayout=JSON.parse(JSON.stringify(UI_LAYOUT));
   const defaultTexts={...UI_TEXT},defaultOnggiTexts=collectOnggiText();
 
@@ -10,7 +11,7 @@ const StudioUI = (() => {
   function collectOnggiText(){const result={};COLLECTION.forEach((item,i)=>{for(const field of ['name','shape','question'])result[i+'.'+field]=item[field];item.lines.forEach((line,j)=>{result[i+'.lines.'+j]=line;});});return result;}
 
   /** @param next {object} 검증된 텍스트 설정. @returns {void} 게임 문구/옹기 설명/이야기 배열을 갱신. HTML로 해석하지 않음. */
-  function applyTextSettings(next){Object.assign(UI_TEXT,next.texts);for(const [key,value]of Object.entries(next.onggiTexts)){const [id,field,index]=key.split('.');if(field==='lines')COLLECTION[id].lines[Number(index)]=value;else COLLECTION[id][field]=value;}refreshNarrativeText();if(typeof GyroInput!=='undefined')GyroInput.refreshLabels();}
+  function applyTextSettings(next){Object.assign(UI_TEXT,next.texts);for(const [key,value]of Object.entries(next.onggiTexts)){const [id,field,index]=key.split('.');if(field==='lines')COLLECTION[id].lines[Number(index)]=value;else COLLECTION[id][field]=value;}refreshNarrativeText();PageUI.syncNarrative(next.pageDesign);if(typeof GyroInput!=='undefined')GyroInput.refreshLabels();}
 
   /** @param value {object} 프로젝트 UI. @returns {object} 안전한 설정 복사본. 키/숫자/크기/배율 검사. */
   function validate(value={}) {
@@ -44,6 +45,7 @@ const StudioUI = (() => {
       if (typeof value.sfxVolume !== 'number' || !Number.isFinite(value.sfxVolume) || value.sfxVolume < 0 || value.sfxVolume > 1) throw Error('효과음 음량은 0~1입니다.');
       next.sfxVolume = value.sfxVolume;
     }
+    next.pageDesign=UIPageData.validate(value.pageDesign||{});
     next.onggiPhysics=OnggiPhysics.validate(value.onggiPhysics||{});
     if(value.layout){for(const [screen,items]of Object.entries(value.layout)){
       if(!Object.hasOwn(defaultLayout,screen)||!items||typeof items!=='object')throw Error('알 수 없는 UI 화면입니다.');
@@ -60,11 +62,12 @@ const StudioUI = (() => {
   }
 
   /** @param value {object} validate할 UI 설정. @returns {void} 실제 폰트/배치와 편집 화면 반영. */
-  function apply(value) {
-    const next=validate(value);settings={...next};delete settings.layout;
+  function apply(value,options={}) {
+    const next=validate(value),before=options.history!==false?exportData():null;settings={...next};delete settings.layout;
     GAME_CONFIG.ui.fontFamily=settings.fontFamily;applyTextSettings(next);OnggiPhysics.applySelected();
     for(const [screen,items]of Object.entries(next.layout))for(const [id,props]of Object.entries(items))Object.assign(UI_LAYOUT[screen][id],props);
-    dirty=true;if(host){refreshControls();preview();}
+    if(before&&typeof UIHistory!=='undefined')UIHistory.record(before,exportData());
+    dirty=true;if(host&&options.refreshLegacy!==false){refreshControls();preview();}
   }
 
   /** 매개변수 없음. @returns {object} JSON에 저장할 폰트/배치/이미지 설정. */
@@ -110,6 +113,7 @@ const StudioUI = (() => {
   /** 매개변수 없음. @returns {void} 이미지 썸네일/선택 목록 갱신. 파일명은 HTML로 해석하지 않음. */
   function refreshAssets() {
     if(!host)return;const list=host.querySelector('#asset-list');list.replaceChildren();
+    const remove=host.querySelector('#asset-delete');if(remove)remove.disabled=!AssetBank.list().some(a=>a.id===AssetBank.selected());
     refreshMediaControls();
     for(const asset of AssetBank.list()){
       const button=document.createElement('button');button.textContent=`${asset.kind} · ${asset.name}`;button.classList.toggle('active',AssetBank.selected()===asset.id);
@@ -128,7 +132,12 @@ const StudioUI = (() => {
    * @param onPlace {function(string):void} 에셋 ID를 배치 도구로 지정. @returns {void} UI 편집·파일 드롭 이벤트 연결. */
   function mount(container,onSave,onPlace) {
     host=container;saved=onSave;chooseAsset=onPlace;
-    host.innerHTML="<div class=\"studio-heading\"><h2>게임 꾸미기</h2><p>① 파일 넣기 → ② 종류별 외형·효과음 지정 → ③ 바로 테스트 → ④ release ZIP 내보내기</p></div><nav class=\"studio-tabs\" aria-label=\"게임 설정\"><button id=\"tab-assets\" aria-controls=\"pane-assets\">에셋·블록 외형</button><button id=\"tab-sound\" aria-controls=\"pane-sound\">효과음·BGM</button><button id=\"tab-physics\" aria-controls=\"pane-physics\">옹기 물리</button><button id=\"tab-ui\" aria-controls=\"pane-ui\">UI 문구·배치</button></nav><p id=\"studio-notice\" role=\"status\" aria-live=\"polite\"></p><section id=\"pane-assets\"><details open><summary><strong>에셋 넣기</strong></summary><div id=\"asset-drop\" tabindex=\"0\">여기에 에셋 파일을 드래그 앤 드롭하세요. 또는 <button id=\"asset-pick\">파일 선택</button><input id=\"asset-file\" type=\"file\" multiple hidden accept=\".png,.jpg,.jpeg,.webp,.gif,.ttf,.otf,.woff,.woff2,.mp3,.wav,.ogg,.obj\"></div><p>먼저 파일을 넣고 목록에서 선택하세요. 이미지·OBJ는 아래에서 종류별 외형으로 지정할 수 있습니다. 모든 파일은 프로젝트에 포함되어 오프라인으로 실행됩니다.</p><div id=\"asset-list\"></div><label>옹기 모델 대상 <select id=\"onggi-target\"></select></label> <button id=\"asset-onggi\">옹기 모델로 사용</button> <button id=\"asset-onggi-reset\">옹기 기본 모델</button> <button id=\"asset-floor\">바닥 이미지로 사용</button> <button id=\"asset-floor-reset\">기본 바닥</button> <button id=\"asset-place\">선택 에셋을 맵에 배치</button> <button id=\"asset-image\">UI 이미지로 사용</button> <button id=\"asset-font\">게임 폰트로 사용</button>     <button id=\"asset-hide-image\">UI 이미지 숨기기</button><div class=\"studio-card-group\"><h3>블록 종류별 외형</h3><p>이 종류의 모든 블록에 적용됩니다. 한 블록만 바꾸려면 격자에서 선택 후 오른쪽의 개별 외형을 바꾸세요.</p><label>대상 종류 <select id=\"skin-type\"><option value=\"floor\">바닥</option><option value=\"wall\">벽</option><option value=\"hole\">구멍 테두리</option><option value=\"sweeper\">왕복 장애물</option><option value=\"crumble\">무너지는 바닥</option><option value=\"checkpoint\">체크포인트</option><option value=\"start\">출발점</option><option value=\"goal\">도착점</option></select></label><label>외형 에셋 <select id=\"skin-asset\"></select></label><button id=\"skin-apply\">종류 전체에 적용</button><button id=\"skin-reset\">이 종류 기본 외형</button><p id=\"skin-current\"></p><p>바닥·구멍: 이미지 전용. 벽·장애물·표식: 이미지 또는 OBJ. 외형만 변경되며 충돌은 1칸 블록 기준입니다. 구멍 이미지도 테두리에만 적용됩니다.</p></div></details></section><section id=\"pane-sound\" hidden><details open><summary><strong>효과음과 배경음</strong></summary><p>에셋 탭에서 WAV·MP3·OGG 파일을 넣은 뒤 상황별 소리를 선택하세요. 효과음은 한 번, BGM은 반복 재생됩니다.</p><div id=\"sfx-fields\"></div><label>효과음 음량 <input id=\"sfx-volume\" type=\"range\" min=\"0\" max=\"1\" step=\"0.05\"></label><span id=\"sfx-volume-label\"></span><p>체크포인트 저장과 프로젝트 파일 저장은 별개입니다. 자동 저장에는 소리가 나지 않습니다.</p><h3>BGM</h3><p>에셋 목록에서 오디오를 선택한 뒤 지정하세요.</p><button id=\"asset-sound\">선택 오디오 반복 미리 듣기</button><button id=\"asset-stop\">모든 소리 중지</button><button id=\"asset-bgm\">선택 오디오를 BGM 지정</button><button id=\"asset-unset-bgm\">BGM 해제</button><p id=\"bgm-current\"></p></details></section><section id=\"pane-physics\" hidden><details open><summary><strong>옹기별 물리값</strong></summary><p>옹기를 골라 조작감을 바꾸세요. 값은 저장과 배포에 함께 포함됩니다. 큰 반지름은 더 넓은 바닥이 필요합니다.</p><label>대상 옹기 <select id=\"physics-target\"></select></label><div id=\"physics-properties\"></div><button id=\"physics-play\">이 옹기로 테스트</button><button id=\"physics-reset\">선택 옹기 기본값</button><p id=\"physics-status\" role=\"status\"></p></details></section><section id=\"pane-ui\" hidden><details open><summary><strong>게임 UI 폰트·배치 편집</strong></summary><p>좌표는 1600×1000 화면 기준입니다. 화면/요소를 고르고 숫자를 수정하거나 미리보기에서 선택 요소를 드래그하세요. 파란 테두리는 선택 요소입니다. 3D 옹기는 미리보기에 표시하지 않습니다.</p><label>수정할 문구 <select id=\"ui-text-key\"></select></label><textarea id=\"ui-text-value\" maxlength=\"500\" rows=\"3\" aria-label=\"게임 문구\"></textarea> <button id=\"ui-text-apply\">문구 적용</button><p>원하는 문구를 고르고 적용하세요. 옹기 이름/설명도 바꿀 수 있습니다. 긴 문구는 글자 크기와 위치도 조절하세요.</p><label>폰트 이름 <input id=\"ui-family\" placeholder=\"sans-serif\"></label> <label>글자 전체 배율 <input id=\"ui-scale\" type=\"number\" min=\"0.5\" max=\"2\" step=\"0.1\"></label><label>화면 <select id=\"ui-scene\"></select></label><label>요소 <select id=\"ui-element\"></select></label><div class=\"studio-ui-grid\"><canvas id=\"ui-preview\" width=\"800\" height=\"500\"></canvas><div id=\"ui-properties\"></div></div></details></section>";
+    host.innerHTML="<div class=\"studio-heading\"><h2>게임 꾸미기</h2><p>① 파일 넣기 → ② 종류별 외형·효과음 지정 → ③ 바로 테스트 → ④ release ZIP 내보내기</p></div><nav class=\"studio-tabs\" aria-label=\"게임 설정\"><button id=\"tab-assets\" aria-controls=\"pane-assets\">에셋·블록 외형</button><button id=\"tab-sound\" aria-controls=\"pane-sound\">효과음·BGM</button><button id=\"tab-physics\" aria-controls=\"pane-physics\">옹기 물리</button><button id=\"tab-ui\" aria-controls=\"pane-ui\">UI 문구·배치</button></nav><p id=\"studio-notice\" role=\"status\" aria-live=\"polite\"></p><section id=\"pane-assets\"><details open><summary><strong>에셋 넣기</strong></summary><div id=\"asset-drop\" tabindex=\"0\">여기에 에셋 파일을 드래그 앤 드롭하세요. 또는 <button id=\"asset-pick\">에셋 추가</button><input id=\"asset-file\" type=\"file\" multiple hidden accept=\".png,.jpg,.jpeg,.webp,.gif,.ttf,.otf,.woff,.woff2,.mp3,.wav,.ogg,.obj\"></div><p>먼저 파일을 넣고 목록에서 선택하세요. 이미지·OBJ는 아래에서 종류별 외형으로 지정할 수 있습니다. 모든 파일은 프로젝트에 포함되어 오프라인으로 실행됩니다.</p><div id=\"asset-list\"></div><div class=\"asset-manage-row\"><button id=\"asset-delete\">선택 에셋 삭제</button><button id=\"asset-delete-undo\" hidden>방금 삭제 되돌리기</button></div><p>삭제하면 사용 중인 외형·소리 연결이 해제되고 해당 에셋 장식만 제거됩니다. 컴퓨터의 원본 파일은 삭제하지 않습니다.</p><label>옹기 모델 대상 <select id=\"onggi-target\"></select></label> <button id=\"asset-onggi\">옹기 모델로 사용</button> <button id=\"asset-onggi-reset\">옹기 기본 모델</button> <button id=\"asset-floor\">바닥 이미지로 사용</button> <button id=\"asset-floor-reset\">기본 바닥</button> <button id=\"asset-place\">선택 에셋을 맵에 배치</button> <button id=\"asset-image\">UI 이미지로 사용</button> <button id=\"asset-font\">게임 폰트로 사용</button>     <button id=\"asset-hide-image\">UI 이미지 숨기기</button><div class=\"studio-card-group\"><h3>블록 종류별 외형</h3><p>이 종류의 모든 블록에 적용됩니다. 한 블록만 바꾸려면 아래 작은 격자에서 선택하고 개별 외형을 고르세요.</p><label>대상 종류 <select id=\"skin-type\"><option value=\"floor\">바닥</option><option value=\"wall\">벽</option><option value=\"hole\">구멍 테두리</option><option value=\"sweeper\">왕복 장애물</option><option value=\"crumble\">무너지는 바닥</option><option value=\"checkpoint\">체크포인트</option><option value=\"start\">출발점</option><option value=\"goal\">도착점</option></select></label><label>외형 에셋 <select id=\"skin-asset\"></select></label><button id=\"skin-apply\">종류 전체에 적용</button><button id=\"skin-reset\">이 종류 기본 외형</button><p id=\"skin-current\"></p><p>바닥·구멍: 이미지 전용. 벽·장애물·표식: 이미지 또는 OBJ. 외형만 변경되며 충돌은 1칸 블록 기준입니다. 구멍 이미지도 테두리에만 적용됩니다.</p></div></details></section><section id=\"pane-sound\" hidden><details open><summary><strong>효과음과 배경음</strong></summary><p>에셋 탭에서 WAV·MP3·OGG 파일을 넣은 뒤 상황별 소리를 선택하세요. 효과음은 한 번, BGM은 반복 재생됩니다.</p><div id=\"sfx-fields\"></div><label>효과음 음량 <input id=\"sfx-volume\" type=\"range\" min=\"0\" max=\"1\" step=\"0.05\"></label><span id=\"sfx-volume-label\"></span><p>체크포인트 저장과 프로젝트 파일 저장은 별개입니다. 자동 저장에는 소리가 나지 않습니다.</p><h3>BGM</h3><p>에셋 목록에서 오디오를 선택한 뒤 지정하세요.</p><button id=\"asset-sound\">선택 오디오 반복 미리 듣기</button><button id=\"asset-stop\">모든 소리 중지</button><button id=\"asset-bgm\">선택 오디오를 BGM 지정</button><button id=\"asset-unset-bgm\">BGM 해제</button><p id=\"bgm-current\"></p></details></section><section id=\"pane-physics\" hidden><details open><summary><strong>옹기별 물리값</strong></summary><p>옹기를 골라 조작감을 바꾸세요. 값은 저장과 배포에 함께 포함됩니다. 큰 반지름은 더 넓은 바닥이 필요합니다.</p><label>대상 옹기 <select id=\"physics-target\"></select></label><div id=\"physics-properties\"></div><button id=\"physics-play\">이 옹기로 테스트</button><button id=\"physics-reset\">선택 옹기 기본값</button><p id=\"physics-status\" role=\"status\"></p></details></section><section id=\"pane-ui\" hidden><details open><summary><strong>게임 UI 폰트·배치 편집</strong></summary><p>좌표는 1600×1000 화면 기준입니다. 화면/요소를 고르고 숫자를 수정하거나 미리보기에서 선택 요소를 드래그하세요. 파란 테두리는 선택 요소입니다. 3D 옹기는 미리보기에 표시하지 않습니다.</p><label>수정할 문구 <select id=\"ui-text-key\"></select></label><textarea id=\"ui-text-value\" maxlength=\"500\" rows=\"3\" aria-label=\"게임 문구\"></textarea> <button id=\"ui-text-apply\">문구 적용</button><p>원하는 문구를 고르고 적용하세요. 옹기 이름/설명도 바꿀 수 있습니다. 긴 문구는 글자 크기와 위치도 조절하세요.</p><label>폰트 이름 <input id=\"ui-family\" placeholder=\"sans-serif\"></label> <label>글자 전체 배율 <input id=\"ui-scale\" type=\"number\" min=\"0.5\" max=\"2\" step=\"0.1\"></label><label>화면 <select id=\"ui-scene\"></select></label><label>요소 <select id=\"ui-element\"></select></label><div class=\"studio-ui-grid\"><canvas id=\"ui-preview\" width=\"800\" height=\"500\"></canvas><div id=\"ui-properties\"></div></div></details></section>";
+    host.querySelector('#asset-delete').onclick=deleteSelectedAsset;
+    host.querySelector('#asset-delete-undo').onclick=async()=>{
+      if(!deletedProject)return;const snapshot=deletedProject,json=JSON.stringify(snapshot);
+      if(await MapEditor.load({size:json.length,text:async()=>json})){deletedProject=null;host.querySelector('#asset-delete-undo').hidden=true;host.querySelector('#studio-notice').textContent='삭제한 에셋과 설정을 복원했습니다.';}
+    };
     for (const name of ['assets','sound','physics','ui']) {
       host.querySelector('#tab-'+name).onclick=()=>{
         for (const key of ['assets','sound','physics','ui']) {
@@ -232,5 +241,22 @@ const StudioUI = (() => {
     host.querySelector('#bgm-current').textContent='현재 BGM: '+(AssetBank.list().find(a=>a.id===settings.bgmAssetId)?.name || '없음');
   }
 
-  return {validate,apply,exportData,mount,refreshAssets,preview,get settings(){return settings;}};
+
+  /** 매개변수 없음. @returns {Promise<void>} 선택 에셋과 모든 참조를 안전하게 해제 후 저장.
+   * 재로딩 실패 시 기존 프로젝트 유지. 한 번의 삭제는 버튼으로 되돌릴 수 있습니다. */
+  async function deleteSelectedAsset() {
+    const button=host.querySelector('#asset-delete');if(button.disabled)return;
+    button.disabled=true;
+    try {
+      const before=MapEditor.exportProject(),result=ProjectData.withoutAsset(before,AssetBank.selected()),json=JSON.stringify(result.project);
+      if(!await MapEditor.load({size:json.length,text:async()=>json}))throw Error('에셋 삭제를 적용하지 못했습니다. 기존 프로젝트를 유지합니다.');
+      deletedProject=before;host.querySelector('#asset-delete-undo').hidden=false;
+      host.querySelector('#studio-notice').textContent='에셋 삭제 완료 · 연결 '+result.clearedBindings+'개 해제 · 장식 '+result.removedBlocks+'개 제거. 원본 파일은 유지됩니다. 다른 수정 전까지 되돌릴 수 있습니다.';
+    }catch(error){host.querySelector('#studio-notice').textContent=error.message;}
+    finally{refreshAssets();}
+  }
+
+  /** 매개변수 없음. @returns {void} 삭제 후 다른 변경이 저장되면 이전 전체 초안으로 되돌리기를 비활성화. */
+  function invalidateAssetUndo(){deletedProject=null;if(host?.querySelector('#asset-delete-undo'))host.querySelector('#asset-delete-undo').hidden=true;}
+  return {invalidateAssetUndo,deleteSelectedAsset,validate,apply,exportData,mount,refreshAssets,preview,save:()=>saved(),get settings(){return settings;}};
 })();

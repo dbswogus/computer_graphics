@@ -90,7 +90,20 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
 
 
   context.fakeFiles=[{name:'dropped.obj',size:obj.length,bytes:obj}];
+  const beforeNewAssetBuffers=nextBuffer;
   await run('AssetBank.addFiles(fakeFiles)');check('AssetBank.list().length===5','file-drop load path');
+  assert.equal(nextBuffer-beforeNewAssetBuffers,2,'adding one OBJ only allocates its two buffers');
+  const duplicateBuffers=nextBuffer;await run('AssetBank.addFiles(fakeFiles)');
+  check('AssetBank.list().length===5','same file deduplicated');assert.equal(nextBuffer,duplicateBuffers,'duplicate file does not decode/reallocate');
+  context.queuedA=[{name:'queued-a.obj',size:obj.length,bytes:obj}];context.queuedB=[{name:'queued-b.obj',size:obj.length,bytes:obj}];
+  await run('Promise.all([AssetBank.addFiles(queuedA),AssetBank.addFiles(queuedB)])');check('AssetBank.list().length===7','concurrent imports preserve both');
+  check('AssetBank.parseOBJ(obj).vertices instanceof Float32Array&&AssetBank.parseOBJ(obj).normals instanceof Float32Array','OBJ uses compact typed arrays');
+  const beforeCandidateBuffers=liveBuffers.size;
+  context.staleOBJ={id:'stale-model',name:'stale.obj',kind:'model',data:'data:text/plain;base64,'+Buffer.from(obj).toString('base64')};
+  context.firstCandidate=await run('AssetBank.prepare(AssetBank.exportData())');context.staleCandidate=await run('AssetBank.prepare([...AssetBank.exportData(),staleOBJ])');run('AssetBank.applyPrepared(firstCandidate)');
+  assert.throws(()=>run('AssetBank.applyPrepared(staleCandidate)'),'stale candidate rejected');assert.equal(liveBuffers.size,beforeCandidateBuffers,'stale candidate releases only new buffers');
+  run('var safeExport=AssetBank.exportData();safeExport[0].name="changed";');check('AssetBank.list()[0].name!=="changed"','cheap export preserves record isolation');
+  console.log('PASS: one new OBJ allocates 2 buffers; duplicate allocates 0; parallel imports preserved; stale candidates cleaned safely; Float32 OBJ output.');
   const beforeBadAsset=JSON.stringify(run('MapEditor.exportProject()')),buffersBeforeBad=liveBuffers.size;
   context.invalidAssetProject=JSON.parse(beforeBadAsset);context.invalidAssetProject.maps[0].name='must not replace';
   context.invalidAssetProject.assets.push({id:'broken',name:'bad.obj',kind:'model',data:'data:text/plain;base64,'+Buffer.from('not OBJ').toString('base64')});
@@ -198,6 +211,124 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   for(const role of ['ui','map','physics'])assert(run('TeamFiles.createSource('+JSON.stringify(role)+')').includes(TeamSourceName(role)),'owner comment');
   function TeamSourceName(role){return {ui:'유리',map:'다유',physics:'재현'}[role];}
   console.log('PASS: UI-only and physics-only editor import preserve other source bytes; owner comments; malformed/wrong-owner source rejection.');
+
+
+  // エディタ画面間の選択共有、ページごとの編集、実ゲームの導線を検証。
+  const mini=elements.get('asset-mini-map');const floorBlock=run("MapEditor.getMap().blocks.find(b=>b.type==='floor')");
+  elements.get('mini-layer').value='floor';mini.dispatch('pointerdown',{clientX:(floorBlock.x+9)/17*mini.width,clientY:(floorBlock.z+6)/12*mini.height,pointerId:2,button:0});
+  check("MapEditor.getSelected()?.type==='floor'",'asset mini-grid selects floor in main editor');
+  elements.get('mini-skin').value='image-test';elements.get('mini-skin').onchange({target:elements.get('mini-skin')});
+  check("MapEditor.getSelected().skinAssetId==='image-test'",'mini-grid applies per-block skin');
+  const beforePageMap=run("TeamFiles.createSource('map')");
+  run('PageDesigner.refresh()');
+  const titleItem=run("PageUI.elements.find(e=>e.type==='text'&&e.text===UI_TEXT.drawTitle_01)");
+  const legacyUIOption=elements.get('ui-element').children[0];assert(titleItem,'title text captured');
+  const pageCanvas=elements.get('page-preview');
+  pageCanvas.dispatch('pointerdown',{button:0,pointerId:3,clientX:(titleItem.x+3)/1600*pageCanvas.width,clientY:titleItem.y/1000*pageCanvas.height});
+  assert.equal(run('PageDesigner.selection'),titleItem.id,'click uses visible text bounds');
+  pageCanvas.dispatch('pointermove',{pointerId:3,clientX:(titleItem.x+43)/1600*pageCanvas.width,clientY:(titleItem.y+20)/1000*pageCanvas.height});pageCanvas.dispatch('pointerup',{pointerId:3});
+  assert.equal(elements.get('ui-element').children[0],legacyUIOption,'drag does not rebuild hidden legacy UI controls');
+  context.dragId=titleItem.id;check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x===Math.round('+titleItem.x+'+40)','drag saves X');
+  elements.get('designer-text').value='이 페이지의 제목';elements.get('designer-text').onchange({target:elements.get('designer-text')});
+  check("PageUI.elements.some(e=>e.id===dragId&&e.text==='이 페이지의 제목')",'selected text edit in actual draw');
+  elements.get('page-background-enabled').checked=true;elements.get('page-background').value='#112233';elements.get('page-background').onchange();
+  check("StudioUI.settings.pageDesign.pages.drawTitle.background==='#112233'",'page background saved');
+  run("PageDesigner.addElement('button')");elements.get('element-action').value='start';elements.get('element-action').onchange({target:elements.get('element-action')});
+  elements.get('element-color').value='#eeccaa';elements.get('element-color').onchange({target:elements.get('element-color')});
+  check("StudioUI.settings.pageDesign.pages.drawTitle.extras.some(e=>e.type==='button'&&e.action==='start'&&e.color==='#eeccaa')",'added button action and color');
+  elements.get('element-delete').click();check('StudioUI.settings.pageDesign.pages.drawTitle.extras.length===0','delete added element');
+  run("PageDesigner.managePage('add')");check('StudioUI.settings.pageDesign.extraPages.length===1','add page');run("PageDesigner.managePage('delete')");check('StudioUI.settings.pageDesign.extraPages.length===0','delete page');run("PageDesigner.managePage('add')");
+  run("PageDesigner.editDialogue('add')");elements.get('dialogue-speaker').value='옹기 친구';elements.get('dialogue-text').value='새 독백 첫 줄\n둘째 줄';elements.get('dialogue-speaker').onchange();
+  check("StudioUI.settings.pageDesign.dialogues['0'].at(-1).speaker==='옹기 친구'",'speaker saved');
+  run("PageDesigner.editDialogue('delete')");check("StudioUI.settings.pageDesign.dialogues['0'].length===2",'delete monologue page');
+  assert.equal(run("TeamFiles.createSource('map')"),beforePageMap,'UI page changes leave map source bytes intact');
+  check("TeamSource.parse('ui',TeamFiles.createSource('ui')).settings.pageDesign.extraPages.length===1",'page design in UI source');
+  assert.throws(()=>run("UIPageData.validate({pages:{drawTitle:{background:'url(bad)'}}})"));
+  run('MapEditor.playProject()');check("screen==='custom-ui'",'new intro page actually shown in game');
+  run("action('page-next')");check("screen==='monologue'",'custom intro leads to configured monologues');
+  run("for(let i=0;i<10&&screen==='monologue';i++)action('dialogue-next')");check("screen==='play'",'monologues lead to playable game');
+  run('MapEditor.open()');
+  run('var originalExportForPerf=MapEditor.exportProject;var previewExports=0;MapEditor.exportProject=()=>{previewExports++;return originalExportForPerf();};PageDesigner.refresh();MapEditor.exportProject=originalExportForPerf;');check('previewExports===0','page/mini preview does not export/copy whole project');
+  console.log('PASS: mini-grid selection/skin, actual text hit/drag, page-scoped text/background/button colors and actions, add/delete pages/elements/monologues, isolated UI export, actual intro→dialogue→play.');
+
+
+  elements.get('designer-page').value='drawTitle';elements.get('designer-page').onchange({target:elements.get('designer-page')});
+  const btnItem=run("PageUI.elements.find(e=>e.type==='button'&&e.action==='select')");assert(btnItem,'real title button captured');
+  const cx=btnItem.x+btnItem.width/2,cy=btnItem.y+btnItem.height/2;
+  pageCanvas.dispatch('pointerdown',{button:0,pointerId:4,clientX:cx/1600*pageCanvas.width,clientY:cy/1000*pageCanvas.height});
+  assert.equal(run('PageDesigner.selection'),btnItem.id,'button selects as one unit');
+  pageCanvas.dispatch('pointermove',{pointerId:4,clientX:(cx+30)/1600*pageCanvas.width,clientY:(cy+10)/1000*pageCanvas.height});pageCanvas.dispatch('pointerup',{pointerId:4});
+  context.buttonId=btnItem.id;check('StudioUI.settings.pageDesign.pages.drawTitle.elements[buttonId].x===Math.round('+btnItem.x+'+30)','button drag saved');
+  run("var oldScreenForClick=screen;screen='title';drawUI();var movedButton=buttons.find(b=>b.id==='select');screen=oldScreenForClick;");
+  check('movedButton.x===Math.round('+btnItem.x+'+30)','actual game button hit area moved with drawing');
+  check("!StudioUI.settings.pageDesign.pages.drawGuide?.background",'page colors stay scoped');
+  run("var restorePageDesign=JSON.parse(JSON.stringify(StudioUI.settings.pageDesign));var noDialogue=JSON.parse(JSON.stringify(restorePageDesign));noDialogue.dialogues['0']=[];StudioUI.apply({...StudioUI.exportData(),pageDesign:noDialogue});stage=0;PageUI.enterStage(false)");
+  check("screen==='play'",'zero dialogue pages skips monologue');
+  run('StudioUI.apply({...StudioUI.exportData(),pageDesign:restorePageDesign});MapEditor.open();');
+
+
+  const beforeDelete=JSON.stringify(run('MapEditor.exportProject()'));
+  run("AssetBank.select('image-test');StudioUI.refreshAssets()");assert(!elements.get('asset-delete').disabled,'selected asset can be deleted');
+  await elements.get('asset-delete').click();
+  check("!AssetBank.list().some(a=>a.id==='image-test')",'selected asset removed');
+  check("!MapEditor.exportProject().maps.some(m=>m.blocks.some(b=>b.skinAssetId==='image-test'))",'deleted skin bindings removed');
+  check("StudioUI.settings.imageAssetId===''&&StudioUI.settings.floorAssetId===''",'image/floor return to default');
+  run('ProjectData.validate(MapEditor.exportProject())');
+  assert(!elements.get('asset-delete-undo').hidden,'undo offered');await elements.get('asset-delete-undo').click();
+  assert.equal(JSON.stringify(run('MapEditor.exportProject()')),beforeDelete,'undo restores asset/settings exactly');
+  run("AssetBank.select('sound-test');StudioUI.refreshAssets()");await elements.get('asset-delete').click();
+  check("!AssetBank.list().some(a=>a.id==='sound-test')&&Object.keys(StudioUI.settings.sfx).length===0",'audio deletion clears all assigned effects');
+  await elements.get('asset-delete-undo').click();
+  const deletedModel=run("ProjectData.withoutAsset(MapEditor.exportProject(),'model-test')");assert(deletedModel.removedBlocks>0,'model decoration removed');
+  assert(!Object.values(deletedModel.project.ui.onggiAssets).includes('model-test'),'onggi model binding removed');
+  assert(!deletedModel.project.maps.some(m=>m.blocks.some(b=>b.assetId==='model-test')),'all decoration references removed');
+  run("AssetBank.select('font-test');StudioUI.refreshAssets()");await elements.get('asset-delete').click();
+  check("StudioUI.settings.fontFamily==='sans-serif'",'font deletion restores default font');await elements.get('asset-delete-undo').click();
+  run("AssetBank.select('image-test');StudioUI.refreshAssets()");await elements.get('asset-delete').click();run('StudioUI.save()');assert(elements.get('asset-delete-undo').hidden,'later changes invalidate stale undo');
+  context.restoreAfterDelete={size:beforeDelete.length,text:async()=>beforeDelete};await run('MapEditor.load(restoreAfterDelete)');
+  console.log('PASS: asset delete clears image/floor/skin/audio/font/model references; decoration removal; exact undo; stale undo invalidated; original project restores.');
+
+
+  // UI 기록은 맵/물리와 분리되고, 드래그 한 번은 한 단계입니다.
+  run("UIHistory.reset();EditorShell.switchWorkspace('design')");elements.get('tab-ui').click();
+  elements.get('designer-page').value='drawTitle';elements.get('designer-page').onchange({target:elements.get('designer-page')});
+  const historyMap=run("TeamFiles.createSource('map')"),historyPhysics=run("TeamFiles.createSource('physics')");
+  const beforeUndoUI=JSON.stringify(run('StudioUI.exportData()'));
+  elements.get('page-background-enabled').checked=true;elements.get('page-background').value='#334455';elements.get('page-background').onchange();
+  assert.equal(run('UIHistory.getState().undo'),1,'page color recorded');assert.equal(run('SaveStatus.getState().phase'),'saved','UI change auto saved');
+  elements.get('ui-undo').click();assert.equal(JSON.stringify(run('StudioUI.exportData()')),beforeUndoUI,'undo exact UI restore');assert.equal(run('UIHistory.getState().redo'),1,'redo available');
+  elements.get('ui-redo').click();check("StudioUI.settings.pageDesign.pages.drawTitle.background==='#334455'",'redo page color');
+  run('UIHistory.reset();PageDesigner.refresh()');
+  const historyItem=run("PageUI.elements.find(e=>e.type==='text'&&e.id===dragId)");assert(historyItem,'drag target');
+  const hx=historyItem.x+2,hy=historyItem.y;const historyCanvas=elements.get('page-preview');
+  historyCanvas.dispatch('pointerdown',{button:0,pointerId:7,clientX:hx/1600*historyCanvas.width,clientY:hy/1000*historyCanvas.height});
+  for(let i=1;i<=3;i++)historyCanvas.dispatch('pointermove',{pointerId:7,clientX:(hx+i*15)/1600*historyCanvas.width,clientY:(hy+i*5)/1000*historyCanvas.height});
+  assert.equal(run('SaveStatus.getState().phase'),'dirty','drag shows unsaved state');
+  historyCanvas.dispatch('pointerup',{pointerId:7});assert.equal(run('UIHistory.getState().undo'),1,'multi-frame drag is one undo step');assert.equal(run('SaveStatus.getState().phase'),'saved','drag release auto saved');
+  elements.get('ui-undo').click();check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x==='+historyItem.x,'undo whole drag');
+  const keyboard=events.get('keydown');document.activeElement=historyCanvas;
+  keyboard({ctrlKey:true,key:'y',preventDefault:noop});check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x===Math.round('+historyItem.x+'+45)','Ctrl+Y redoes UI');
+  keyboard({ctrlKey:true,key:'z',preventDefault:noop});check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x==='+historyItem.x,'Ctrl+Z undoes UI');
+  const mapBeforeDeleteKey=run('MapEditor.getMap().blocks.length');keyboard({key:'Delete',preventDefault:noop});assert.equal(run('MapEditor.getMap().blocks.length'),mapBeforeDeleteKey,'UI keyboard cannot delete hidden map block');
+  assert.equal(run("TeamFiles.createSource('map')"),historyMap,'UI undo does not touch map');assert.equal(run("TeamFiles.createSource('physics')"),historyPhysics,'UI undo does not touch physics');
+  run("PageDesigner.managePage('add')");const historyPages=run('StudioUI.settings.pageDesign.extraPages.length');elements.get('ui-undo').click();assert.equal(run('StudioUI.settings.pageDesign.extraPages.length'),historyPages-1,'undo page addition');elements.get('ui-redo').click();assert.equal(run('StudioUI.settings.pageDesign.extraPages.length'),historyPages,'redo page addition');
+  // 저장 실패를 지속 표시하며 다운로드 요청을 실제 디스크 저장 완료와 혼동하지 않습니다.
+  const originalSetItem=env.localStorage.setItem;
+  env.localStorage.setItem=()=>{const error=new Error('full');error.name='QuotaExceededError';throw error;};
+  run('StudioUI.save()');assert.equal(run('SaveStatus.getState().phase'),'failed','quota failure visible');assert(!elements.get('save-backup-now').hidden,'failure exposes backup action');
+  assert(elements.get('save-status-label').textContent.includes('파일 백업 필요'),'backup requirement visible');
+  elements.get('save-backup-now').click();assert.equal(run('SaveStatus.getState().phase'),'failed','download request does not falsely fix autosave');assert(elements.get('save-status-detail').textContent.includes('다운로드 파일을 확인'),'backup marked as request only');
+  env.localStorage.setItem=originalSetItem;run('StudioUI.save()');assert.equal(run('SaveStatus.getState().phase'),'saved','storage recovery visible');assert(elements.get('save-status-detail').textContent.includes('이전 백업 이후 변경됨'),'post-backup edits indicated');
+
+  document.activeElement=elements.get('designer-text');const typingUndo=run('UIHistory.getState().undo');keyboard({ctrlKey:true,key:'z',preventDefault:noop});assert.equal(run('UIHistory.getState().undo'),typingUndo,'typing keeps native undo');document.activeElement=historyCanvas;
+  const beforeInterleaved=run('StudioUI.exportData()');context.beforeInterleaved=beforeInterleaved;
+  run("UIHistory.reset();StudioUI.apply({...StudioUI.exportData(),fontScale:1.4},{refreshLegacy:false});StudioUI.apply({...StudioUI.exportData(),onggiPhysics:{...StudioUI.settings.onggiPhysics,'0':{...StudioUI.settings.onggiPhysics['0'],maxSpeed:0.34}},blockAssets:{...StudioUI.settings.blockAssets,wall:'model-test'}},{refreshLegacy:false});UIHistory.undo()");
+  check("StudioUI.settings.fontScale===beforeInterleaved.fontScale&&StudioUI.settings.onggiPhysics['0'].maxSpeed===0.34&&StudioUI.settings.blockAssets.wall==='model-test'",'UI undo preserves newer physics/map changes');
+  run('StudioUI.apply(beforeInterleaved,{history:false,refreshLegacy:false});UIHistory.reset();PageDesigner.refresh();');
+
+  context.historyRestoreFile={size:1000,text:async()=>JSON.stringify(run('MapEditor.exportProject()'))};await run('MapEditor.load(historyRestoreFile)');assert.equal(run('UIHistory.getState().undo'),0,'document load clears stale UI history');assert.equal(run('UIHistory.getState().redo'),0,'document load clears redo');
+  run("EditorShell.switchWorkspace('map')");
+  console.log('PASS: UI undo/redo exact restore; drag grouping; keyboard routing; map/physics isolation; page add redo; dirty/saved/quota-failed/recovered status; honest backup request; history reset on load.');
 
   const injection=JSON.parse(JSON.stringify(run('MapEditor.exportProject()')));injection.maps[0].name='</script><img src=x onerror=alert(1)>';context.injection=injection;assert(!run('GameExport.createHTML(injection)').includes(injection.maps[0].name),'script-breakout escaped');
   if(onExport)onExport(run('GameExport.createHTML(MapEditor.exportProject())'));

@@ -55,7 +55,7 @@ py = 0;
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function dialogueLength() {
-  return STAGE_MONOLOGUES [stage] [dialoguePage].reduce((n, line) => n + Array.from(line).length, 0);
+  return (STAGE_MONOLOGUES [stage]?.[dialoguePage] || []).reduce((n, line) => n + Array.from(line).length, 0);
 }
 /**
  * [읽기 7: 상태 전환 / 함수 번호 30] advanceDialogue
@@ -254,6 +254,8 @@ function tickArrival(dt) {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function action(id) {
+  if(PageUI.action(id))return;
+  if((id==='guide'&&PageUI.page('drawGuide').enabled===false)||(id==='select'&&PageUI.page('drawSelect').enabled===false)){screen='title';dirty=true;return;}
   if(id==='start'||id==='replay'){PlayerGame.start();return;}
   if(id.startsWith('pot')) {
     const index = Number(id.slice(3));

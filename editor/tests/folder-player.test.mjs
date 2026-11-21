@@ -52,12 +52,14 @@ export async function runFolderPlayerTests(base,files) {
     assert.equal(audioPlays.at(-1).loop,false,'release effect does not loop');
     assert.equal(audioPlays.at(-1).volume,settings.sfxVolume,'release effect volume');
   }
-  elements.get('choose-manual').click();run("action('select');action('pot1');action('start');");assert(run("screen==='play'&&stage===0&&selected===1"),'player starts selected pot');
+
+  function finishAddedPages(){for(let i=0;i<200;i++){const current=run('screen');if(current==='custom-ui')run("action('page-next')");else if(current==='monologue')run("action('dialogue-next')");else break;}}
+  elements.get('choose-manual').click();run("action('select');action('pot1');action('start');");finishAddedPages();assert(run("screen==='play'&&stage===0&&selected===1"),'player starts selected pot');
   run('keys.add("ArrowRight");var before=px;for(let i=0;i<50;i++)tick(1/120);keys.clear();');assert(run('px>before'),'player input/physics');
   for(let index=0;index<run('STAGES.length');index++){
-    run('var goal=STAGES[stage].route.at(-1);px=goal[0];pz=goal[1];vx=vz=0;tick(1/120);');
+    run('var goal=STAGES[stage].route.at(-1);px=goal[0];pz=goal[1];vx=vz=0;tick(1/120);');finishAddedPages();
   }
   run('for(let i=0;i<250;i++)tick(1/120);');assert(run("screen==='finish'"),'all player maps finish');
-  run("action('replay')");assert(run("screen==='play'&&stage===0"),'player replay');
+  run("action('replay')");finishAddedPages();assert(run("screen==='play'&&stage===0"),'player replay');
   return 'PASS: folder scripts/assets loaded in order; no editor UI/runtime; initialization, control selection, pot selection, physics, full campaign and replay (mock DOM/GPU).';
 }

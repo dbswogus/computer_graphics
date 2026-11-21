@@ -37,7 +37,7 @@ const ProjectData = (() => {
     for(const asset of project.assets){
       if(!asset||typeof asset.id!=='string'||!/^[\w-]{1,80}$/.test(asset.id)||ids.has(asset.id)||typeof asset.name!=='string'||typeof asset.data!=='string'||!['image','font','audio','model'].includes(asset.kind))throw Error('에셋의 ID/종류/데이터를 확인하세요.');
       ids.add(asset.id);dataSize+=asset.data.length;
-      if(asset.data.length>12*1024*1024||dataSize>32*1024*1024)throw Error('에셋 용량이 너무 큽니다. 개별 8MB, 전체 약 24MB 이내로 줄여 주세요.');
+      if(asset.data.length>(Math.ceil(20*1024*1024/3)*4+128)||dataSize>80*1024*1024)throw Error('에셋 용량이 너무 큽니다. 개별 20MB, 전체 약 60MB 이내로 줄여 주세요.');
     }
     for(const [key,kind]of [['imageAssetId','image'],['bgmAssetId','audio'],['floorAssetId','image']])if(project.ui?.[key]&&!project.assets.some(a=>a.id===project.ui[key]&&a.kind===kind))throw Error('UI/BGM이 참조하는 에셋이 없습니다.');
     for(const id of Object.values(project.ui?.onggiAssets||{}))if(!project.assets.some(a=>a.id===id&&a.kind==='model'))throw Error('옹기가 참조하는 OBJ 에셋이 없습니다.');
@@ -52,5 +52,23 @@ const ProjectData = (() => {
     for (const m of maps) for (const b of m.blocks) if (b.skinAssetId) visual(b.skinAssetId,b.type);
     return {kind:'onggi-project',version:4,maps,ui:project.ui||{},assets:project.assets};
   }
-  return {unitMap,validate};
+  /** @param value {object} 전체 프로젝트. @param id {string} 삭제할 에셋 ID.
+   * @returns {object} {project,removedBlocks,clearedBindings}. 원본 객체/파일은 변경하지 않음.
+   * 외형은 기본값으로, 소리는 해제로 복구하며 해당 에셋 장식 블록만 제거합니다. */
+  function withoutAsset(value,id) {
+    const checked=validate(value);
+    const project={...checked,ui:JSON.parse(JSON.stringify(checked.ui)),assets:checked.assets.map(a=>({...a}))};
+    if(!project.assets.some(a=>a.id===id))throw Error('삭제할 에셋을 선택하세요.');
+    let removedBlocks=0,clearedBindings=0;
+    project.assets=project.assets.filter(a=>a.id!==id);
+    for(const map of project.maps) {
+      map.blocks=map.blocks.filter(b=>{if(b.type==='asset'&&b.assetId===id){removedBlocks++;return false;}return true;});
+      for(const b of map.blocks)for(const key of ['assetId','skinAssetId'])if(b[key]===id){delete b[key];clearedBindings++;}
+    }
+    for(const key of ['imageAssetId','floorAssetId','bgmAssetId'])if(project.ui[key]===id){project.ui[key]='';clearedBindings++;}
+    for(const field of ['onggiAssets','blockAssets','sfx'])for(const [key,asset]of Object.entries(project.ui[field]||{}))if(asset===id){delete project.ui[field][key];clearedBindings++;}
+    if(project.ui.fontFamily==='onggi_'+id.replace(/[^a-zA-Z0-9]/g,'')){project.ui.fontFamily='sans-serif';clearedBindings++;}
+    return {project:validate(project),removedBlocks,clearedBindings};
+  }
+  return {unitMap,validate,withoutAsset};
 })();

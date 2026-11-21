@@ -37,7 +37,7 @@ function settingsModule(base) {
 /** @param base {string} 소스 루트. @returns {{prefix:string,suffix:string}} 프로젝트 JSON을 끼워 넣을 단일 HTML 템플릿. */
 export function makeTemplate(base) {
   const read=file=>fs.readFileSync(path.join(base,'src',file),'utf8');
-  const order=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','STAGES','editor/BlockMap.js','editor/ProjectData.js','game/GyroInput.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','editor/AssetBank.js','SETTINGS','main.js','export/PlayerBootstrap.js'];
+  const order=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','STAGES','editor/BlockMap.js','editor/ProjectData.js','game/GyroInput.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','editor/AssetBank.js','ui/UIPageData.js','ui/PageUI.js','SETTINGS','main.js','export/PlayerBootstrap.js'];
   const scripts=order.map(file=>{
     let source=file==='STAGES'?'const STAGES=[];':file==='SETTINGS'?settingsModule(base):read(file);
     if(file==='core/Game.js'){
@@ -54,7 +54,7 @@ export function makeTemplate(base) {
 /** @param base {string} 소스 루트. @param projectFile {string} 내장할 JSON 경로. @returns {object} 템플릿과 실제 게임 생성 결과. */
 export function buildPlayer(base,projectFile) {
   const template=makeTemplate(base),context=vm.createContext({});
-  for(const file of ['config/UILayout.js','config/GameConfig.js','config/UIText.js','data/onggiData.js','game/OnggiPhysics.js','editor/BlockMap.js','editor/ProjectData.js','editor/GameDocument.js'])vm.runInContext(fs.readFileSync(path.join(base,'src',file),'utf8'),context);
+  for(const file of ['config/UILayout.js','config/GameConfig.js','config/UIText.js','data/onggiData.js','game/OnggiPhysics.js','editor/BlockMap.js','editor/ProjectData.js','editor/GameDocument.js','ui/UIPageData.js'])vm.runInContext(fs.readFileSync(path.join(base,'src',file),'utf8'),context);
   vm.runInContext(settingsModule(base),context);
   const committedHTML=path.resolve(base,'..','release','index.html');
   const folderProject=path.resolve(base,'..','release','project.onggi.json');

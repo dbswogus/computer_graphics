@@ -8,7 +8,7 @@ import {buildPlayer} from './build-player.mjs';
 
 /** @param single {object} 기존 플레이어 빌드 결과. @returns {object} 코드가 개별 JS에 들어 있는 폴더 템플릿. */
 function folderTemplate(single) {
-  const names=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','map/StageData.js','map/BlockMap.js','data/ProjectData.js','game/GyroInput.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','render/AssetBank.js','ui/UISettings.js','main.js','core/PlayerGame.js'];
+  const names=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','map/StageData.js','map/BlockMap.js','data/ProjectData.js','game/GyroInput.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','render/AssetBank.js','ui/UIPageData.js','ui/PageUI.js','ui/UISettings.js','main.js','core/PlayerGame.js'];
   const sources=[...single.template.suffix.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   if(sources.length!==names.length)throw Error('플레이어 script 순서가 바뀌었습니다. 폴더 빌드 목록을 함께 수정하세요.');
   const files={};

@@ -39,12 +39,14 @@ export async function runPlayerTests(base, html) {
   if(settings.texts?.drawTitle_01)assert.equal(run('UI_TEXT.drawTitle_01'),settings.texts.drawTitle_01,'exported text applied');
   if(settings.floorAssetId)assert(run('StudioUI.settings.floorAssetId')===settings.floorAssetId,'floor setting preserved');
   if(settings.onggiAssets?.['0'])assert(run('AssetBank.drawOnggi(identity(),0,0,1)'),'exported onggi model used');
-  elements.get('choose-manual').click();run("action('select');action('pot1');action('start');");assert(run("screen==='play'&&stage===0&&selected===1"),'player starts selected pot');
+
+  function finishAddedPages(){for(let i=0;i<200;i++){const current=run('screen');if(current==='custom-ui')run("action('page-next')");else if(current==='monologue')run("action('dialogue-next')");else break;}}
+  elements.get('choose-manual').click();run("action('select');action('pot1');action('start');");finishAddedPages();assert(run("screen==='play'&&stage===0&&selected===1"),'player starts selected pot');
   run('keys.add("ArrowRight");var before=px;for(let i=0;i<50;i++)tick(1/120);keys.clear();');assert(run('px>before'),'player input/physics');
   for(let index=0;index<run('STAGES.length');index++){
-    run('var goal=STAGES[stage].route.at(-1);px=goal[0];pz=goal[1];vx=vz=0;tick(1/120);');
+    run('var goal=STAGES[stage].route.at(-1);px=goal[0];pz=goal[1];vx=vz=0;tick(1/120);');finishAddedPages();
   }
   run('for(let i=0;i<250;i++)tick(1/120);');assert(run("screen==='finish'"),'all player maps finish');
-  run("action('replay')");assert(run("screen==='play'&&stage===0"),'player replay');
+  run("action('replay')");finishAddedPages();assert(run("screen==='play'&&stage===0"),'player replay');
   return 'PASS: single HTML embedded project/scripts/assets; no editor UI/runtime; initialization, control selection, pot selection, physics, full campaign and replay (mock DOM/GPU).';
 }

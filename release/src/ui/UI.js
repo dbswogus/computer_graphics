@@ -62,6 +62,8 @@ function round(x, y, w, h, r = 20) {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function fillRound(x, y, w, h, col, r = 20) {
+  const edit=PageUI.resolve('shape',{x,y,width:w,height:h,background:col});if(edit.hidden)return;
+  x=edit.x;y=edit.y;w=edit.width;h=edit.height;col=edit.background;
   ctx.fillStyle = col;
   round(x, y, w, h, r);
   ctx.fill();
@@ -82,8 +84,11 @@ function fillRound(x, y, w, h, col, r = 20) {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function text(str, x, y, size = 24, col = C.ink, weight = 500, align = 'left') {
+  const edit=PageUI.resolve('text',{text:String(str),x,y,size,color:col,weight,align});if(edit.hidden)return;
+  str=edit.text;x=edit.x;y=edit.y;size=edit.size;col=edit.color;weight=edit.weight;align=edit.align;
   ctx.fillStyle = col;
   ctx.font = `${weight} ${size * StudioUI.settings.fontScale}px ${GAME_CONFIG.ui.fontFamily}`;
+PageUI.measureText(edit.id,Math.max(...String(str).split('\n').map(line=>ctx.measureText(line).width)),String(str).split('\n').length*size*StudioUI.settings.fontScale*1.3);
 ctx.textAlign = align;
 ctx.textBaseline = 'middle';
 String(str).split('\n').forEach((line,index)=>ctx.fillText(line,x,y+index*size*StudioUI.settings.fontScale*1.3));
@@ -140,14 +145,17 @@ function label(str, x, y) {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function btn(id, x, y, w, h, str, primary = false) {
-  fillRound(x, y, w, h, primary ? C.green : C.paper, UI_LAYOUT.btn.fillRound_01.radius);
+  const edit=PageUI.resolve('button',{id,x,y,width:w,height:h,text:str,color:primary?'#ffffff':C.ink,background:primary?C.green:C.paper});if(edit.hidden)return;
+  id=edit.action;x=edit.x;y=edit.y;w=edit.width;h=edit.height;str=edit.text;PageUI.lock(1);
+  fillRound(x, y, w, h, edit.background, UI_LAYOUT.btn.fillRound_01.radius);
   if(! primary) {
     ctx.strokeStyle = C.line;
     ctx.lineWidth = 2;
     round(x, y, w, h, UI_LAYOUT.btn.round_01.radius);
     ctx.stroke();
   }
-  text(str, x + w / 2, y + h / 2, UI_LAYOUT.btn.text_01.fontSize, primary ? '#ffffff' : C.ink, 700, 'center');
+  text(str, x + w / 2, y + h / 2, edit.size || UI_LAYOUT.btn.text_01.fontSize, edit.color, 700, 'center');
+  PageUI.lock(-1);
   buttons.push({
     id, x, y, w, h
   }
@@ -414,7 +422,7 @@ function drawMonologue() {
   ctx.ellipse(224, 875, 84, 13, 0, 0, TAU);
   ctx.fill();
   fillRound(UI_LAYOUT.drawMonologue.fillRound_03.x, UI_LAYOUT.drawMonologue.fillRound_03.y, UI_LAYOUT.drawMonologue.fillRound_03.width, UI_LAYOUT.drawMonologue.fillRound_03.height, '#f4efdb', UI_LAYOUT.drawMonologue.fillRound_03.radius);
-  text(COLLECTION [selected].name + UI_TEXT.drawMonologue_01, UI_LAYOUT.drawMonologue.text_01.x, UI_LAYOUT.drawMonologue.text_01.y, UI_LAYOUT.drawMonologue.text_01.fontSize, C.ink, 700, 'center');
+  text(PageUI.speaker(stage,dialoguePage) + UI_TEXT.drawMonologue_01, UI_LAYOUT.drawMonologue.text_01.x, UI_LAYOUT.drawMonologue.text_01.y, UI_LAYOUT.drawMonologue.text_01.fontSize, C.ink, 700, 'center');
   text(STAGES [stage].name, UI_LAYOUT.drawMonologue.text_02.x, UI_LAYOUT.drawMonologue.text_02.y, UI_LAYOUT.drawMonologue.text_02.fontSize, '#bac9b0', 600);
   text((dialoguePage + 1) + ' / ' + STAGE_MONOLOGUES [stage].length, UI_LAYOUT.drawMonologue.text_03.x, UI_LAYOUT.drawMonologue.text_03.y, UI_LAYOUT.drawMonologue.text_03.fontSize, '#bac9b0', 500, 'right');
   let remaining = Math.floor(dialogueTime * GAME_CONFIG.ui.dialogueCharactersPerSecond + 1e-6);
@@ -601,6 +609,7 @@ function drawHomeLabel() {
 function drawUI() {
   ctx.clearRect(0, 0, W, H);
   buttons = [];
+  PageUI.begin();
   if(screen === 'title') drawTitle();
   if(screen === 'select') drawSelect();
   if(screen === 'guide') drawGuide();
@@ -618,6 +627,7 @@ function drawUI() {
     text(UI_TEXT.drawUI_02, UI_LAYOUT.drawUI.text_02.x, UI_LAYOUT.drawUI.text_02.y, UI_LAYOUT.drawUI.text_02.fontSize, C.muted, 500, 'center');
     buttons = [];
   }
+  PageUI.finish();
   AssetBank.drawOverlay(ctx);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, tex);
