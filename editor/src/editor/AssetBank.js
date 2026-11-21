@@ -119,6 +119,7 @@ const AssetBank = (() => {
     for(const file of files) {
       const spec=extensions[file.name.split('.').pop().toLowerCase()];if(!spec)throw Error('지원 파일: PNG/JPG/WebP/GIF, 폰트, MP3/WAV/OGG, OBJ. GLB/FBX/MTL은 지원하지 않습니다.');
       if(file.size>20*1024*1024)throw Error('파일 하나는 20MB 이하여야 합니다.');
+
       const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve('data:'+spec[1]+';base64,'+String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));reader.onabort=()=>reject(Error('파일 읽기가 취소되었습니다.'));reader.readAsDataURL(file);});
       const duplicate=[...records,...added].find(r=>r.name===file.name&&r.kind===spec[0]&&r.data===data);
       if(duplicate){lastId=duplicate.id;continue;}
