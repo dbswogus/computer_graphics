@@ -114,7 +114,7 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   env.DeviceOrientationEvent=class {};await run('GyroInput.enable()');run('GyroInput.orientation({beta:0,gamma:0});GyroInput.orientation({beta:0,gamma:10});');check('GyroInput.sample().x<0','gyro right tilt');clock+=2000;check('GyroInput.sample().x===0','stale sensor zero');
   elements.get('choose-manual').click();check('GyroInput.sample()===null','manual fallback');
   for(const screen of ['title','select','guide','story','finish'])run(`screen='${screen}';dirty=true;render();`);
-  assert(saved.has('onggi-editor-project'),'project autosave');
+  assert(!saved.has('onggi-editor-project'),'no automatic browser writes');
 
   run("StudioUI.apply({...StudioUI.exportData(),floorAssetId:'image-test',onggiAssets:{'0':'model-test'},texts:{drawTitle_01:'새로운 출발',STORY_02:'바뀐 이야기',STAGE_MONOLOGUES_01:'바뀐 대사'},onggiTexts:{'0.name':'나의 옹기'}})");
   check("UI_TEXT.drawTitle_01==='새로운 출발'&&STORY[0].title==='바뀐 이야기'&&STAGE_MONOLOGUES[0][0][0]==='바뀐 대사'&&COLLECTION[0].name==='나의 옹기'",'text/narrative/onggi propagation');
@@ -295,7 +295,7 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   const historyMap=run("TeamFiles.createSource('map')"),historyPhysics=run("TeamFiles.createSource('physics')");
   const beforeUndoUI=JSON.stringify(run('StudioUI.exportData()'));
   elements.get('page-background-enabled').checked=true;elements.get('page-background').value='#334455';elements.get('page-background').onchange();
-  assert.equal(run('UIHistory.getState().undo'),1,'page color recorded');assert.equal(run('SaveStatus.getState().phase'),'saved','UI change auto saved');
+  assert.equal(run('UIHistory.getState().undo'),1,'page color recorded');assert.equal(run('SaveStatus.getState().phase'),'dirty','manual UI change');
   elements.get('ui-undo').click();assert.equal(JSON.stringify(run('StudioUI.exportData()')),beforeUndoUI,'undo exact UI restore');assert.equal(run('UIHistory.getState().redo'),1,'redo available');
   elements.get('ui-redo').click();check("StudioUI.settings.pageDesign.pages.drawTitle.background==='#334455'",'redo page color');
   run('UIHistory.reset();PageDesigner.refresh()');
@@ -304,7 +304,7 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   historyCanvas.dispatch('pointerdown',{button:0,pointerId:7,clientX:hx/1600*historyCanvas.width,clientY:hy/1000*historyCanvas.height});
   for(let i=1;i<=3;i++)historyCanvas.dispatch('pointermove',{pointerId:7,clientX:(hx+i*15)/1600*historyCanvas.width,clientY:(hy+i*5)/1000*historyCanvas.height});
   assert.equal(run('SaveStatus.getState().phase'),'dirty','drag shows unsaved state');
-  historyCanvas.dispatch('pointerup',{pointerId:7});assert.equal(run('UIHistory.getState().undo'),1,'multi-frame drag is one undo step');assert.equal(run('SaveStatus.getState().phase'),'saved','drag release auto saved');
+  historyCanvas.dispatch('pointerup',{pointerId:7});assert.equal(run('UIHistory.getState().undo'),1,'multi-frame drag is one undo step');assert.equal(run('SaveStatus.getState().phase'),'dirty','manual drag change');
   elements.get('ui-undo').click();check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x==='+historyItem.x,'undo whole drag');
   const keyboard=events.get('keydown');document.activeElement=historyCanvas;
   keyboard({ctrlKey:true,key:'y',preventDefault:noop});check('StudioUI.settings.pageDesign.pages.drawTitle.elements[dragId].x===Math.round('+historyItem.x+'+45)','Ctrl+Y redoes UI');
@@ -312,14 +312,11 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   const mapBeforeDeleteKey=run('MapEditor.getMap().blocks.length');keyboard({key:'Delete',preventDefault:noop});assert.equal(run('MapEditor.getMap().blocks.length'),mapBeforeDeleteKey,'UI keyboard cannot delete hidden map block');
   assert.equal(run("TeamFiles.createSource('map')"),historyMap,'UI undo does not touch map');assert.equal(run("TeamFiles.createSource('physics')"),historyPhysics,'UI undo does not touch physics');
   run("PageDesigner.managePage('add')");const historyPages=run('StudioUI.settings.pageDesign.extraPages.length');elements.get('ui-undo').click();assert.equal(run('StudioUI.settings.pageDesign.extraPages.length'),historyPages-1,'undo page addition');elements.get('ui-redo').click();assert.equal(run('StudioUI.settings.pageDesign.extraPages.length'),historyPages,'redo page addition');
-  // 저장 실패를 지속 표시하며 다운로드 요청을 실제 디스크 저장 완료와 혼동하지 않습니다.
-  const originalSetItem=env.localStorage.setItem;
-  env.localStorage.setItem=()=>{const error=new Error('full');error.name='QuotaExceededError';throw error;};
-  run('StudioUI.save()');assert.equal(run('SaveStatus.getState().phase'),'failed','quota failure visible');assert(!elements.get('save-backup-now').hidden,'failure exposes backup action');
-  assert(elements.get('save-status-label').textContent.includes('파일 백업 필요'),'backup requirement visible');
-  elements.get('save-backup-now').click();assert.equal(run('SaveStatus.getState().phase'),'failed','download request does not falsely fix autosave');assert(elements.get('save-status-detail').textContent.includes('다운로드 파일을 확인'),'backup marked as request only');
-  env.localStorage.setItem=originalSetItem;run('StudioUI.save()');assert.equal(run('SaveStatus.getState().phase'),'saved','storage recovery visible');assert(elements.get('save-status-detail').textContent.includes('이전 백업 이후 변경됨'),'post-backup edits indicated');
-
+  const originalSetItem=env.localStorage.setItem;let storageWrites=0;
+  env.localStorage.setItem=()=>{storageWrites++;throw Error('storage blocked');};
+  run('StudioUI.save()');assert.equal(storageWrites,0,'no localStorage writes');assert.equal(run('SaveStatus.getState().phase'),'dirty','manual save state');
+  elements.get('save-backup-now').click();assert.equal(run('SaveStatus.getState().phase'),'backup-requested','backup requested');
+  run('StudioUI.save()');assert.equal(run('SaveStatus.getState().phase'),'dirty','edits after backup');env.localStorage.setItem=originalSetItem;
   document.activeElement=elements.get('designer-text');const typingUndo=run('UIHistory.getState().undo');keyboard({ctrlKey:true,key:'z',preventDefault:noop});assert.equal(run('UIHistory.getState().undo'),typingUndo,'typing keeps native undo');document.activeElement=historyCanvas;
   const beforeInterleaved=run('StudioUI.exportData()');context.beforeInterleaved=beforeInterleaved;
   run("UIHistory.reset();StudioUI.apply({...StudioUI.exportData(),fontScale:1.4},{refreshLegacy:false});StudioUI.apply({...StudioUI.exportData(),onggiPhysics:{...StudioUI.settings.onggiPhysics,'0':{...StudioUI.settings.onggiPhysics['0'],maxSpeed:0.34}},blockAssets:{...StudioUI.settings.blockAssets,wall:'model-test'}},{refreshLegacy:false});UIHistory.undo()");
@@ -328,7 +325,12 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
 
   context.historyRestoreFile={size:1000,text:async()=>JSON.stringify(run('MapEditor.exportProject()'))};await run('MapEditor.load(historyRestoreFile)');assert.equal(run('UIHistory.getState().undo'),0,'document load clears stale UI history');assert.equal(run('UIHistory.getState().redo'),0,'document load clears redo');
   run("EditorShell.switchWorkspace('map')");
-  console.log('PASS: UI undo/redo exact restore; drag grouping; keyboard routing; map/physics isolation; page add redo; dirty/saved/quota-failed/recovered status; honest backup request; history reset on load.');
+  console.log('PASS: UI undo/redo exact restore; drag grouping; keyboard routing; map/physics isolation; page add redo; manual save status; honest backup request; history reset on load.');
+
+
+  run("StudioUI.apply({...StudioUI.exportData(),bgmAssetId:'sound-test'},{history:false});MapEditor.play()");assert.equal(audioPlays.at(-1).loop,true,'desktop editor starts BGM');run('MapEditor.open()');
+  run("StudioUI.apply({...StudioUI.exportData(),bgmAssetId:''},{history:false})");
+  const oldDraft=JSON.stringify(run('MapEditor.exportProject()'));saved.set('onggi-editor-project',oldDraft);await elements.get('editor-load-legacy').click();assert.equal(saved.get('onggi-editor-project'),oldDraft,'old draft kept');saved.delete('onggi-editor-project');
 
   const injection=JSON.parse(JSON.stringify(run('MapEditor.exportProject()')));injection.maps[0].name='</script><img src=x onerror=alert(1)>';context.injection=injection;assert(!run('GameExport.createHTML(injection)').includes(injection.maps[0].name),'script-breakout escaped');
   if(onExport)onExport(run('GameExport.createHTML(MapEditor.exportProject())'));

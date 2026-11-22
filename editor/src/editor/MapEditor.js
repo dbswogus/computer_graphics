@@ -18,22 +18,19 @@ const MapEditor = (() => {
     message.style.color = error ? '#a73528' : '#40583c';
   }
 
-  /** 매개변수 없음. @returns {void} 현재 문서를 자동 저장. file:// 저장소가 차단되면 JSON 저장을 안내. */
-  function persist() {
+  /** 매개변수 없음. @returns {void} 메모리 수정 상태만 갱신. 저장은 프로젝트 백업/담당별 내보내기로 수행. */
+  function markModified() {
     if(typeof StudioUI.invalidateAssetUndo==='function')StudioUI.invalidateAssetUndo();
-    maps[activeMap]=map;
-    SaveStatus.changed();SaveStatus.saving();
-    try { localStorage.setItem(storageKey, JSON.stringify(exportProject()));SaveStatus.saved(); }
-    catch(error) {SaveStatus.failed(error);status('자동 저장 실패: 프로젝트 백업 버튼으로 파일을 보관하세요.', true);}
+    maps[activeMap]=map;SaveStatus.changed();
   }
 
-  /** @param before {object} 수정 전 맵. @returns {void} 최대 80회 실행 취소 기록, 자동 저장, 화면 갱신. */
+  /** @param before {object} 수정 전 맵. @returns {void} 최대 80회 실행 취소 기록, 수정 상태 표시, 화면 갱신. */
   function commit(before) {
     if (JSON.stringify(before) === JSON.stringify(snapshot())) return;
     undoStack.push(before);
     if (undoStack.length > 80) undoStack.shift();
     redoStack = [];
-    persist();
+    markModified();
     render();
   }
 
@@ -42,7 +39,7 @@ const MapEditor = (() => {
     const from = undo ? undoStack : redoStack, to = undo ? redoStack : undoStack;
     if (!from.length) return;
     to.push(snapshot()); restore(from.pop()); selectedId = null;
-    persist(); render(); status(undo ? '실행 취소했습니다.' : '다시 실행했습니다.');
+    markModified(); render(); status(undo ? '실행 취소했습니다.' : '다시 실행했습니다.');
   }
 
   /** @param event {PointerEvent} 편집 캔버스 이벤트. @returns {{x:number,z:number}|null} 크기/배율을 보정하고 1칸 중앙에 맞춘 좌표. */
@@ -207,13 +204,15 @@ const MapEditor = (() => {
       STAGES.splice(0,STAGES.length,...custom); testing=true;
       rebuild(); startStage(0); screen='play';PageUI.enterStage(true);dirty=true;
       panel.hidden=true;launchButton.textContent='편집으로 돌아가기';clearInput();canvas.focus();
+      const bgm=StudioUI.settings.bgmAssetId;
+      if(bgm)AssetBank.playSound(bgm).catch(()=>notify('BGM을 재생하지 못했습니다. 미리 듣기로 오디오 파일을 확인하세요.',5));
     } catch(error) { status(error.message,true); }
   }
 
   /** 매개변수 없음. @returns {void} 편집기 표시. 테스트 중이면 원본 맵과 GPU 지형을 복원하고 입력/시간 누적을 초기화. */
   function open() {
     finishStroke();
-    if(testing){for(const st of STAGES)releaseGeometry(st);STAGES.splice(0,STAGES.length,...originalStages);stage=0;testing=false;rebuild();launchButton.textContent='편집 모드';}
+    if(testing){AssetBank.stopSound();for(const st of STAGES)releaseGeometry(st);STAGES.splice(0,STAGES.length,...originalStages);stage=0;testing=false;rebuild();launchButton.textContent='편집 모드';}
     clearInput(); screen='editor';acc=0;last=0;
     panel.hidden=false;render();status('도구를 고르고 클릭·드래그로 배치하세요. 우클릭은 삭제입니다.');
   }
@@ -231,6 +230,9 @@ const MapEditor = (() => {
     }catch(error){SaveStatus.backupFailed(error.message);status(error.message,true);}
   }
 
+  /** 매개변수 없음. @returns {Promise<boolean>} 사용자 요청 시에만 이전 초안을 읽음. 기존 데이터는 지우지 않음. */
+  async function loadLegacyDraft(){try{const draft=localStorage.getItem(storageKey)||localStorage.getItem('onggi-studio-v4');if(!draft){status('이 브라우저에 이전 자동 저장 초안이 없습니다.');return false;}return await load({size:draft.length,text:async()=>draft});}catch(error){status('이전 초안을 읽지 못했습니다: '+error.message,true);return false;}}
+
   /** @param file {File} 사용자가 고른 JSON(최대 1MB). @returns {Promise<void>} 검증 후 원자적으로 교체. 실패하면 기존 문서 유지. */
   async function load(file) {
     if(!file)return;
@@ -243,7 +245,7 @@ const MapEditor = (() => {
       AssetBank.applyPrepared(prepared);
       maps=next.maps;activeMap=0;map=maps[0];selectedId=null;undoStack=[];redoStack=[];
       StudioUI.apply(nextUI,{history:false});UIHistory.reset();StudioUI.refreshAssets();
-      persist();render();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.');return true;
+      markModified();SaveStatus.sourceLoaded();render();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.');return true;
     }catch(error){status('불러오기 실패: '+error.message,true);return false;}finally{panel.inert=false;}
   }
 
@@ -291,7 +293,7 @@ const MapEditor = (() => {
     `;document.head.append(style);
     launchButton=document.createElement('button');launchButton.id='editor-launch';launchButton.textContent='맵 편집';launchButton.onclick=open;document.body.append(launchButton);
     panel=document.createElement('section');panel.id='map-editor';panel.hidden=true;panel.setAttribute('aria-label','블록 맵 편집기');
-    panel.innerHTML=`<div class="editor-top"><h1>데굴데굴 옹기 <small>편집 모드</small></h1><label class="workspace-picker">작업 <select id="editor-workspace"><option value="map">맵 만들기 · 다유</option><option value="design">꾸미기·물리 · 유리/재현</option><option value="team">담당별 저장 · 협업</option></select></label><div class="editor-primary"><button id="editor-play">▶ 테스트</button><details class="editor-menu"><summary>파일·배포</summary><div id="editor-file-menu"><button id="editor-save">프로젝트 백업</button><button id="editor-load">프로젝트 불러오기</button><input id="editor-file" type="file" accept=".json,.html,.htm,application/json,text/html" hidden><button id="editor-close">타이틀 미리보기</button></div></details></div></div><p id="editor-status" role="status" aria-live="polite"></p><div id="workspace-map" class="editor-grid"><aside><div id="editor-tools"></div><p class="editor-help">모든 블록 = 1×1칸 고정<br>왼쪽 위: X -9 / Z -6<br>파랑 S: 출발 · 금색 G: 목표<br><br>클릭·드래그: 배치<br>우클릭·지우개: 삭제<br>선택 → 오른쪽 속성 수정<br>Ctrl+Z: 실행 취소<br><br>출발점과 목표점 아래에 바닥이 필요합니다. 체크포인트는 배치 순서로 진행합니다.</p></aside><div><canvas id="editor-board" width="816" height="576" aria-label="17열 12행 블록 편집 격자"></canvas><p class="editor-help">회전은 0/90도. 구멍은 짧은 변을 지름으로 한 원형이며, 이동 장애물의 점선은 왕복 범위입니다. 초안은 가능한 경우 자동 저장됩니다. 공유·장기 보관은 JSON 저장을 이용하세요.</p></div><aside id="editor-properties"></aside></div>`;
+    panel.innerHTML=`<div class="editor-top"><h1>데굴데굴 옹기 <small>편집 모드</small></h1><label class="workspace-picker">작업 <select id="editor-workspace"><option value="map">맵 만들기 · 다유</option><option value="design">꾸미기·물리 · 유리/재현</option><option value="team">담당별 저장 · 협업</option></select></label><div class="editor-primary"><button id="editor-play">▶ 테스트</button><details class="editor-menu"><summary>파일·배포</summary><div id="editor-file-menu"><button id="editor-save">프로젝트 백업</button><button id="editor-load">프로젝트 불러오기</button><input id="editor-file" type="file" accept=".json,.html,.htm,application/json,text/html" hidden><button id="editor-close">타이틀 미리보기</button><button id="editor-load-legacy">이전 자동 저장 불러오기</button></div></details></div></div><p id="editor-status" role="status" aria-live="polite"></p><div id="workspace-map" class="editor-grid"><aside><div id="editor-tools"></div><p class="editor-help">모든 블록 = 1×1칸 고정<br>왼쪽 위: X -9 / Z -6<br>파랑 S: 출발 · 금색 G: 목표<br><br>클릭·드래그: 배치<br>우클릭·지우개: 삭제<br>선택 → 오른쪽 속성 수정<br>Ctrl+Z: 실행 취소<br><br>출발점과 목표점 아래에 바닥이 필요합니다. 체크포인트는 배치 순서로 진행합니다.</p></aside><div><canvas id="editor-board" width="816" height="576" aria-label="17열 12행 블록 편집 격자"></canvas><p class="editor-help">회전은 0/90도. 구멍은 짧은 변을 지름으로 한 원형이며, 이동 장애물의 점선은 왕복 범위입니다. 자동 저장하지 않습니다. 종료·새로고침 전에 프로젝트 백업 또는 담당별 내보내기를 이용하세요.</p></div><aside id="editor-properties"></aside></div>`;
     const workflow=document.createElement('p');workflow.className='editor-workflow';
     workflow.textContent='01 맵 만들기  →  02 아래에서 외형·효과음·UI 설정  →  03 바로 테스트  →  04 release ZIP 내보내기';
     panel.append(workflow);
@@ -305,7 +307,7 @@ const MapEditor = (() => {
     const toolPicker=document.createElement('select');toolPicker.id='editor-tool-picker';toolPicker.setAttribute('aria-label','배치할 블록');
     for(const [id,label]of Object.entries(labels)){const option=document.createElement('option');option.value=id;option.textContent=label;toolPicker.append(option);}toolPicker.value=tool;
     toolPicker.onchange=()=>{for(const button of brush.children)if(button.dataset.tool===toolPicker.value)button.click();};brush.append(toolPicker);
-    let draft=null;try{draft=localStorage.getItem(storageKey)||localStorage.getItem('onggi-studio-v4');}catch{}
+    let draft=null; // 브라우저 초안은 자동 복원하지 않습니다.
     if(!draft&&typeof TEAM_UI_SOURCE!=='undefined')draft=JSON.stringify(TeamSource.combine({ui:TEAM_UI_SOURCE,map:TEAM_MAP_SOURCE,physics:TEAM_PHYSICS_SOURCE}));
     if(!draft&&typeof EDITOR_INITIAL_PROJECT!=='undefined')draft=JSON.stringify(EDITOR_INITIAL_PROJECT);
     if(draft)queueMicrotask(()=>load({size:draft.length,text:async()=>draft}));
@@ -313,6 +315,7 @@ const MapEditor = (() => {
     panel.querySelector('#editor-play').onclick=play;
     panel.querySelector('#editor-close').onclick=()=>{finishStroke();panel.hidden=true;screen='title';clearInput();dirty=true;canvas.focus();};
     panel.querySelector('#editor-save').onclick=download;
+    panel.querySelector('#editor-load-legacy').onclick=loadLegacyDraft;
     const input=panel.querySelector('#editor-file');panel.querySelector('#editor-load').onclick=()=>input.click();input.onchange=()=>{load(input.files[0]);input.value='';};
     undoButton.onclick=()=>history(true);redoButton.onclick=()=>history(false);
     for(const [id,make]of [['editor-example',BlockMap.example],['editor-empty',()=>({version:1,name:'새 블록 맵',blocks:[]})]])panel.querySelector('#'+id).onclick=()=>{finishStroke();const before=snapshot();map=ProjectData.unitMap(make());selectedId=null;commit(before);name.value=map.name;status('맵을 변경했습니다. 실행 취소로 되돌릴 수 있어요.');};
@@ -320,7 +323,7 @@ const MapEditor = (() => {
     for(const [id,kind]of [['map-add','add'],['map-copy','copy'],['map-delete','delete'],['map-up','up'],['map-down','down']])mapsBar.querySelector('#'+id).onclick=()=>manageMap(kind);
     const hint=document.createElement('p');hint.className='editor-help';hint.textContent='JSON은 특정 폴더에 넣을 필요가 없습니다. 다운로드/문서 등 원하는 곳에 보관하고 위의 불러오기에서 선택하세요. 전체 맵·UI·에셋을 한 파일로 저장합니다.';panel.append(hint);
     const studio=document.createElement('section');studio.id='studio-design';panel.append(studio);
-    StudioUI.mount(studio,()=>{persist();render();},id=>{AssetBank.select(id);tool='asset';panel.querySelector('#editor-tool-picker').value='asset';for(const b of brush.children)b.classList.toggle('active',b.dataset.tool===tool);status('이미지/모델 배치 도구가 선택되었습니다. 바닥 위의 칸을 누르세요.');});
+    StudioUI.mount(studio,()=>{markModified();render();},id=>{AssetBank.select(id);tool='asset';panel.querySelector('#editor-tool-picker').value='asset';for(const b of brush.children)b.classList.toggle('active',b.dataset.tool===tool);status('이미지/모델 배치 도구가 선택되었습니다. 바닥 위의 칸을 누르세요.');});
     SaveStatus.mount(panel);bindEvents();render();
   }
 

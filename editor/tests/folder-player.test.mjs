@@ -50,7 +50,7 @@ export async function runFolderPlayerTests(base,files) {
     const before=audioPlays.length;await run('AssetBank.playEffect('+JSON.stringify(event)+')');
     assert.equal(audioPlays.length,before+1,'release one-shot '+event);
     assert.equal(audioPlays.at(-1).loop,false,'release effect does not loop');
-    assert.equal(audioPlays.at(-1).volume,settings.sfxVolume,'release effect volume');
+    assert.equal(audioPlays.at(-1).volume,settings.sfxVolume ?? .7,'release effect volume');
   }
 
   function finishAddedPages(){for(let i=0;i<200;i++){const current=run('screen');if(current==='custom-ui')run("action('page-next')");else if(current==='monologue')run("action('dialogue-next')");else break;}}
