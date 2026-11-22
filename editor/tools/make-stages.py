@@ -72,7 +72,12 @@ def build(name, rows):
         if c == 'G': add('goal', x, z)
     return {'version': 1, 'name': name, 'blocks': blocks}
 
-maps = [build(n, r) for n, r in STAGES]
+def tidy(v):  # 편집기 내보내기(JSON.stringify)와 같게: 4.0 → 4
+    if isinstance(v, float) and v.is_integer(): return int(v)
+    if isinstance(v, dict): return {k: tidy(x) for k, x in v.items()}
+    if isinstance(v, list): return [tidy(x) for x in v]
+    return v
+maps = tidy([build(n, r) for n, r in STAGES])
 team = {'kind': 'onggi-team-map', 'version': 1, 'maps': maps, 'blockAssets': {}, 'floorAssetId': '', 'assets': []}
 js = ('// 담당: 다유 | MapConfig.js | 편집기에서 담당별 내보내기로 생성\nconst TEAM_MAP_SOURCE = '
       + json.dumps(team, ensure_ascii=False, indent=2).replace('<', '\\u003c') + ';\n')

@@ -1725,7 +1725,7 @@
       "z": -1.5,
       "w": 1,
       "d": 1,
-      "period": 4.0,
+      "period": 4,
       "amp": 0.5,
       "rotation": 0,
       "axis": "x"

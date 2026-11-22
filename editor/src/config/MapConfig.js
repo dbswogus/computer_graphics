@@ -2948,7 +2948,7 @@ const TEAM_MAP_SOURCE = {
           "z": -1.5,
           "w": 1,
           "d": 1,
-          "period": 4.0,
+          "period": 4,
           "amp": 1,
           "rotation": 0,
           "axis": "z"
@@ -3056,7 +3056,7 @@ const TEAM_MAP_SOURCE = {
           "z": -1.5,
           "w": 1,
           "d": 1,
-          "period": 4.0,
+          "period": 4,
           "amp": 1,
           "rotation": 0,
           "axis": "z"
@@ -3068,7 +3068,7 @@ const TEAM_MAP_SOURCE = {
           "z": -0.5,
           "w": 1,
           "d": 1,
-          "period": 5.0,
+          "period": 5,
           "amp": 1,
           "rotation": 0,
           "axis": "x"
@@ -4946,7 +4946,7 @@ const TEAM_MAP_SOURCE = {
           "z": -1.5,
           "w": 1,
           "d": 1,
-          "period": 4.0,
+          "period": 4,
           "amp": 0.5,
           "rotation": 0,
           "axis": "x"
