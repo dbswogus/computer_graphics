@@ -4,6 +4,23 @@
 const BlockMap = (() => {
   const bounds = { minX: -9, maxX: 8, minZ: -6, maxZ: 6 };
   const types = ['floor', 'wall', 'hole', 'sweeper', 'crumble', 'checkpoint', 'start', 'goal', 'asset'];
+  /* 맵 이름에 아래 key 단어가 들어가면 그 테마의 문구·바닥색·배경(Map.js editorScenery)을 씁니다.
+   * 해당 없는 이름은 기본 문구를 쓰고, 배경은 맵 순서대로 공방→가마→전시실을 돌아가며 씁니다. */
+  const themes = [
+    { key: '공방', theme: 'workshop', sub: '작업대 사이 굽은 길', tag: '01 · 공방', color: '#bea176',
+      mission: '공방을 빠져나가 초록 출구까지', quote: '여긴 내가 빚어진 공방이야. 천천히 기울여 보자!',
+      tip: '구멍을 피해 돌아가요. 연두색 바닥을 지나면 거기서 다시 시작해요.' },
+    { key: '가마', theme: 'kiln', sub: '뜨거운 가마 앞마당', tag: '02 · 가마 앞', color: '#aa815b',
+      mission: '움직이는 가마 도구를 피해 건너기', quote: '가마 도구가 왔다 갔다 해! 비킬 때를 기다리자.',
+      tip: '빨간 도구는 정해진 길만 오가요. 빈 줄을 골라 지나가요.' },
+    { key: '전시', theme: 'gallery', sub: '금 간 다리 너머 내 전시대', tag: '03 · 전시실', color: '#91aba3',
+      mission: '금 간 다리를 건너 내 전시대로', quote: '저기 내 자리가 보여! 다리가 무너지기 전에 건너자.',
+      tip: '금 간 판은 밟고 2.2초 뒤 무너져요. 멈추지 말거나 아래 길로 돌아가요.' }
+  ];
+  /** @param name {string} 맵 이름. @returns {object|null} 이름에 key가 들어간 첫 테마. */
+  function themeFor(name) {
+    return themes.find(t => String(name).includes(t.key)) || null;
+  }
 
   /** @param block {object} 편집 블록. @returns {object} 90도 회전을 폭/깊이에 적용한 복사본. */
   function rectangle(block) {
@@ -84,6 +101,7 @@ const BlockMap = (() => {
       editorStage: true, name: map.name, sub: '직접 만든 블록 스테이지', tag: 'CUSTOM',
       mission: '초록 목표 지점까지 굴러가세요', quote: '내가 만든 길을 달려 보자!',
       tip: '위쪽 편집으로 돌아가기 버튼으로 언제든 수정할 수 있어요.', color: '#b69a70', width: 0,
+      theme: '',
       startBlock: start, goalBlock: goal, checkpointBlocks: checkpoints,
       floorBlocks: find('floor'), editorWalls: find('wall'), placedAssets: find('asset'),
       route: [[start.x, start.z], ...checkpoints.map(b => [b.x, b.z]), [goal.x, goal.z]],
@@ -91,6 +109,9 @@ const BlockMap = (() => {
       holes: find('hole').map(b => ({ ...b, x: b.x, z: b.z, r: Math.min(b.w, b.d) / 2 })),
       sweepers: find('sweeper').map(b => ({ ...b, phase: 0 })), crumbles: find('crumble')
     };
+    const theme = themeFor(map.name);
+    if (theme) Object.assign(stage, { theme: theme.theme, sub: theme.sub, tag: theme.tag, color: theme.color,
+      mission: theme.mission, quote: theme.quote, tip: theme.tip });
     for (const b of [start, goal, ...checkpoints]) {
       if (!containsFloor(stage, b.x, b.z, safeRadius)) throw Error('출발·목표·체크포인트 주변에 충분한 바닥을 배치하세요.');
       const blocked = stage.editorWalls.some(w => Math.abs(b.x - w.x) < w.w / 2 + safeRadius && Math.abs(b.z - w.z) < w.d / 2 + safeRadius);
@@ -111,5 +132,5 @@ const BlockMap = (() => {
     add('hole', -4, -3.8, 0.8, 0.8); add('wall', -1.8, 0.5, 0.4, 1);
     return validate({ version: 1, name: '나의 첫 블록 맵', blocks });
   }
-  return { bounds, types, rectangle, validate, containsFloor, compile, example };
+  return { bounds, types, themes, themeFor, rectangle, validate, containsFloor, compile, example };
 })();

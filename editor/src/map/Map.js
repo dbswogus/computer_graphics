@@ -188,7 +188,7 @@ function buildStageGeometry() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function mapScenery(root) {
-  if (STAGES[stage].editorStage) return;
+  if (STAGES[stage].editorStage) { editorScenery(root); return; }
   const st = STAGES [stage];
   if(stage === 0) {
     for(const room of st.rooms) for(let i = 0; i < 4; i ++) {
@@ -217,6 +217,61 @@ function mapScenery(root) {
       block(root, x, 1.79, - .75, 2.08, .075, 2.03, '#d5dfd1');
     }
     for(const [x, z] of [[- 9, - 5.2], [8, - 5.2], [- 9, 5.2], [8, 5.2]]) {
+      block(root, x, .85, z, .48, 1.7, .48, '#c1c8b5');
+      block(root, x, 1.74, z, .7, .12, .7, '#d5d9c5');
+    }
+  }
+}
+/**
+ * [읽기 8: 맵 생성·배치 / 함수 번호 27-1] editorScenery
+ * 역할: 블록 맵(편집기 스테이지) 바깥에 테마별 배경 소품을 그립니다. 판정에는 영향이 없습니다.
+ * 테마: BlockMap.themeFor(맵 이름)가 정한 st.theme. 없으면 맵 순서대로 공방→가마→전시실.
+ * 위치: 편집 영역(x -9~8, z -6~6) 밖 뒤쪽 줄(z≈-7.4)과 네 모서리.
+ * @param root — Float32Array(16): 기울기를 적용한 월드 부모 행렬
+ * @returns void
+ */
+const potteryWheel = lathe([[0, 0], [.5, 0], [.55, .04], [.55, .12], [.3, .14], [0, .14]]);
+function editorScenery(root) {
+  const st = STAGES[stage];
+  const theme = st.theme || ['workshop', 'kiln', 'gallery'][stage % 3];
+  const back = -7.4;
+  if (theme === 'workshop') {
+    for (const [x, potId] of [[-6, 0], [-1, 3], [4, 5]]) {
+      block(root, x, .78, back, 2.4, .12, 1.05, '#9c7350');
+      for (const dx of [-1.05, 1.05]) for (const dz of [-.4, .4]) block(root, x + dx, .37, back + dz, .1, .74, .1, '#7d5a3e');
+      block(root, x - .7, .93, back, .42, .18, .36, '#b5754c');
+      block(root, x - .25, .9, back + .15, .22, .12, .2, '#c28456');
+      pot(mul(root, translate(x + .55, 1.06, back)), potId, 0, .3);
+    }
+    for (const x of [-9.7, 8.7]) {
+      block(root, x, .45, back + .2, .9, .9, .9, '#8a6a4c');
+      draw(potteryWheel, mul(root, translate(x, .9, back + .2)), '#a9805a');
+      block(root, x, 1.12, back + .2, .34, .2, .34, '#b06f45');
+    }
+    for (const [x, z] of [[-9.8, 6.8], [8.8, 6.8]]) for (let i = 0; i < 3; i++) block(root, x, .25 + i * .5, z, 1.1, .06, .45, '#9c7350');
+  }
+  else if (theme === 'kiln') {
+    for (const x of [-4.5, 3.5]) {
+      block(root, x, .65, back - .3, 3.1, 1.3, 2.05, '#a96f4b');
+      block(root, x, 1.5, back - .3, 2.55, .45, 1.65, '#bb8960');
+      block(root, x + .9, 2.1, back - .3, .7, .85, .7, '#bf9970');
+      block(root, x, .45, back + .74, 1.02, .88, .06, '#5b5144');
+      block(root, x, .38, back + .76, .7, .5, .04, '#e8823a');
+      for (let i = 0; i < 4; i++) block(root, x - .82 + i * .55, 1.31, back - .3, .07, .06, 2.05, '#e0b28b');
+    }
+    for (const x of [-9.4, 8.4]) for (let row = 0; row < 3; row++) for (let i = 0; i < 4 - row; i++) {
+      block(root, x - .45 + i * .3 + row * .15, .12 + row * .24, back + .4, .22, .22, 1.1, row % 2 ? '#8a5f3c' : '#7a5234');
+    }
+  }
+  else {
+    for (const [x, potId] of [[-6, 3], [-1, 4], [4, 5]]) {
+      block(root, x, .22, back, 2.1, .44, 1.4, '#c5c7b4');
+      block(root, x, .49, back, 1.9, .1, 1.2, '#e0decb');
+      pot(mul(root, translate(x, .98, back)), potId, 0, .7);
+      for (const dx of [-.9, .9]) for (const dz of [-.55, .55]) block(root, x + dx, 1.15, back + dz, .06, 1.22, .06, '#a3b9ae');
+      block(root, x, 1.79, back, 1.9, .07, 1.2, '#d5dfd1');
+    }
+    for (const [x, z] of [[-9.8, -6.8], [8.8, -6.8], [-9.8, 6.8], [8.8, 6.8]]) {
       block(root, x, .85, z, .48, 1.7, .48, '#c1c8b5');
       block(root, x, 1.74, z, .7, .12, .7, '#d5d9c5');
     }
