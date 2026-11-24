@@ -2,15 +2,16 @@
  * 지원: PNG/JPEG/WebP/GIF, TTF/OTF/WOFF/WOFF2, WAV/MP3/OGG, 정적 OBJ(재질 제외).
  * 파일은 Data URL로 프로젝트 JSON에 포함됩니다. 외부 URL·스크립트를 실행하지 않습니다. */
 const AssetBank = (() => {
-  let records=[], resources=new Map(), selectedId='', floorProgram=null,imageProgram=null, plane=null, audio=null, surfaceProgram=null, muted=false;
+  let records=[], resources=new Map(), selectedId='', floorProgram=null,imageProgram=null, plane=null, audio=null, surfaceProgram=null, modelProgram=null, muted=false;
   const effects=new Set(), sources=new Set();
   let effectContext=null, soundEpoch=0,revision=0;
   let importQueue=Promise.resolve();
+  const maxOBJTriangles=250_000;
   const extensions={png:['image','image/png'],jpg:['image','image/jpeg'],jpeg:['image','image/jpeg'],webp:['image','image/webp'],gif:['image','image/gif'],ttf:['font','font/ttf'],otf:['font','font/otf'],woff:['font','font/woff'],woff2:['font','font/woff2'],mp3:['audio','audio/mpeg'],wav:['audio','audio/wav'],ogg:['audio','audio/ogg'],obj:['model','text/plain']};
 
-  /** @param text {string} OBJ 원문. @returns {object} mesh에 전달할 {vertices,normals}. 음수 인덱스·다각형 지원. 텍스처/MTL 미지원. */
+  /** @param text {string} OBJ 원문. @returns {object} mesh에 전달할 {vertices,normals}. 음수 인덱스·다각형 지원. 면별 UV를 보존합니다. */
   function parseOBJ(text) {
-    const points=[], triangles=[];
+    const points=[], triangles=[], uvPoints=[], triangleUVs=[];
     for(const match of text.matchAll(/[^\r\n]+/g)) {
       const line=match[0];
       const parts=line.split('#')[0].trim().split(/\s+/);
@@ -19,13 +20,32 @@ const AssetBank = (() => {
         if(v.length!==3||!v.every(Number.isFinite))throw Error('OBJ 정점 좌표가 잘못되었습니다.');
         points.push(v);if(points.length>100000)throw Error('OBJ 정점은 10만 개 이하로 줄여 주세요.');
       }
+      if(parts[0]==='vt') {
+        const uv=[Number(parts[1]),Number(parts[2] ?? 0)];
+        if(!uv.every(Number.isFinite)) throw Error('OBJ UV 좌표가 잘못되었습니다.');
+        uvPoints.push(uv);
+      }
       if(parts[0]==='f') {
-        const face=parts.slice(1).filter(p=>!p.startsWith('#')).map(p=>{
-          const i=Number(p.split('/')[0]);const index=i<0?points.length+i:i-1;
-          if(!Number.isInteger(i)||i===0||!points[index])throw Error('OBJ 면 인덱스가 잘못되었습니다.');return index;
+        const face=parts.slice(1).map(part=>{
+          const [vertex,texture]=part.split('/');
+          const i=Number(vertex), index=i<0?points.length+i:i-1;
+          if(!Number.isInteger(i)||i===0||!points[index])throw Error('OBJ 면 인덱스가 잘못되었습니다.');
+          let uvIndex=-1;
+          if(texture) {
+            const t=Number(texture);
+            uvIndex=t<0?uvPoints.length+t:t-1;
+            if(!Number.isInteger(t)||t===0||uvIndex<0)throw Error('OBJ UV 인덱스가 잘못되었습니다.');
+          }
+          return [index,uvIndex];
         });
         if(face.length<3)throw Error('OBJ 면은 정점이 3개 이상이어야 합니다.');
-        for(let i=1;i<face.length-1;i++){triangles.push(face[0],face[i],face[i+1]);if(triangles.length>300000)throw Error('OBJ 삼각형은 10만 개 이하로 줄여 주세요.');}
+        for(let i=1;i<face.length-1;i++){
+          for(const [index,uvIndex] of [face[0],face[i],face[i+1]]) {
+            triangles.push(index);
+            triangleUVs.push(uvIndex);
+          }
+          if(triangles.length>maxOBJTriangles*3)throw Error('OBJ 삼각형은 25만 개 이하로 줄여 주세요.');
+        }
       }
     }
     if(!points.length||!triangles.length)throw Error('OBJ에 정점과 면이 필요합니다.');
@@ -35,16 +55,24 @@ const AssetBank = (() => {
     const normalized=points.map(v=>[(v[0]-(min[0]+max[0])/2)/size,(v[1]-min[1])/size,(v[2]-(min[2]+max[2])/2)/size]);
     // 삼각형 수에 맞춰 한 번만 메모리를 할당하고 큰 일반 배열의 재복사를 피합니다.
     const vertices=new Float32Array(triangles.length*3),normals=new Float32Array(triangles.length*3);
+    if (triangleUVs.some(index=>index>=uvPoints.length)) throw Error('OBJ UV 인덱스가 잘못되었습니다.');
+    let uvs=null;
     for(let i=0;i<triangles.length;i+=3){
+      const textured=triangleUVs[i]>=0 && triangleUVs[i+1]>=0 && triangleUVs[i+2]>=0;
+      if (textured && !uvs) uvs=new Float32Array(triangles.length*3);
       const a=normalized[triangles[i]],b=normalized[triangles[i+1]],c=normalized[triangles[i+2]];
       const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
       const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,len=Math.hypot(nx,ny,nz)||1;
       for(let j=0;j<3;j++){
         const offset=(i+j)*3;vertices.set(normalized[triangles[i+j]],offset);
         normals[offset]=nx/len;normals[offset+1]=ny/len;normals[offset+2]=nz/len;
+        if (textured) {
+          const [u,v]=uvPoints[triangleUVs[i+j]];
+          uvs[offset]=u;uvs[offset+1]=v;uvs[offset+2]=1;
+        }
       }
     }
-    return {vertices,normals};
+    return {vertices,normals,uvs};
   }
 
   /** @param record {object} {id,name,kind,data}. @returns {Promise<object>} 브라우저 리소스를 로드. 실패하면 프로젝트 상태는 변경하지 않음. */
@@ -64,7 +92,13 @@ const AssetBank = (() => {
         for(let i=axis;i<parsed.vertices.length;i+=3){low=Math.min(low,parsed.vertices[i]);high=Math.max(high,parsed.vertices[i]);}
         return Math.max(high-low,0.01);
       });
-      return {mesh:mesh(parsed.vertices,parsed.normals),dimensions};
+      const geometry=mesh(parsed.vertices,parsed.normals);
+      if (parsed.uvs) {
+        geometry.uv=gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER,geometry.uv);
+        gl.bufferData(gl.ARRAY_BUFFER,parsed.uvs,gl.STATIC_DRAW);
+      }
+      return {mesh:geometry,dimensions};
     }
     return {src:record.data};
   }
@@ -89,7 +123,7 @@ const AssetBank = (() => {
   }
 
   /** @param bank {Map} 해제 대상. @returns {void} GPU/폰트 리소스를 해제. */
-  function release(bank) {for(const resource of bank.values()){if(resource.texture)gl.deleteTexture(resource.texture);if(resource.mesh){gl.deleteBuffer(resource.mesh.b);gl.deleteBuffer(resource.mesh.nb);}if(resource.font)document.fonts.delete(resource.font);}}
+  function release(bank) {for(const resource of bank.values()){if(resource.texture)gl.deleteTexture(resource.texture);if(resource.mesh){gl.deleteBuffer(resource.mesh.b);gl.deleteBuffer(resource.mesh.nb);if(resource.mesh.uv)gl.deleteBuffer(resource.mesh.uv);}if(resource.font)document.fonts.delete(resource.font);}}
 
   /** @param candidate {object} prepare 반환값. @returns {void} 리소스를 원자적으로 교체. */
   function applyPrepared(candidate) {
@@ -132,13 +166,42 @@ const AssetBank = (() => {
     selectedId=lastId;
   }
 
+  function hasModelUV(id) {return Boolean(resources.get(id)?.mesh?.uv);}
+
+  function drawModel(id, geometry, model, color) {
+    const image=resources.get(StudioUI.settings.modelTextures?.[id]);
+    if (!geometry.uv || !image?.texture) {
+      draw(geometry,model,color);
+      return;
+    }
+    if (!modelProgram) modelProgram=program(
+      'attribute vec3 position,normal,texcoord;uniform mat4 mvp,model;varying vec3 uv;varying float light;void main(){uv=vec3(texcoord.x,1.-texcoord.y,texcoord.z);vec3 n=normalize(mat3(model)*normal);light=.61+.39*max(dot(n,normalize(vec3(-.4,.8,1.))),0.);gl_Position=mvp*vec4(position,1.);}',
+      'precision mediump float;uniform sampler2D picture;uniform vec3 baseColor;varying vec3 uv;varying float light;void main(){vec4 c=texture2D(picture,uv.xy);gl_FragColor=vec4(mix(baseColor,c.rgb,c.a*uv.z)*light,1.);}'
+    );
+    gl.useProgram(modelProgram);
+    for (const [name,buffer] of [['position',geometry.b],['normal',geometry.nb],['texcoord',geometry.uv]]) {
+      const location=gl.getAttribLocation(modelProgram,name);
+      gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+      gl.enableVertexAttribArray(location);
+      gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);
+    }
+    gl.uniformMatrix4fv(gl.getUniformLocation(modelProgram,'mvp'),false,mul(vp,model));
+    gl.uniformMatrix4fv(gl.getUniformLocation(modelProgram,'model'),false,model);
+    gl.uniform3fv(gl.getUniformLocation(modelProgram,'baseColor'),rgb(color));
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D,image.texture);
+    gl.uniform1i(gl.getUniformLocation(modelProgram,'picture'),0);
+    gl.drawArrays(gl.TRIANGLES,0,geometry.count);
+    gl.disableVertexAttribArray(gl.getAttribLocation(modelProgram,'texcoord'));
+  }
+
   /** @param parent {Float32Array} 기울어진 월드 행렬. @param stage {object} placedAssets가 있는 스테이지.
    * @returns {void} 이미지=바닥 스티커, OBJ=1칸 정규화 장식. 충돌은 별도의 벽 블록으로 배치. */
   function drawWorld(parent,stage) {
     for(const block of stage.placedAssets||[]) {
       const record=records.find(r=>r.id===block.assetId),resource=resources.get(block.assetId);if(!record||!resource)continue;
       const model=mul(parent,mul(translate(block.x,0.07,block.z),ry(block.rotation*Math.PI/180)));
-      if(record.kind==='model'){draw(resource.mesh,model,'#bd9060');continue;}
+      if(record.kind==='model'){drawModel(record.id,resource.mesh,model,'#bd9060');continue;}
       if(record.kind!=='image')continue;
       if(!imageProgram){imageProgram=program('attribute vec3 position;uniform mat4 mvp;varying vec2 uv;void main(){uv=vec2(position.x+.5,position.z+.5);gl_Position=mvp*vec4(position,1.);}','precision mediump float;uniform sampler2D picture;varying vec2 uv;void main(){vec4 c=texture2D(picture,uv);if(c.a<.02)discard;gl_FragColor=c;}');plane=mesh([-.5,0,-.5,.5,0,-.5,.5,0,.5,-.5,0,-.5,.5,0,.5,-.5,0,.5],Array(18).fill(0));}
       gl.useProgram(imageProgram);gl.bindBuffer(gl.ARRAY_BUFFER,plane.b);const pos=gl.getAttribLocation(imageProgram,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(gl.getUniformLocation(imageProgram,'mvp'),false,mul(vp,model));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,resource.texture);gl.uniform1i(gl.getUniformLocation(imageProgram,'picture'),0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,6);gl.disable(gl.BLEND);
@@ -164,7 +227,7 @@ const AssetBank = (() => {
     const assetId=StudioUI.settings.onggiAssets?.[String(id)],resource=resources.get(assetId);
     if(!resource?.mesh)return false;
     const local=mul(rz(roll),mul(scale(size,size,size),mul(translate(0,-0.62,0),scale(1.24,1.24,1.24))));
-    draw(resource.mesh,mul(parent,local),potColors[id]||'#a8784d');return true;
+    drawModel(assetId,resource.mesh,mul(parent,local),potColors[id]||'#a8784d');return true;
   }
 
   /** @param floor {object} 구멍/낙하 경계를 반영한 기존 바닥 메시. @param model {Float32Array} 맵 변환.
@@ -234,7 +297,7 @@ const AssetBank = (() => {
       const rotated=b.rotation===90;
       const local=mul(ry(rotated?Math.PI/2:0),scale((rotated?b.d:b.w)/w,height/h,(rotated?b.w:b.d)/d));
       const model=mul(parent,mul(translate(b.x,y-height/2,b.z),local));
-      draw(resource.mesh,model,color);return true;
+      drawModel(id,resource.mesh,model,color);return true;
     }
     const model=mul(parent,mul(translate(b.x,y,b.z),scale(b.w,height,b.d)));
     return drawSurface(cube,model,color,id);
@@ -296,7 +359,7 @@ const AssetBank = (() => {
   /** @param value {boolean} 전체 음소거 여부. @returns {void} BGM/효과음을 함께 중지/허용. */
   function setMuted(value) { muted=Boolean(value);if(muted)stopSound(); }
 
-  return {skinId,drawSurface,drawFloorSkins,drawBlock,playEffect,unlockEffects,setMuted,drawOnggi,drawFloor,parseOBJ,prepare,applyPrepared,addFiles,drawWorld,drawOverlay,playSound,stopSound,
+  return {hasModelUV,skinId,drawSurface,drawFloorSkins,drawBlock,playEffect,unlockEffects,setMuted,drawOnggi,drawFloor,parseOBJ,prepare,applyPrepared,addFiles,drawWorld,drawOverlay,playSound,stopSound,
     exportData:()=>records.map(r=>({...r})),list:()=>records.map(({data,...r})=>r),
     select:id=>{selectedId=id;},selected:()=>selectedId,fontFamily:id=>resources.get(id)?.family,
     image:id=>resources.get(id)?.image};

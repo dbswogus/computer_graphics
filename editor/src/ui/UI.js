@@ -493,6 +493,16 @@ function drawJoystick() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function drawPlay() {
+  const quiz = STAGES[stage]?.quiz;
+  if (quiz) {
+    fillRound(190, 104, 1220, 100, 18, C.paper);
+    ctx.save();
+    ctx.font = '700 30px sans-serif';
+    const size = Math.min(30, 30 * 1160 / Math.max(1, ctx.measureText(quiz.question).width));
+    ctx.restore();
+    text(quiz.question, 800, 140, size, C.ink, 700, 'center');
+    text('O 또는 X 방 중앙의 표시를 밟으세요', 800, 177, 22, C.green, 600, 'center');
+  }
   for(let i = Math.max(0,Math.min(stage-1,STAGES.length-3)); i < Math.min(STAGES.length,Math.max(3,stage+2)); i ++) {
     const x = 1065 + (i-Math.max(0,Math.min(stage-1,STAGES.length-3))) * 120;
     fillRound(x, UI_LAYOUT.drawPlay.fillRound_01.y, UI_LAYOUT.drawPlay.fillRound_01.width, UI_LAYOUT.drawPlay.fillRound_01.height, i === stage ? C.green : '#e7e9dc', UI_LAYOUT.drawPlay.fillRound_01.radius);
@@ -575,6 +585,23 @@ function drawFinish() {
   btn('replay', UI_LAYOUT.drawFinish.btn_02.x, UI_LAYOUT.drawFinish.btn_02.y, UI_LAYOUT.drawFinish.btn_02.width, UI_LAYOUT.drawFinish.btn_02.height, UI_TEXT.drawFinish_14);
   text(UI_TEXT.drawFinish_15, UI_LAYOUT.drawFinish.text_13.x, UI_LAYOUT.drawFinish.text_13.y, UI_LAYOUT.drawFinish.text_13.fontSize, C.muted, 400, 'right');
 }
+function drawSaveLabels() {
+  const st = STAGES[stage];
+  if (!st.editorStage) return;
+  const m = mul(vp,mul(rz(angle),rx(tiltZ)));
+  for (const [i,marker] of st.checkpointBlocks.entries()) {
+    const saved = st.checks[i] <= checkpoint.index;
+    const {x,z} = marker;
+    if (falling || Math.hypot(px-x,pz-z)>1.65) continue;
+    const y = .1;
+    const sx = (m[0]*x+m[4]*y+m[8]*z+m[12])*.5*W+W/2;
+    const sy = H/2-(m[1]*x+m[5]*y+m[9]*z+m[13])*.5*H;
+    const width = saved ? 76 : 60;
+    fillRound(sx-width/2,sy-54,width,27,saved?'#22775e':'#215e65',5);
+    text(saved?'저장됨':'저장',sx,sy-40,18,'#fff8e9',700,'center');
+  }
+}
+
 /**
  * [읽기 10: 화면·UI 출력 / 함수 번호 82] drawHomeLabel
  * 역할: 마지막 목표 위치 위에 이름표를 그립니다.
@@ -585,7 +612,7 @@ function drawFinish() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function drawHomeLabel() {
-  if(stage !== STAGES.length - 1) return;
+  if(stage !== STAGES.length - 1 || STAGES[stage].quiz) return;
   const goal = STAGES [stage].route.at(- 1),
   m = mul(vp, mul(rz(angle), rx(tiltZ))),
   x = goal [0] + .55,
@@ -606,16 +633,19 @@ function drawHomeLabel() {
  * 다음에 읽을 함수: drawTitle → drawSelect → drawGuide → drawStory → drawMonologue → drawPlay → drawHomeLabel → drawArrival → drawFinish → fillRound → text
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
-function drawUI() {
+function drawUI(preview = false) {
   ctx.clearRect(0, 0, W, H);
   buttons = [];
-  PageUI.begin();
+  PageUI.begin(preview);
   if(screen === 'title') drawTitle();
   if(screen === 'select') drawSelect();
   if(screen === 'guide') drawGuide();
   if(screen === 'story') drawStory();
   if(screen === 'monologue') drawMonologue();
   if(screen === 'play') {
+    PageUI.lock(1);
+    drawSaveLabels();
+    PageUI.lock(-1);
     drawPlay();
     drawHomeLabel();
   }

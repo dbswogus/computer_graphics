@@ -94,7 +94,8 @@ function buildStageGeometry() {
         z = minZ +(iz + .5) * step;
         if(! onCourse(surface, x, z)) continue;
         outer.add(ix + ',' + iz);
-        if(! surface.holes.some(h => Math.hypot(x - h.x, z - h.z) < h.r) && ! surface.crumbles.some(r => inRect(x, z, r))) cells.add(ix + ',' + iz);
+        if(! surface.holes.some(h => Math.hypot(x - h.x, z - h.z) < h.r) && ! surface.crumbles.some(r => inRect(x, z, r)) &&
+            ! surface.quizGoals?.some(r => r.room && inRect(x,z,r))) cells.add(ix + ',' + iz);
       }
       const patches = cornerPatches(surface);
       surface.wallSegments = [];
@@ -245,10 +246,14 @@ function worldScene() {
       }
       block(base, sf.route [0] [0], - .23, sf.route [0] [1], 1.9, .13, 1.9, '#82979c');
     }
-    if(!AssetBank.drawFloor(sf.floor,base,st.color))draw(sf.floor, base, st.color);
+    if(!AssetBank.drawFloor(sf.floor,base,st.color))draw(sf.floor, base, st.color,sf.editorStage);
     AssetBank.drawFloorSkins(sf,base,st.color);
-    draw(sf.walls, base, '#e6d5ad');
-    for (const wall of sf.editorWalls || []) if(!AssetBank.drawBlock('wall',wall,base,.35,.7,'#65785c')) block(base, wall.x, 0.35, wall.z, wall.w, 0.7, wall.d, '#65785c');
+    draw(sf.walls, base, sf.editorStage ? '#a47448' : '#e6d5ad', sf.editorStage);
+    for (const wall of sf.editorWalls || []) {
+      if (!wall.roomId && !AssetBank.drawBlock('wall',wall,base,.35,.7,'#a47448')) {
+        block(base,wall.x,.35,wall.z,wall.w,.7,wall.d,'#a47448',0,true);
+      }
+    }
     for(let j = 1; !sf.editorStage && j < sf.route.length; j ++) {
       const a = sf.route [j - 1],
       b = sf.route [j],
@@ -270,6 +275,17 @@ function worldScene() {
       if((st.checkLevels ?. [index] || 0) !== sf.level) continue;
       const p = st.route [index];
       const marker=st.checkpointBlocks?.[st.checks.indexOf(index)] || {x:p[0],z:p[1],w:1,d:1};
+      if (sf.editorStage && !AssetBank.skinId('checkpoint',marker)) {
+        const saved = index <= checkpoint.index;
+        const color = saved ? '#22775e' : '#215e65';
+        block(base,marker.x,.024,marker.z,1,.048,1,'#f5e6ce');
+        block(base,marker.x,.054,marker.z,.91,.038,.91,color);
+        block(base,marker.x,.078,marker.z,.53,.018,.53,'#fff8e9');
+        block(base,marker.x+.027,.094,marker.z-.139,.27,.018,.14,color);
+        block(base,marker.x,.094,marker.z+.116,.36,.018,.17,color);
+        block(base,marker.x,.108,marker.z+.12,.26,.018,.036,'#fff8e9');
+        continue;
+      }
       if(!AssetBank.drawBlock('checkpoint',marker,base,.02,.04,'#a0ba85')) block(base, p [0], .02, p [1], sf.editorStage ? 1 : 1.15, .04, sf.editorStage ? 1 : 1.15, index <= checkpoint.index ? '#6b9b69' : '#a0ba85');
       block(base, p [0], .05, p [1], .6, .03, .6, '#dce7b4');
     }
@@ -277,6 +293,7 @@ function worldScene() {
       const r = sf.crumbles [i],
       c = crumbles [i];
       if(c.down > 0) continue;
+      if (r.quizTrap) continue;
       const shake = c.charge > 0 ? Math.sin(simulationTime * 48) * .025 : 0;
       if(!AssetBank.drawBlock('crumble',r,base,.015+shake,.12,c.charge>1.6?'#cf6950':'#c99c63')) block(base, r.x, .015 + shake, r.z, r.w + .15, .12, r.d + .15, c.charge > 1.6 ? '#cf6950' : '#c99c63');
       for(let j = 0; j < 3; j ++) block(base, r.x +(j - 1) * r.w * .2, .085 + shake, r.z +(j % 2 ? .12 : - .12), r.w * .12, .018, r.d * .7, '#795d43', .3);
@@ -294,21 +311,60 @@ function worldScene() {
   goalRoot = mul(root, translate(0, last.height, 0)),
   g = st.route.at(- 1);
   if(st.startBlock) AssetBank.drawBlock('start',st.startBlock,mul(root,translate(0,st.surfaces[0].height,0)),.025,.05,'#459caa');
-  if(!AssetBank.drawBlock('goal',st.goalBlock || {x:g[0],z:g[1],w:1,d:1},goalRoot,.04,.08,'#779d67')) block(goalRoot, g [0], .04, g [1], st.editorStage ? 1 : 1.7, .08, st.editorStage ? 1 : 1.7, '#779d67');
-  block(goalRoot, g [0], .1, g [1], st.editorStage ? .7 : 1.15, .05, st.editorStage ? .7 : 1.15, '#d6dfad');
-  block(goalRoot, g [0] + 1, .85, g [1] + .7, .09, 1.7, .09, '#789068');
-  block(goalRoot, g [0] + .55, 1.55, g [1] + .7, .9, .42, .07, '#9ebc79');
-  if(stage === STAGES.length - 1) {
-    const silhouette = mul(goalRoot, mul(translate(g [0] + .55, 1.58, g [1] + .77), scale(.28, .28, .025))),
-    info = COLLECTION [selected];
-    draw(pots [selected], silhouette, '#466744');
-    draw(lids, mul(silhouette, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), '#466744');
-    if(screen === 'arrival') {
-      const q = arrival.t / arrival.duration;
-      block(goalRoot, g [0], .2 * q, g [1], 1.55, .4 * q + .01, 1.55, '#b7bba3');
+  if (st.quiz) {
+    const trapDown = st.crumbles.some((r,i) => r.quizTrap && crumbles[i].down > 0);
+    for (const marker of st.quizGoals) {
+      const collapsing = trapDown && marker !== st.goalBlock;
+      if (collapsing && !marker.room) continue;
+      const {x,z,w,d,type} = marker;
+      const roomRoot = collapsing ? mul(goalRoot,translate(0,-fallTime*fallTime*12,0)) : goalRoot;
+      if (marker.room) {
+        const seam = GAME_CONFIG.map.gridStep;
+        block(roomRoot,x,-.19,z,w+seam,.4,d+seam,st.color,0,true);
+        for (const wall of st.editorWalls.filter(w=>w.roomId===marker.id)) {
+          if (!AssetBank.drawBlock('wall',wall,roomRoot,.38,.76,'#a47448')) {
+            block(roomRoot,wall.x,.38,wall.z,wall.w,.76,wall.d,'#a47448',0,true);
+          }
+        }
+      }
+      const isCircle = type === 'goalO';
+      const ink = isCircle ? '#32665e' : '#974c40';
+      const plate = BlockMap.quizPlate(marker);
+      const plateY=.047, inkY=.085;
+      if (!AssetBank.drawBlock(type,plate,roomRoot,plateY,.06,'#f1e7d4')) {
+        block(roomRoot,x,.032,z,plate.w,.045,plate.d,'#b0a28a');
+        block(roomRoot,x,.059,z,plate.w*.94,.04,plate.d*.94,'#f1e7d4');
+      }
+      if (isCircle) {
+        for (let i = 0; i < 20; i++) {
+          const a = i * Math.PI / 10;
+          block(roomRoot,x+Math.cos(a)*.25,inkY,z+Math.sin(a)*.25,
+            .092,.015,.092,ink);
+        }
+      } else {
+        for (const angle of [-Math.PI/4,Math.PI/4]) {
+          const arm = mul(translate(x,inkY,z),mul(ry(angle),scale(.095,.015,.64)));
+          draw(cube,mul(roomRoot,arm),ink);
+        }
+      }
+    }
+  } else {
+    if(!AssetBank.drawBlock('goal',st.goalBlock || {x:g[0],z:g[1],w:1,d:1},goalRoot,.04,.08,'#779d67')) block(goalRoot, g [0], .04, g [1], st.editorStage ? 1 : 1.7, .08, st.editorStage ? 1 : 1.7, '#779d67');
+    block(goalRoot, g [0], .1, g [1], st.editorStage ? .7 : 1.15, .05, st.editorStage ? .7 : 1.15, '#d6dfad');
+    block(goalRoot, g [0] + 1, .85, g [1] + .7, .09, 1.7, .09, '#789068');
+    block(goalRoot, g [0] + .55, 1.55, g [1] + .7, .9, .42, .07, '#9ebc79');
+    if(stage === STAGES.length - 1) {
+      const silhouette = mul(goalRoot, mul(translate(g [0] + .55, 1.58, g [1] + .77), scale(.28, .28, .025))),
+      info = COLLECTION [selected];
+      draw(pots [selected], silhouette, '#466744');
+      draw(lids, mul(silhouette, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), '#466744');
+      if(screen === 'arrival') {
+        const q = arrival.t / arrival.duration;
+        block(goalRoot, g [0], .2 * q, g [1], 1.55, .4 * q + .01, 1.55, '#b7bba3');
+      }
     }
   }
-  for(let i = 0; i < 4; i ++) {
+  for(let i = 0; !st.editorStage && i < 4; i ++) {
     const x = i % 2 === 0 ? - 11 : 10.4,
     z = - 4 + i * 2.8;
     block(root, x, - .5, z, 1.7, .7, 1.7, '#b6ba9f');

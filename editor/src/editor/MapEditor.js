@@ -2,8 +2,8 @@
  * BlockMap은 데이터/판정, 이 파일은 편집 UI와 기존 게임 연결을 담당합니다.
  * 네트워크 요청이 없습니다. JSON 파일을 저장하면 다른 PC에서도 이어서 편집할 수 있습니다. */
 const MapEditor = (() => {
-  const labels = { asset:'에셋 장식', select:'선택', floor:'바닥', wall:'벽', hole:'구멍', sweeper:'왕복 장애물', crumble:'무너지는 바닥', checkpoint:'체크포인트', start:'출발점', goal:'목표점', erase:'지우개' };
-  const colors = { asset:'#8f78ab', floor:'#b69a70', wall:'#52694d', hole:'#684c3c', sweeper:'#d77b50', crumble:'#ccab73', checkpoint:'#8aa575', start:'#459caa', goal:'#d7ae4d' };
+  const labels = { asset:'에셋 장식', select:'선택', floor:'바닥', wall:'벽', hole:'구멍', sweeper:'왕복 장애물', crumble:'무너지는 바닥', checkpoint:'세이브 지점', start:'출발점', goal:'목표점', goalO:'O 방 (3×3)', goalX:'X 방 (3×3)', ...Object.fromEntries(Object.entries(BlockMap.presets).map(([id,preset]) => [id,preset.label])), erase:'지우개' };
+  const colors = { asset:'#8f78ab', floor:'#c5965e', wall:'#a47448', hole:'#684c3c', sweeper:'#d77b50', crumble:'#ccab73', checkpoint:'#215e65', start:'#459caa', goal:'#d7ae4d', goalO:'#32665e', goalX:'#974c40' };
   const cellSize = 48, storageKey = 'onggi-editor-project';
   let maps = [ProjectData.unitMap(BlockMap.example())], activeMap = 0, map = maps[0], tool = 'floor', selectedId = null, undoStack = [], redoStack = [];
   let testing = false, originalStages = null, dragging = false, strokeBefore = null, lastCell = '';
@@ -18,7 +18,7 @@ const MapEditor = (() => {
     message.style.color = error ? '#a73528' : '#40583c';
   }
 
-  /** 매개변수 없음. @returns {void} 메모리 수정 상태만 갱신. 저장은 프로젝트 백업/담당별 내보내기로 수행. */
+  /** 매개변수 없음. @returns {void} 메모리 수정 상태만 갱신. 저장은 프로젝트 백업/설정 파일 내보내기로 수행. */
   function markModified() {
     if(typeof StudioUI.invalidateAssetUndo==='function')StudioUI.invalidateAssetUndo();
     maps[activeMap]=map;SaveStatus.changed();
@@ -73,10 +73,28 @@ const MapEditor = (() => {
       selectedId = hit?.id || null;
     } else {
       if (tool === 'asset' && !AssetBank.list().some(a=>a.id===AssetBank.selected()&&['image','model'].includes(a.kind))) { status('먼저 아래에서 이미지 또는 OBJ 에셋을 선택하세요.',true); return; }
-      if (map.blocks.some(b => b.type === tool && b.x === point.x && b.z === point.z)) return;
+      const preset = BlockMap.presets[tool] ? tool : undefined;
+      const type = preset ? 'wall' : tool;
+      if (map.blocks.some(b => b.type === type && b.preset === preset && b.x === point.x && b.z === point.z &&
+          (!['goalO','goalX'].includes(type) || b.room))) return;
       if (map.blocks.length >= 500) { status('블록은 최대 500개까지 배치할 수 있습니다.', true); return; }
-      if (tool === 'start' || tool === 'goal') map.blocks = map.blocks.filter(b => b.type !== tool);
-      const block = { id: `b-${Date.now()}-${Math.random().toString(36).slice(2,9)}`, type: tool, ...point, w:1, d:1, rotation:0, period:5, amp:1, axis:'x' };
+      const block = { id: `b-${Date.now()}-${Math.random().toString(36).slice(2,9)}`, type, ...point, w:1, d:1, rotation:0, period:5, amp:1, axis:'x' };
+      if (['goalO','goalX'].includes(type)) {
+        block.room = true;
+        block.w = block.d = 3;
+        if (point.x-1.5 < BlockMap.bounds.minX || point.x+1.5 > BlockMap.bounds.maxX ||
+            point.z-1.5 < BlockMap.bounds.minZ || point.z+1.5 > BlockMap.bounds.maxZ) {
+          status('방 중심을 가장자리에서 한 칸 안쪽에 놓으세요.', true);
+          return;
+        }
+        if (map.blocks.some(b=>b.type!==type && ['goalO','goalX'].includes(b.type) &&
+            Math.abs(b.x-block.x)<(b.w+3)/2 && Math.abs(b.z-block.z)<(b.d+3)/2)) {
+          status('O 방과 X 방이 겹치지 않는 칸을 선택하세요.', true);
+          return;
+        }
+      }
+      if (BlockMap.uniqueTypes.includes(type)) map.blocks = map.blocks.filter(b => b.type !== type);
+      if (preset) block.preset = preset;
       if(tool==='asset')block.assetId=AssetBank.selected();
       map.blocks.push(block); selectedId = block.id;SaveStatus.changed();
     }
@@ -104,21 +122,57 @@ const MapEditor = (() => {
   }
 
   /** 매개변수 없음. @returns {void} 캔버스에 격자·블록·종류 기호·선택 테두리를 그립니다. 클릭 판정과 같은 rectangle을 사용. */
+  function paintEarth(ctx,x,y,w,d,wall=false) {
+    ctx.fillStyle=wall?colors.wall:colors.floor;
+    ctx.fillRect(x,y,w,d);
+    const points=Math.ceil(w*d/44);
+    for (let i=0;i<points;i++) {
+      const px=((i*71+Math.round(x)*13)%101)/101;
+      const py=((i*37+Math.round(y)*7)%97)/97;
+      ctx.fillStyle=i%3===0?'#6d4e4228':'#f5dcca30';
+      ctx.fillRect(x+px*Math.max(0,w-1),y+py*Math.max(0,d-1),1,1);
+    }
+  }
+
   function render() {
     const ctx = board.getContext('2d');
     ctx.fillStyle = '#e8ebdf'; ctx.fillRect(0,0,board.width,board.height);
-    const sorted = [...map.blocks].sort((a,b) => (b.type === 'floor') - (a.type === 'floor'));
+    const layer = b => b.type === 'floor' ? 0 : b.room ? 1 : 2;
+    const sorted = [...map.blocks].sort((a,b) => layer(a)-layer(b));
     for (const b of sorted) {
       const r = BlockMap.rectangle(b), x = (r.x+9-r.w/2)*cellSize, y = (r.z+6-r.d/2)*cellSize;
       ctx.fillStyle = colors[b.type];
-      if (b.type === 'hole') {
+      const signX=(r.x+9)*cellSize, signY=(r.z+6)*cellSize;
+      if (b.room) {
+        paintEarth(ctx,x,y,r.w*cellSize,r.d*cellSize);
+        for (const wall of BlockMap.roomWalls(b)) {
+          paintEarth(ctx,(wall.x+9-wall.w/2)*cellSize,(wall.z+6-wall.d/2)*cellSize,
+            wall.w*cellSize,wall.d*cellSize,true);
+        }
+      } else if (b.type === 'hole') {
         ctx.beginPath();ctx.arc((b.x+9)*cellSize,(b.z+6)*cellSize,Math.min(b.w,b.d)*cellSize/2,0,Math.PI*2);ctx.fill();
-      } else ctx.fillRect(x+1,y+1,r.w*cellSize-2,r.d*cellSize-2);
+      } else {
+        for (const part of BlockMap.parts(b)) {
+          const px=(part.x+9-part.w/2)*cellSize+1, py=(part.z+6-part.d/2)*cellSize+1;
+          const w=part.w*cellSize-2, d=part.d*cellSize-2;
+          if (b.type==='wall') paintEarth(ctx,px,py,w,d,true);
+          else if (b.type==='floor') paintEarth(ctx,px-1,py-1,w+2,d+2);
+          else ctx.fillRect(px,py,w,d);
+        }
+      }
       const skin=AssetBank.image(AssetBank.skinId(b.type,b));
-      if(skin && b.type!=='hole')ctx.drawImage(skin,x+1,y+1,r.w*cellSize-2,r.d*cellSize-2);
+      if (b.room) {
+        const half=BlockMap.quizPlate(b).w*cellSize/2;
+        ctx.fillStyle='#af9f85';ctx.fillRect(signX-half,signY-half,half*2,half*2);
+        ctx.fillStyle='#f1e7d4';ctx.fillRect(signX-half+2,signY-half+2,half*2-4,half*2-4);
+        if (skin) ctx.drawImage(skin,signX-half+2,signY-half+2,half*2-4,half*2-4);
+      } else if (skin && b.type !== 'hole') for (const part of BlockMap.parts(b)) {
+        ctx.drawImage(skin,(part.x+9-part.w/2)*cellSize+1,(part.z+6-part.d/2)*cellSize+1,
+          part.w*cellSize-2,part.d*cellSize-2);
+      }
       if(b.type==='asset'){const image=AssetBank.image(b.assetId);if(image)ctx.drawImage(image,x+1,y+1,cellSize-2,cellSize-2);}
-      ctx.fillStyle = '#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 15px sans-serif';
-      if (b.type !== 'floor') ctx.fillText({asset:'◆',wall:'벽',hole:'○',sweeper:'↔',crumble:'금',checkpoint:'✓',start:'S',goal:'G'}[b.type],(r.x+9)*cellSize,(r.z+6)*cellSize);
+      ctx.fillStyle = b.room ? colors[b.type] : '#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='bold 15px sans-serif';
+      if (b.type !== 'floor' && !b.preset) ctx.fillText({asset:'◆',wall:'벽',hole:'○',sweeper:'↔',crumble:'금',checkpoint:'저장',start:'S',goal:'G',goalO:'O',goalX:'X'}[b.type],signX,signY);
       if (b.type === 'sweeper') {
         ctx.strokeStyle='#ba5f33'; ctx.setLineDash([5,4]); ctx.beginPath();
         ctx.moveTo((b.x+9-(b.axis==='x'?b.amp:0))*cellSize,(b.z+6-(b.axis==='z'?b.amp:0))*cellSize);
@@ -134,6 +188,10 @@ const MapEditor = (() => {
     undoButton.disabled=!undoStack.length;redoButton.disabled=!redoStack.length;
     const nameInput=panel.querySelector('#editor-map-name');
     if(document.activeElement!==nameInput)nameInput.value=map.name;
+    const question = panel.querySelector('#editor-quiz-question');
+    const answer = panel.querySelector('#editor-quiz-answer');
+    question.value = map.quiz?.question || '';
+    answer.value = map.quiz?.answer || 'O';
     renderProperties();
     if(typeof PageDesigner!=='undefined')PageDesigner.renderMini();
   }
@@ -143,13 +201,13 @@ const MapEditor = (() => {
     properties.replaceChildren();
     const block = map.blocks.find(b=>b.id===selectedId);
     if (!block) { properties.textContent='선택 도구로 블록을 누르면 위치(1칸)·회전을 수정할 수 있어요.'; return; }
-    const title = document.createElement('strong');title.textContent=labels[block.type];properties.append(title);
-    for (const [key,label] of [['x','X 위치'],['z','Z 위치'],...(['start','goal','checkpoint'].includes(block.type)?[]:[['rotation','회전']]),...(block.type==='sweeper'?[['period','왕복 주기(초)'],['amp','이동 반경'],['axis','왕복 축']]:[])]) {
+    const title = document.createElement('strong');title.textContent=labels[block.preset || block.type];properties.append(title);
+    for (const [key,label] of [['x','X 위치'],['z','Z 위치'],...(block.room || !['start','goal','goalO','goalX','checkpoint'].includes(block.type)?[['rotation',block.room?'입구 회전':'회전']]:[]),...(block.type==='sweeper'?[['period','왕복 주기(초)'],['amp','이동 반경'],['axis','왕복 축']]:[])]) {
       const row=document.createElement('label');row.textContent=label;
       let input;
       if(key==='rotation'||key==='axis') {
         input=document.createElement('select');
-        for(const value of key==='rotation'?[0,90]:['x','z']){const option=document.createElement('option');option.value=value;option.textContent=String(value);input.append(option);}
+        for(const value of key==='rotation'?(block.room?[0,90,180,270]:[0,90]):['x','z']){const option=document.createElement('option');option.value=value;option.textContent=String(value);input.append(option);}
       }else{input=document.createElement('input');input.type='number';input.step=key==='period'?'0.5':'1';}
       input.value=block[key] ?? ({rotation:0,period:5,amp:1,axis:'x'}[key]);
       input.addEventListener('change',()=>updateProperty(key,input.value));row.append(input);properties.append(row);
@@ -293,13 +351,13 @@ const MapEditor = (() => {
     `;document.head.append(style);
     launchButton=document.createElement('button');launchButton.id='editor-launch';launchButton.textContent='맵 편집';launchButton.onclick=open;document.body.append(launchButton);
     panel=document.createElement('section');panel.id='map-editor';panel.hidden=true;panel.setAttribute('aria-label','블록 맵 편집기');
-    panel.innerHTML=`<div class="editor-top"><h1>데굴데굴 옹기 <small>편집 모드</small></h1><label class="workspace-picker">작업 <select id="editor-workspace"><option value="map">맵 만들기 · 다유</option><option value="design">꾸미기·물리 · 유리/재현</option><option value="team">담당별 저장 · 협업</option></select></label><div class="editor-primary"><button id="editor-play">▶ 테스트</button><details class="editor-menu"><summary>파일·배포</summary><div id="editor-file-menu"><button id="editor-save">프로젝트 백업</button><button id="editor-load">프로젝트 불러오기</button><input id="editor-file" type="file" accept=".json,.html,.htm,application/json,text/html" hidden><button id="editor-close">타이틀 미리보기</button><button id="editor-load-legacy">이전 자동 저장 불러오기</button></div></details></div></div><p id="editor-status" role="status" aria-live="polite"></p><div id="workspace-map" class="editor-grid"><aside><div id="editor-tools"></div><p class="editor-help">모든 블록 = 1×1칸 고정<br>왼쪽 위: X -9 / Z -6<br>파랑 S: 출발 · 금색 G: 목표<br><br>클릭·드래그: 배치<br>우클릭·지우개: 삭제<br>선택 → 오른쪽 속성 수정<br>Ctrl+Z: 실행 취소<br><br>출발점과 목표점 아래에 바닥이 필요합니다. 체크포인트는 배치 순서로 진행합니다.</p></aside><div><canvas id="editor-board" width="816" height="576" aria-label="17열 12행 블록 편집 격자"></canvas><p class="editor-help">회전은 0/90도. 구멍은 짧은 변을 지름으로 한 원형이며, 이동 장애물의 점선은 왕복 범위입니다. 자동 저장하지 않습니다. 종료·새로고침 전에 프로젝트 백업 또는 담당별 내보내기를 이용하세요.</p></div><aside id="editor-properties"></aside></div>`;
+    panel.innerHTML=`<div class="editor-top"><h1>데굴데굴 옹기 <small>편집 모드</small></h1><label class="workspace-picker">작업 <select id="editor-workspace"><option value="map">맵 만들기</option><option value="design">꾸미기·물리</option><option value="team">설정 파일</option></select></label><div class="editor-primary"><button id="editor-play">▶ 테스트</button><details class="editor-menu"><summary>파일·배포</summary><div id="editor-file-menu"><button id="editor-save">프로젝트 백업</button><button id="editor-load">프로젝트 불러오기</button><input id="editor-file" type="file" accept=".json,.html,.htm,application/json,text/html" hidden><button id="editor-close">타이틀 미리보기</button><button id="editor-load-legacy">이전 자동 저장 불러오기</button></div></details></div></div><p id="editor-status" role="status" aria-live="polite"></p><div id="workspace-map" class="editor-grid"><aside><div id="editor-tools"></div><p class="editor-help">기본 블록 1×1 · O/X 방 3×3<br>왼쪽 위: X -9 / Z -6<br>파랑 S: 출발 · 금색 G: 목표<br><br>클릭·드래그: 배치<br>우클릭·지우개: 삭제<br>선택 → 오른쪽 속성 수정<br>Ctrl+Z: 실행 취소<br><br>O/X 방은 바닥과 벽이 함께 배치됩니다. 방을 선택해 입구를 돌리고, 입구까지 바닥 길을 연결하세요.</p></aside><div><canvas id="editor-board" width="816" height="576" aria-label="17열 12행 블록 편집 격자"></canvas><fieldset><legend>O/X 퀴즈</legend><label>문제 <input id="editor-quiz-question" maxlength="160"></label> <label>정답 <select id="editor-quiz-answer"><option>O</option><option>X</option></select></label></fieldset><p class="editor-help">회전은 0/90도. 구멍은 짧은 변을 지름으로 한 원형이며, 이동 장애물의 점선은 왕복 범위입니다. 자동 저장하지 않습니다. 종료·새로고침 전에 프로젝트 백업 또는 설정 파일 내보내기를 이용하세요.</p></div><aside id="editor-properties"></aside></div>`;
     const workflow=document.createElement('p');workflow.className='editor-workflow';
     workflow.textContent='01 맵 만들기  →  02 아래에서 외형·효과음·UI 설정  →  03 바로 테스트  →  04 release ZIP 내보내기';
     panel.append(workflow);
     document.body.append(panel);
     const mapsBar=document.createElement('div');mapsBar.className='editor-mapbar';mapsBar.id='editor-mapbar';
-    mapsBar.innerHTML='<label>맵 <select id="editor-map-select" aria-label="편집할 맵"></select></label><input id="editor-map-name" aria-label="맵 이름" maxlength="40"><button id="editor-undo" aria-label="실행 취소" title="Ctrl+Z">↶</button><button id="editor-redo" aria-label="다시 실행" title="Ctrl+Y">↷</button><details class="editor-menu"><summary>맵 관리</summary><div><button id="map-add">맵 추가</button><button id="map-copy">맵 복제</button><button id="map-delete">맵 삭제</button><button id="map-up">앞으로 이동</button><button id="map-down">뒤로 이동</button><button id="editor-example">예제 맵으로 교체</button><button id="editor-empty">전체 비우기</button><label><input id="editor-all-maps" type="checkbox" checked>모든 맵 연속 테스트</label></div></details>';
+    mapsBar.innerHTML='<label>맵 <select id="editor-map-select" aria-label="편집할 맵"></select></label><input id="editor-map-name" aria-label="맵 이름" maxlength="40"><button id="editor-undo" aria-label="실행 취소" title="Ctrl+Z">↶</button><button id="editor-redo" aria-label="다시 실행" title="Ctrl+Y">↷</button><details class="editor-menu"><summary>맵 관리</summary><div><button id="map-add">맵 추가</button><button id="map-copy">맵 복제</button><button id="map-quiz">O/X 예제 추가</button><button id="map-delete">맵 삭제</button><button id="map-up">앞으로 이동</button><button id="map-down">뒤로 이동</button><button id="editor-example">예제 맵으로 교체</button><button id="editor-empty">전체 비우기</button><label><input id="editor-all-maps" type="checkbox" checked>모든 맵 연속 테스트</label></div></details>';
 
     panel.querySelector('.editor-top').after(mapsBar);
     board=panel.querySelector('#editor-board');brush=panel.querySelector('#editor-tools');message=panel.querySelector('#editor-status');properties=panel.querySelector('#editor-properties');undoButton=panel.querySelector('#editor-undo');redoButton=panel.querySelector('#editor-redo');
@@ -308,10 +366,20 @@ const MapEditor = (() => {
     for(const [id,label]of Object.entries(labels)){const option=document.createElement('option');option.value=id;option.textContent=label;toolPicker.append(option);}toolPicker.value=tool;
     toolPicker.onchange=()=>{for(const button of brush.children)if(button.dataset.tool===toolPicker.value)button.click();};brush.append(toolPicker);
     let draft=null; // 브라우저 초안은 자동 복원하지 않습니다.
-    if(!draft&&typeof TEAM_UI_SOURCE!=='undefined')draft=JSON.stringify(TeamSource.combine({ui:TEAM_UI_SOURCE,map:TEAM_MAP_SOURCE,physics:TEAM_PHYSICS_SOURCE}));
+    if(!draft&&typeof TEAM_UI_SOURCE!=='undefined')draft=JSON.stringify(TeamSource.fromScripts());
     if(!draft&&typeof EDITOR_INITIAL_PROJECT!=='undefined')draft=JSON.stringify(EDITOR_INITIAL_PROJECT);
     if(draft)queueMicrotask(()=>load({size:draft.length,text:async()=>draft}));
     const name=panel.querySelector('#editor-map-name');name.value=map.name;name.onchange=()=>{const before=snapshot();map.name=name.value.trim()||'내가 만든 맵';commit(before);};
+    const question = panel.querySelector('#editor-quiz-question');
+    const answer = panel.querySelector('#editor-quiz-answer');
+    question.onchange = answer.onchange = () => {
+      const before = snapshot();
+      const text = question.value.trim();
+      if (text || map.blocks.some(b => ['goalO','goalX'].includes(b.type))) {
+        map.quiz = { question: text, answer: answer.value };
+      } else delete map.quiz;
+      commit(before);
+    };
     panel.querySelector('#editor-play').onclick=play;
     panel.querySelector('#editor-close').onclick=()=>{finishStroke();panel.hidden=true;screen='title';clearInput();dirty=true;canvas.focus();};
     panel.querySelector('#editor-save').onclick=download;
@@ -320,7 +388,7 @@ const MapEditor = (() => {
     undoButton.onclick=()=>history(true);redoButton.onclick=()=>history(false);
     for(const [id,make]of [['editor-example',BlockMap.example],['editor-empty',()=>({version:1,name:'새 블록 맵',blocks:[]})]])panel.querySelector('#'+id).onclick=()=>{finishStroke();const before=snapshot();map=ProjectData.unitMap(make());selectedId=null;commit(before);name.value=map.name;status('맵을 변경했습니다. 실행 취소로 되돌릴 수 있어요.');};
     mapsBar.querySelector('#editor-map-select').onchange=e=>switchMap(Number(e.target.value));
-    for(const [id,kind]of [['map-add','add'],['map-copy','copy'],['map-delete','delete'],['map-up','up'],['map-down','down']])mapsBar.querySelector('#'+id).onclick=()=>manageMap(kind);
+    for(const [id,kind]of [['map-add','add'],['map-copy','copy'],['map-quiz','quiz'],['map-delete','delete'],['map-up','up'],['map-down','down']])mapsBar.querySelector('#'+id).onclick=()=>manageMap(kind);
     const hint=document.createElement('p');hint.className='editor-help';hint.textContent='JSON은 특정 폴더에 넣을 필요가 없습니다. 다운로드/문서 등 원하는 곳에 보관하고 위의 불러오기에서 선택하세요. 전체 맵·UI·에셋을 한 파일로 저장합니다.';panel.append(hint);
     const studio=document.createElement('section');studio.id='studio-design';panel.append(studio);
     StudioUI.mount(studio,()=>{markModified();render();},id=>{AssetBank.select(id);tool='asset';panel.querySelector('#editor-tool-picker').value='asset';for(const b of brush.children)b.classList.toggle('active',b.dataset.tool===tool);status('이미지/모델 배치 도구가 선택되었습니다. 바닥 위의 칸을 누르세요.');});
@@ -338,9 +406,14 @@ const MapEditor = (() => {
   /** 매개변수 없음. @returns {void} 맵 선택 목록과 삭제 버튼 상태를 갱신. */
   function refreshMaps(){const select=panel.querySelector('#editor-map-select');select.replaceChildren();maps[activeMap]=map;maps.forEach((m,i)=>{const option=document.createElement('option');option.value=i;option.textContent=(i+1)+'. '+m.name;select.append(option);});select.value=activeMap;panel.querySelector('#map-delete').disabled=maps.length===1;}
   /** @param kind {string} add/copy/delete/up/down. @returns {void} 맵 개수/순서를 변경하고 실행 취소 기록. */
-  function manageMap(kind){finishStroke();const before=snapshot();if((kind==='add'||kind==='copy')&&maps.length>=20){status('맵은 최대 20개입니다.',true);return;}
+  function manageMap(kind){finishStroke();const before=snapshot();if(['add','copy','quiz'].includes(kind)&&maps.length>=20){status('맵은 최대 20개입니다.',true);return;}
     if(kind==='delete'){if(maps.length===1)return;maps.splice(activeMap,1);activeMap=Math.min(activeMap,maps.length-1);}
     if(kind==='add'||kind==='copy'){const next=kind==='copy'?clone(map):ProjectData.unitMap(BlockMap.example());next.name=(kind==='copy'?map.name+' 복제':'새 맵 '+(maps.length+1)).slice(0,40);maps.splice(activeMap+1,0,next);activeMap++;}
+    if (kind==='quiz') {
+      maps.splice(activeMap+1,0,BlockMap.quizExample());
+      activeMap++;
+      panel.querySelector('#editor-all-maps').checked=false;
+    }
     const to=kind==='up'?activeMap-1:kind==='down'?activeMap+1:activeMap;
     if(to>=0&&to<maps.length&&to!==activeMap){[maps[activeMap],maps[to]]=[maps[to],maps[activeMap]];activeMap=to;}
     map=maps[activeMap];selectedId=null;commit(before);status('맵 목록을 변경했습니다. 실행 취소로 되돌릴 수 있습니다.');}

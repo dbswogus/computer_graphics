@@ -240,14 +240,77 @@ function program(v, f) {
   if(! gl.getProgramParameter(p, gl.LINK_STATUS)) throw Error(gl.getProgramInfoLog(p));
   return p;
 }
-const p3 = program(` attribute vec3 position;attribute vec3 normal;uniform mat4 mvp;uniform mat4 model;varying float light;void main(){vec3 n=normalize(mat3(model)*normal);light=.61+.39*max(dot(n,normalize(vec3(-.4,.8,1.))),0.);gl_Position=mvp*vec4(position,1.);} `, ` precision mediump float;uniform vec3 color;varying float light;void main(){gl_FragColor=vec4(color*light,1.);} `);
+const p3 = program(`
+  attribute vec3 position;
+  attribute vec3 normal;
+  uniform mat4 mvp;
+  uniform mat4 model;
+  uniform mat4 patternSpace;
+  uniform mediump float surfaceMaterial;
+  varying mediump float light;
+  varying mediump vec3 surfacePoint;
+  varying mediump vec3 patternNormal;
+  void main() {
+    vec3 worldNormal=normalize(mat3(model)*normal);
+    vec4 worldPoint=model*vec4(position,1.);
+    if(surfaceMaterial>.5) {
+      patternNormal=mat3(patternSpace)*worldNormal;
+      surfacePoint=(patternSpace*worldPoint).xyz;
+    } else {
+      patternNormal=worldNormal;
+      surfacePoint=worldPoint.xyz;
+    }
+    light=.61+.39*max(dot(worldNormal,normalize(vec3(-.4,.8,1.))),0.);
+    gl_Position=mvp*vec4(position,1.);
+  }
+`, `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+  precision highp float;
+#else
+  precision mediump float;
+#endif
+  uniform vec3 color;
+  uniform mediump float surfaceMaterial;
+  varying mediump float light;
+  varying mediump vec3 surfacePoint;
+  varying mediump vec3 patternNormal;
+
+  float grain(vec2 p) {
+    vec3 q=fract(vec3(p.xyx)*.1031);
+    q+=dot(q,q.yzx+19.19);
+    return fract((q.x+q.y)*q.z);
+  }
+
+  float soilNoise(vec2 p) {
+    vec2 cell=floor(p), f=fract(p);
+    f=f*f*(3.-2.*f);
+    return mix(mix(grain(cell),grain(cell+vec2(1.,0.)),f.x),
+      mix(grain(cell+vec2(0.,1.)),grain(cell+vec2(1.)),f.x),f.y);
+  }
+
+  void main() {
+    vec3 material=color;
+    if(surfaceMaterial>.5) {
+      vec3 n=abs(patternNormal);
+      vec2 p=n.y>max(n.x,n.z)?surfacePoint.xz:
+        (n.x>n.z?surfacePoint.zy:surfacePoint.xy);
+      float patches=soilNoise(p*2.2)-.5;
+      float grit=soilNoise(p*25.)-.5;
+      float specks=grain(floor(p*43.))-.5;
+      material=color*(1.+.28*patches+.14*grit+.055*specks);
+    }
+    gl_FragColor=vec4(material*light,1.);
+  }
+`);
 const pu = program(` attribute vec2 position;varying vec2 uv;void main(){uv=vec2((position.x+1.)*.5,(1.-position.y)*.5);gl_Position=vec4(position,0.,1.);} `, ` precision mediump float;uniform sampler2D image;varying vec2 uv;void main(){gl_FragColor=texture2D(image,uv);} `);
 const loc = {
   pos : gl.getAttribLocation(p3, 'position'),
   normal : gl.getAttribLocation(p3, 'normal'),
   mvp : gl.getUniformLocation(p3, 'mvp'),
   model : gl.getUniformLocation(p3, 'model'),
-  color : gl.getUniformLocation(p3, 'color')
+  color : gl.getUniformLocation(p3, 'color'),
+  material : gl.getUniformLocation(p3, 'surfaceMaterial'),
+  patternSpace : gl.getUniformLocation(p3, 'patternSpace')
 }
 ;
 const quad = gl.createBuffer();
@@ -402,7 +465,7 @@ function boxMesh() {
  * 다음에 읽을 함수: mul → rgb
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
-function draw(m, mat, col) {
+function draw(m, mat, col, earth = false) {
   gl.useProgram(p3);
   gl.bindBuffer(gl.ARRAY_BUFFER, m.b);
   gl.enableVertexAttribArray(loc.pos);
@@ -413,6 +476,8 @@ function draw(m, mat, col) {
   gl.uniformMatrix4fv(loc.mvp, false, mul(vp, mat));
   gl.uniformMatrix4fv(loc.model, false, mat);
   gl.uniform3fv(loc.color, rgb(col));
+  gl.uniform1f(loc.material,earth ? 1 : 0);
+  if (earth) gl.uniformMatrix4fv(loc.patternSpace,false,mul(rx(-tiltZ),rz(-angle)));
   gl.drawArrays(gl.TRIANGLES, 0, m.count);
 }
 /**
@@ -432,8 +497,8 @@ function draw(m, mat, col) {
  * 다음에 읽을 함수: draw → mul → translate → rz → scale
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
-function block(parent, x, y, z, sx, sy, sz, color, ang = 0) {
-  draw(cube, mul(parent, mul(translate(x, y, z), mul(rz(ang), scale(sx, sy, sz)))), color);
+function block(parent, x, y, z, sx, sy, sz, color, ang = 0, earth = false) {
+  draw(cube, mul(parent, mul(translate(x, y, z), mul(rz(ang), scale(sx, sy, sz)))), color, earth);
 }
 /**
  * [읽기 9: 렌더링 기반 / 함수 번호 18] scene
@@ -447,7 +512,7 @@ function block(parent, x, y, z, sx, sy, sz, color, ang = 0) {
 function scene(clear = true) {
   gl.disable(gl.BLEND);
   gl.enable(gl.DEPTH_TEST);
-  gl.clearColor(... rgb((screen === 'play' || screen === 'arrival' || screen === 'monologue') ? '#dce1d4' : C.cream), 1);
+  gl.clearColor(...rgb(PageUI.worldBackground() || C.cream), 1);
   gl.clear(clear ? gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT : gl.DEPTH_BUFFER_BIT);
   if(screen === 'play' || screen === 'arrival' || screen === 'monologue') {
     worldScene();

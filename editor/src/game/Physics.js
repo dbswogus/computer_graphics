@@ -271,6 +271,14 @@ function tick(dt) {
   for(let i = 0; i < st.crumbles.length; i ++) {
     const c = crumbles [i],
     r = st.crumbles [i];
+    if (r.quizTrap) {
+      if (inRect(px, pz, BlockMap.quizPlate(r))) {
+        c.down = GAME_CONFIG.physics.fallDelay;
+        fail('오답! 방이 무너졌어요.');
+        return;
+      }
+      continue;
+    }
     if(c.down > 0) {
       c.down = Math.max(0, c.down - dt);
       if(c.down === 0) c.charge = 0;
@@ -306,11 +314,14 @@ function tick(dt) {
       }
       ;
       void AssetBank.playEffect('checkpoint');
-      notify('초록 안전 지점 저장! 여기서 다시 시작할 수 있어요.', 3);
+      notify('세이브 지점에 저장했어요. 여기서 다시 시작할 수 있어요.', 3);
     }
   }
   const goal = st.route.at(- 1);
-  if(floorLevel === st.surfaces.length - 1 && Math.hypot(Math.max(Math.abs(px - goal [0]) - (st.editorStage ? 0.5 : GAME_CONFIG.physics.goalHalfSize), 0), Math.max(Math.abs(pz - goal [1]) - (st.editorStage ? 0.5 : GAME_CONFIG.physics.goalHalfSize), 0)) <= R) {
+  const reachedGoal = st.quiz ? inRect(px, pz, BlockMap.quizPlate(st.goalBlock)) :
+    Math.hypot(Math.max(Math.abs(px - goal[0]) - (st.editorStage ? 0.5 : GAME_CONFIG.physics.goalHalfSize), 0),
+      Math.max(Math.abs(pz - goal[1]) - (st.editorStage ? 0.5 : GAME_CONFIG.physics.goalHalfSize), 0)) <= R;
+  if(floorLevel === st.surfaces.length - 1 && reachedGoal) {
     vx = vz = 0;
     clearInput();
     next();

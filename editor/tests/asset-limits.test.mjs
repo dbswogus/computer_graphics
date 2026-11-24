@@ -13,5 +13,23 @@ export async function runAssetLimitTests(base) {
   context.asset.data='data:audio/wav;base64,'+'A'.repeat(Math.ceil(21*1024*1024/3)*4);
   await assert.rejects(vm.runInContext('AssetBank.prepare([asset])',context));
   assert.throws(()=>vm.runInContext('ProjectData.validate({kind:"onggi-project",version:4,maps:[BlockMap.example()],ui:{},assets:[asset]})',context));
-  return 'PASS: 8.11MB encoded asset accepted on load/save; 21MB asset rejected.';
+  const objVertices='v 0 0 0\nv 1 0 0\nv 0 1 0\n';
+  context.largeOBJ=objVertices+'f 1 2 3\n'.repeat(121_600);
+  assert.equal(vm.runInContext('AssetBank.parseOBJ(largeOBJ).vertices.length / 9',context),121_600);
+  context.largeOBJ=objVertices+'f 1 2 3\n'.repeat(250_001);
+  assert.throws(()=>vm.runInContext('AssetBank.parseOBJ(largeOBJ)',context),/25만/);
+  context.objWithUV=objVertices+'vt 0 0\nvt 1 0\nvt 0 1\nf 1/1 2/2 3/-1\nf 1 2 3\n';
+  const uv=vm.runInContext('AssetBank.parseOBJ(objWithUV).uvs',context);
+  assert.deepEqual(Array.from(uv),[0,0,1,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0]);
+  context.project=vm.runInContext(`({
+    kind:'onggi-project',version:4,maps:[BlockMap.example()],
+    ui:{modelTextures:{model:'texture'}},
+    assets:[{id:'model',name:'pot.obj',kind:'model',data:'a'},{id:'texture',name:'pot.png',kind:'image',data:'b'}]
+  })`,context);
+  assert(vm.runInContext("ProjectData.validate(project).ui.modelTextures.model==='texture'",context));
+  for(const id of ['texture','model']){
+    context.removeID=id;
+    assert(vm.runInContext('Object.keys(ProjectData.withoutAsset(project,removeID).project.ui.modelTextures).length===0',context));
+  }
+  return 'PASS: file/model limits, OBJ UVs and texture binding validation/deletion.';
 }

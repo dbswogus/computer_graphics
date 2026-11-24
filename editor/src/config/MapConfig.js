@@ -1,7 +1,8 @@
-// 담당: 다유 | MapConfig.js | 편집기에서 담당별 내보내기로 생성
+// 담당: 맵 | mapConfig.js | 편집기에서 담당별 내보내기로 생성
 const TEAM_MAP_SOURCE = {
   "kind": "onggi-team-map",
   "version": 1,
+  "assets": [],
   "maps": [
     {
       "version": 1,
@@ -6585,8 +6586,5 @@ const TEAM_MAP_SOURCE = {
         }
       ]
     }
-  ],
-  "blockAssets": {},
-  "floorAssetId": "",
-  "assets": []
+  ]
 };

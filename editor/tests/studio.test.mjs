@@ -63,6 +63,62 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   run("StudioUI.apply({...StudioUI.exportData(),fontFamily:'serif',fontScale:1.3,layout:{drawTitle:{text_01:{x:321}}}})");check("GAME_CONFIG.ui.fontFamily==='serif'&&UI_LAYOUT.drawTitle.text_01.x===321",'UI setting applied');
   run('var project=MapEditor.exportProject()');check('project.maps.length===2&&project.ui.fontScale===1.3','project export');
   context.goodFile={size:100,text:async()=>JSON.stringify(run('MapEditor.exportProject()'))};await run('MapEditor.load(goodFile)');check('MapEditor.exportProject().maps.length===2','project import');
+  const legacyProject = JSON.stringify(run('MapEditor.exportProject()'));
+  elements.get('editor-empty').click();
+  elements.get('editor-all-maps').checked = false;
+  const picker = elements.get('editor-tool-picker');
+  function place(tool,x,z) {
+    picker.value = tool;
+    picker.onchange();
+    board.dispatch('pointerdown',{button:0,pointerId:8,clientX:(x+9)*48,clientY:(z+6)*48});
+    board.dispatch('pointerup');
+  }
+  for (let x=-5.5; x<=5.5; x++) for (let z=-2.5; z<=2.5; z++) place('floor',x,z);
+  place('start',-4.5,.5);
+  place('checkpoint',-.5,.5);
+  place('goalO',3.5,-1.5);
+  place('goalX',3.5,1.5);
+  const wallPresets = Object.keys(run('BlockMap.presets'));
+  wallPresets.forEach((tool,i)=>place(tool,-5.5+i,-3.5));
+  const question = elements.get('editor-quiz-question'), answer = elements.get('editor-quiz-answer');
+  question.value = '옹기는 흙으로 만들어요.';
+  question.onchange();
+  check('BlockMap.compile(BlockMap.quizExample()).quizGoals.every(b=>b.room)','example rooms are ready to play');
+  const quizProject = JSON.stringify(run('MapEditor.exportProject()'));
+  const mapSource = run("TeamFiles.createSource('map')");
+  elements.get('editor-empty').click();
+  context.quizMapFile = {size:mapSource.length,text:async()=>mapSource};
+  assert(await run("TeamFiles.importRole('map',quizMapFile)"),'quiz map source import');
+  check('MapEditor.getMap().blocks.filter(b=>b.preset).length===8','all directional wall and corner presets restored');
+  check('BlockMap.compile(MapEditor.getMap()).editorWalls.filter(w=>!w.roomId).length===12','four walls and four L corners produce twelve collision segments');
+  context.quizBackup = {size:quizProject.length,text:async()=>quizProject};
+  assert(await run('MapEditor.load(quizBackup)'),'quiz project backup import');
+  assert.equal(question.value,'옹기는 흙으로 만들어요.');
+  check('MapEditor.getMap().blocks.filter(b=>b.room && b.w===3 && b.d===3).length===2','both room footprints persist');
+  check('BlockMap.compile(MapEditor.getMap()).editorWalls.filter(w=>w.roomId).length===10','rooms contain solid walls and an entrance');
+  for (const rightAnswer of ['O','X']) {
+    answer.value = rightAnswer;
+    answer.onchange();
+    elements.get('editor-play').click();
+    check('STAGES[0].quiz.answer==='+JSON.stringify(rightAnswer),'editor answer is used by play test');
+    run('drawPlay();px=-.5;pz=.5;tick(1/120);');
+    check('checkpoint.index===1','quiz stage saves checkpoint');
+    run('var wrong=STAGES[0].crumbles.find(b=>b.quizTrap);px=wrong.x-1;pz=wrong.z;tick(1/120);');
+    check('!falling && screen==="play"','entering wrong room does not trigger collapse');
+    run('px=wrong.x;pz=wrong.z;tick(1/120);');
+    check('falling && crumbles.some(c=>c.down>0)','wrong tile collapses and drops player');
+    run('for(let i=0;i<150;i++)tick(1/120);');
+    check('!falling&&px===checkpoint.x&&pz===checkpoint.z&&crumbles.every(c=>!c.down)','respawn restores checkpoint and trap');
+    run('px=STAGES[0].goalBlock.x-1;pz=STAGES[0].goalBlock.z;tick(1/120);');
+    check('screen==="play"&&!done','entering correct room does not clear it');
+    run('px=STAGES[0].goalBlock.x;pz=STAGES[0].goalBlock.z;tick(1/120);');
+    check('done || screen==="arrival"','correct tile clears stage');
+    run('MapEditor.open()');
+  }
+  context.restoreLegacy = {size:legacyProject.length,text:async()=>legacyProject};
+  assert(await run('MapEditor.load(restoreLegacy)'),'legacy project remains loadable');
+  elements.get('editor-all-maps').checked = true;
+  console.log('PASS: palette placement, eight directional presets, quiz config and project round trip, both answers, collapse and checkpoint respawn.');
   const original=JSON.stringify(run('MapEditor.exportProject()'));context.badFile={size:12,text:async()=>'{broken'};await run('MapEditor.load(badFile)');assert.equal(JSON.stringify(run('MapEditor.exportProject()')),original,'invalid import atomic');
   assert.throws(()=>run("StudioUI.validate({fontScale:99})"));assert.throws(()=>run("ProjectData.validate({kind:'onggi-project',version:4,maps:[],assets:[]})"));
   const obj='v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3';context.obj=obj;check('AssetBank.parseOBJ(obj).vertices.length===9','OBJ triangles');assert.throws(()=>run("AssetBank.parseOBJ('v 0 0 0\\nf 1 2 3')"));
@@ -208,8 +264,9 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   assert.equal(await run("TeamFiles.importRole('ui',badTeam)"),false,'arbitrary script rejected');
   assert.equal(JSON.stringify(run('MapEditor.exportProject()')),beforeBadTeam,'invalid team import atomic');
   assert.throws(()=>run("TeamSource.parse('ui',TeamFiles.createSource('map'))"),'wrong-owner source rejected');
-  for(const role of ['ui','map','physics'])assert(run('TeamFiles.createSource('+JSON.stringify(role)+')').includes(TeamSourceName(role)),'owner comment');
-  function TeamSourceName(role){return {ui:'유리',map:'다유',physics:'재현'}[role];}
+  for (const role of ['ui','sound','asset','physics','map']) {
+    assert(run('TeamFiles.createSource('+JSON.stringify(role)+')').includes(role+'Config.js'),'config filename');
+  }
   console.log('PASS: UI-only and physics-only editor import preserve other source bytes; owner comments; malformed/wrong-owner source rejection.');
 
 
@@ -233,6 +290,30 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   check("PageUI.elements.some(e=>e.id===dragId&&e.text==='이 페이지의 제목')",'selected text edit in actual draw');
   elements.get('page-background-enabled').checked=true;elements.get('page-background').value='#112233';elements.get('page-background').onchange();
   check("StudioUI.settings.pageDesign.pages.drawTitle.background==='#112233'",'page background saved');
+  check(`(() => {
+    const oldScreen=screen, oldDesign=StudioUI.settings.pageDesign, oldFill=ctx.fillRect;
+    const calls=[];
+    ctx.fillRect=()=>calls.push(ctx.fillStyle);
+    try {
+      StudioUI.settings.pageDesign={...oldDesign,pages:{...oldDesign.pages,
+        drawPlay:{background:'#38506c'},drawMonologue:{background:'#6c5038'}}};
+      screen='play';PageUI.begin();
+      if (calls.length || PageUI.worldBackground()!=='#38506c') return false;
+      PageUI.begin(true);
+      if (calls.pop()!=='#38506c') return false;
+      screen='arrival';PageUI.begin();
+      if (calls.length || PageUI.worldBackground()!=='#38506c') return false;
+      screen='monologue';PageUI.begin();
+      if (calls.length || PageUI.worldBackground()!=='#6c5038') return false;
+      screen='title';PageUI.begin();
+      return PageUI.worldBackground()===undefined && calls.pop()==='#112233';
+    } finally {
+      ctx.fillRect=oldFill;
+      StudioUI.settings.pageDesign=oldDesign;
+      screen=oldScreen;
+      PageDesigner.refresh();
+    }
+  })()`,'world background stays behind geometry while 2D previews and titles show the selected color');
   run("PageDesigner.addElement('button')");elements.get('element-action').value='start';elements.get('element-action').onchange({target:elements.get('element-action')});
   elements.get('element-color').value='#eeccaa';elements.get('element-color').onchange({target:elements.get('element-color')});
   check("StudioUI.settings.pageDesign.pages.drawTitle.extras.some(e=>e.type==='button'&&e.action==='start'&&e.color==='#eeccaa')",'added button action and color');

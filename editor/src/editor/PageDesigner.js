@@ -36,7 +36,7 @@ const PageDesigner = (() => {
         if(!STAGE_MONOLOGUES[stage]?.length)STAGE_MONOLOGUES[stage]=[['독백을 추가하세요.']];
         dialoguePage=Math.min(dialogueIndex,STAGE_MONOLOGUES[stage].length-1);dialogueTime=10000;
       }
-      PageUI.setPreview(pageId);drawUI();
+      PageUI.setPreview(pageId);drawUI(true);
       const context=canvas.getContext('2d');context.fillStyle='#e5e9df';context.fillRect(0,0,800,500);context.drawImage(ui,0,0,800,500);
       const items=PageUI.elements,picker=host.querySelector('#designer-element');picker.replaceChildren();
       if(!items.some(e=>e.id===selectedId))selectedId='';

@@ -6,8 +6,22 @@ const PageUI = (() => {
   const design=()=>StudioUI.settings.pageDesign||{pages:{},extraPages:[],dialogues:{}};
   /** @param id {string} 페이지 ID. @returns {object} 해당 페이지 설정 또는 빈 기본 설정. */
   function page(id=pageId){return design().pages?.[id]||design().extraPages?.find(p=>p.id===id)||{};}
-  /** 매개변수 없음. @returns {void} 이번 프레임의 요소 목록/순서 초기화 및 배경색 적용. */
-  function begin(){pageId=previewId||(screen==='custom-ui'?design().extraPages?.[introIndex]?.id:mapping[screen])||'';items=[];counts={};locked=0;const p=page();if(p.background){ctx.fillStyle=p.background;ctx.fillRect(0,0,1600,1000);}}
+  function worldBackground() {
+    if (!['play','arrival','monologue'].includes(screen)) return undefined;
+    const id = screen==='arrival' ? mapping.play : mapping[screen];
+    return page(id).background || '#dce1d4';
+  }
+
+  /** UI만 그리는 편집 미리보기에는 바탕색 자체를 표시합니다. */
+  function begin(preview=false) {
+    pageId=previewId||(screen==='custom-ui'?design().extraPages?.[introIndex]?.id:mapping[screen])||'';
+    items=[];counts={};locked=0;
+    const background=page().background;
+    if (background && (preview || !worldBackground())) {
+      ctx.fillStyle=background;
+      ctx.fillRect(0,0,W,H);
+    }
+  }
   /** @param type {string} text/button/shape. @param raw {object} 원래 출력값.
    * @returns {object} 수정값을 적용한 좌표·문구·색. 버튼 내부 장식은 독립 요소로 등록하지 않음. */
   function resolve(type,raw){
@@ -47,5 +61,5 @@ const PageUI = (() => {
   function action(id){if(id!=='page-next')return false;const extras=design().extraPages||[];introIndex=extras.findIndex((p,i)=>i>introIndex&&p.enabled!==false);if(introIndex<0)beginDialogue();dirty=true;return true;}
   /** @param id {string} 미리보기 페이지. @returns {void} 화면 상태를 바꾸지 않고 사용할 페이지 지정. */
   function setPreview(id){previewId=id||'';}
-  return {begin,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
+  return {begin,worldBackground,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
 })();
