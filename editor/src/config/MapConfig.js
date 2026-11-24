@@ -310,7 +310,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-25",
           "type": "floor",
-          "x": -3.5,
+          "x": -2.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -322,7 +322,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-26",
           "type": "floor",
-          "x": -2.5,
+          "x": -1.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -334,7 +334,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-27",
           "type": "floor",
-          "x": -1.5,
+          "x": -0.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -346,7 +346,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-28",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -358,7 +358,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-29",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -370,7 +370,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-30",
           "type": "floor",
-          "x": 1.5,
+          "x": 2.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -382,7 +382,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-31",
           "type": "floor",
-          "x": 2.5,
+          "x": 3.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -394,7 +394,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-32",
           "type": "floor",
-          "x": 3.5,
+          "x": 4.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -406,7 +406,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-33",
           "type": "floor",
-          "x": 4.5,
+          "x": 5.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -418,8 +418,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-34",
           "type": "floor",
-          "x": 5.5,
-          "z": -1.5,
+          "x": -7.5,
+          "z": -0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -430,7 +430,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-35",
           "type": "floor",
-          "x": -7.5,
+          "x": -6.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -442,7 +442,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-36",
           "type": "floor",
-          "x": -6.5,
+          "x": -5.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -454,7 +454,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-37",
           "type": "floor",
-          "x": -5.5,
+          "x": -4.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -466,7 +466,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-38",
           "type": "floor",
-          "x": -4.5,
+          "x": -3.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -478,7 +478,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-39",
           "type": "floor",
-          "x": -3.5,
+          "x": -2.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -490,7 +490,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-40",
           "type": "floor",
-          "x": -2.5,
+          "x": -1.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -502,7 +502,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-41",
           "type": "floor",
-          "x": -1.5,
+          "x": -0.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -514,7 +514,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-42",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -526,7 +526,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-43",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -538,7 +538,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-44",
           "type": "floor",
-          "x": 1.5,
+          "x": 2.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -550,7 +550,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-45",
           "type": "floor",
-          "x": 2.5,
+          "x": 3.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -562,7 +562,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-46",
           "type": "floor",
-          "x": 3.5,
+          "x": 4.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -574,7 +574,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-47",
           "type": "floor",
-          "x": 4.5,
+          "x": 5.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -586,8 +586,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-48",
           "type": "floor",
-          "x": 5.5,
-          "z": -0.5,
+          "x": -0.5,
+          "z": 0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -598,7 +598,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-49",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -610,7 +610,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-50",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -622,7 +622,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-51",
           "type": "floor",
-          "x": 1.5,
+          "x": 2.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -634,7 +634,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-52",
           "type": "floor",
-          "x": 2.5,
+          "x": 3.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -646,7 +646,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-53",
           "type": "floor",
-          "x": 3.5,
+          "x": 4.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -658,7 +658,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-54",
           "type": "floor",
-          "x": 4.5,
+          "x": 5.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -670,8 +670,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-55",
           "type": "floor",
-          "x": 5.5,
-          "z": 0.5,
+          "x": -0.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -682,7 +682,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-56",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -694,7 +694,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-57",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -706,7 +706,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-58",
           "type": "floor",
-          "x": 1.5,
+          "x": 2.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -718,7 +718,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-59",
           "type": "floor",
-          "x": 2.5,
+          "x": 3.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -730,7 +730,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-60",
           "type": "floor",
-          "x": 3.5,
+          "x": 4.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -742,7 +742,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-61",
           "type": "floor",
-          "x": 4.5,
+          "x": 5.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -754,8 +754,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-62",
           "type": "floor",
-          "x": 5.5,
-          "z": 1.5,
+          "x": -0.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -766,7 +766,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-63",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": 2.5,
           "w": 1,
           "d": 1,
@@ -778,7 +778,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-64",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": 2.5,
           "w": 1,
           "d": 1,
@@ -790,8 +790,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-65",
           "type": "floor",
-          "x": 1.5,
-          "z": 2.5,
+          "x": -0.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -802,7 +802,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-66",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": 3.5,
           "w": 1,
           "d": 1,
@@ -814,7 +814,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-67",
           "type": "floor",
-          "x": 0.5,
+          "x": 1.5,
           "z": 3.5,
           "w": 1,
           "d": 1,
@@ -826,8 +826,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-68",
           "type": "floor",
-          "x": 1.5,
-          "z": 3.5,
+          "x": -0.5,
+          "z": 4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -838,7 +838,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-69",
           "type": "floor",
-          "x": -0.5,
+          "x": 0.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -850,18 +850,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-70",
           "type": "floor",
-          "x": 0.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-71",
-          "type": "floor",
           "x": 1.5,
           "z": 4.5,
           "w": 1,
@@ -872,9 +860,21 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-72",
+          "id": "unit-71",
           "type": "wall",
           "x": -8.5,
+          "z": -5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-72",
+          "type": "wall",
+          "x": -7.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -886,7 +886,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-73",
           "type": "wall",
-          "x": -7.5,
+          "x": -6.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -898,7 +898,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-74",
           "type": "wall",
-          "x": -6.5,
+          "x": -5.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -910,7 +910,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-75",
           "type": "wall",
-          "x": -5.5,
+          "x": -4.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -922,7 +922,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-76",
           "type": "wall",
-          "x": -4.5,
+          "x": -3.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -934,7 +934,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-77",
           "type": "wall",
-          "x": -3.5,
+          "x": -2.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -946,7 +946,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-78",
           "type": "wall",
-          "x": -2.5,
+          "x": -1.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -958,7 +958,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-79",
           "type": "wall",
-          "x": -1.5,
+          "x": -0.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -970,8 +970,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-80",
           "type": "wall",
-          "x": -0.5,
-          "z": -5.5,
+          "x": -8.5,
+          "z": -4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -982,7 +982,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-81",
           "type": "wall",
-          "x": -8.5,
+          "x": -0.5,
           "z": -4.5,
           "w": 1,
           "d": 1,
@@ -994,8 +994,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-82",
           "type": "wall",
-          "x": -0.5,
-          "z": -4.5,
+          "x": -8.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1006,7 +1006,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-83",
           "type": "wall",
-          "x": -8.5,
+          "x": -0.5,
           "z": -3.5,
           "w": 1,
           "d": 1,
@@ -1018,18 +1018,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-84",
           "type": "wall",
-          "x": -0.5,
-          "z": -3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-85",
-          "type": "wall",
           "x": -8.5,
           "z": -2.5,
           "w": 1,
@@ -1040,9 +1028,21 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-86",
+          "id": "unit-85",
           "type": "hole",
           "x": -4.5,
+          "z": -2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-86",
+          "type": "wall",
+          "x": -0.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1054,7 +1054,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-87",
           "type": "wall",
-          "x": -0.5,
+          "x": 0.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1066,7 +1066,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-88",
           "type": "wall",
-          "x": 0.5,
+          "x": 1.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1078,7 +1078,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-89",
           "type": "wall",
-          "x": 1.5,
+          "x": 2.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1090,7 +1090,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-90",
           "type": "wall",
-          "x": 2.5,
+          "x": 3.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1102,7 +1102,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-91",
           "type": "wall",
-          "x": 3.5,
+          "x": 4.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1114,7 +1114,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-92",
           "type": "wall",
-          "x": 4.5,
+          "x": 5.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1126,7 +1126,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-93",
           "type": "wall",
-          "x": 5.5,
+          "x": 6.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1138,8 +1138,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-94",
           "type": "wall",
-          "x": 6.5,
-          "z": -2.5,
+          "x": -8.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1150,7 +1150,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-95",
           "type": "wall",
-          "x": -8.5,
+          "x": 6.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -1162,8 +1162,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-96",
           "type": "wall",
-          "x": 6.5,
-          "z": -1.5,
+          "x": -8.5,
+          "z": -0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1174,7 +1174,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-97",
           "type": "wall",
-          "x": -8.5,
+          "x": 6.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -1186,18 +1186,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-98",
           "type": "wall",
-          "x": 6.5,
-          "z": -0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-99",
-          "type": "wall",
           "x": -8.5,
           "z": 0.5,
           "w": 1,
@@ -1208,79 +1196,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-100",
-          "type": "wall",
-          "x": -7.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-101",
-          "type": "wall",
-          "x": -6.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-102",
-          "type": "wall",
-          "x": -5.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-103",
-          "type": "wall",
-          "x": -4.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-104",
-          "type": "wall",
-          "x": -3.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-105",
-          "type": "wall",
-          "x": -2.5,
-          "z": 0.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-106",
+          "id": "unit-99",
           "type": "wall",
           "x": -1.5,
           "z": 0.5,
@@ -1292,7 +1208,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-107",
+          "id": "unit-100",
           "type": "hole",
           "x": 2.5,
           "z": 0.5,
@@ -1304,7 +1220,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-108",
+          "id": "unit-101",
           "type": "wall",
           "x": 6.5,
           "z": 0.5,
@@ -1316,7 +1232,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-109",
+          "id": "unit-102",
           "type": "wall",
           "x": -1.5,
           "z": 1.5,
@@ -1328,7 +1244,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-110",
+          "id": "unit-103",
           "type": "wall",
           "x": 6.5,
           "z": 1.5,
@@ -1340,7 +1256,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-111",
+          "id": "unit-104",
           "type": "wall",
           "x": -1.5,
           "z": 2.5,
@@ -1352,7 +1268,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-112",
+          "id": "unit-105",
           "type": "wall",
           "x": 2.5,
           "z": 2.5,
@@ -1364,7 +1280,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-113",
+          "id": "unit-106",
           "type": "wall",
           "x": 3.5,
           "z": 2.5,
@@ -1376,7 +1292,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-114",
+          "id": "unit-107",
           "type": "wall",
           "x": 4.5,
           "z": 2.5,
@@ -1388,7 +1304,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-115",
+          "id": "unit-108",
           "type": "wall",
           "x": 5.5,
           "z": 2.5,
@@ -1400,7 +1316,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-116",
+          "id": "unit-109",
           "type": "wall",
           "x": 6.5,
           "z": 2.5,
@@ -1412,10 +1328,94 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-117",
+          "id": "unit-110",
           "type": "wall",
           "x": -1.5,
           "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-111",
+          "type": "wall",
+          "x": 2.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-112",
+          "type": "wall",
+          "x": -1.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-113",
+          "type": "wall",
+          "x": 2.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-114",
+          "type": "wall",
+          "x": -1.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-115",
+          "type": "wall",
+          "x": -0.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-116",
+          "type": "wall",
+          "x": 0.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-117",
+          "type": "wall",
+          "x": 1.5,
+          "z": 5.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1427,7 +1427,7 @@ const TEAM_MAP_SOURCE = {
           "id": "unit-118",
           "type": "wall",
           "x": 2.5,
-          "z": 3.5,
+          "z": 5.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1437,90 +1437,6 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-119",
-          "type": "wall",
-          "x": -1.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-120",
-          "type": "wall",
-          "x": 2.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-121",
-          "type": "wall",
-          "x": -1.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-122",
-          "type": "wall",
-          "x": -0.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-123",
-          "type": "wall",
-          "x": 0.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-124",
-          "type": "wall",
-          "x": 1.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-125",
-          "type": "wall",
-          "x": 2.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-126",
           "type": "start",
           "x": -7.5,
           "z": -4.5,
@@ -1532,7 +1448,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-127",
+          "id": "unit-120",
           "type": "checkpoint",
           "x": -0.5,
           "z": -1.5,
@@ -1544,19 +1460,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-128",
-          "type": "goal",
-          "x": 1.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-129",
+          "id": "unit-121",
           "type": "floor",
           "x": -8.5,
           "z": -5.5,
@@ -1568,7 +1472,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-130",
+          "id": "unit-122",
           "type": "wall",
           "x": -6.5,
           "z": -4.5,
@@ -1580,7 +1484,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-131",
+          "id": "unit-123",
           "type": "wall",
           "x": -6.5,
           "z": -0.5,
@@ -1592,7 +1496,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-132",
+          "id": "unit-124",
           "type": "wall",
           "x": -6.5,
           "z": -1.5,
@@ -1604,7 +1508,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-133",
+          "id": "unit-125",
           "type": "wall",
           "x": -0.5,
           "z": 2.5,
@@ -1616,7 +1520,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-134",
+          "id": "unit-126",
           "type": "wall",
           "x": 0.5,
           "z": 2.5,
@@ -1628,7 +1532,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-135",
+          "id": "unit-127",
           "type": "wall",
           "x": 4.5,
           "z": 1.5,
@@ -1640,7 +1544,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-136",
+          "id": "unit-128",
           "type": "wall",
           "x": 4.5,
           "z": 0.5,
@@ -1652,7 +1556,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-137",
+          "id": "unit-129",
           "type": "wall",
           "x": 4.5,
           "z": -0.5,
@@ -1664,7 +1568,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-138",
+          "id": "unit-130",
           "type": "wall",
           "x": 1.5,
           "z": -1.5,
@@ -1676,7 +1580,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-139",
+          "id": "unit-131",
           "type": "wall",
           "x": 1.5,
           "z": -0.5,
@@ -1688,7 +1592,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-140",
+          "id": "unit-132",
           "type": "wall",
           "x": 1.5,
           "z": 0.5,
@@ -1700,7 +1604,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-141",
+          "id": "unit-133",
           "type": "wall",
           "x": -2.5,
           "z": -4.5,
@@ -1712,7 +1616,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-142",
+          "id": "unit-134",
           "type": "wall",
           "x": -2.5,
           "z": -3.5,
@@ -1724,7 +1628,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-143",
+          "id": "unit-135",
           "type": "wall",
           "x": -2.5,
           "z": -2.5,
@@ -1736,10 +1640,694 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-144",
+          "id": "unit-136",
           "type": "wall",
           "x": -2.5,
           "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-137",
+          "type": "goal",
+          "x": 5.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-138",
+          "type": "floor",
+          "x": -8.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-139",
+          "type": "floor",
+          "x": -7.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-140",
+          "type": "floor",
+          "x": -7.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-141",
+          "type": "floor",
+          "x": -6.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-142",
+          "type": "floor",
+          "x": -8.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-143",
+          "type": "floor",
+          "x": -7.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-144",
+          "type": "floor",
+          "x": -6.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-145",
+          "type": "floor",
+          "x": -5.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-146",
+          "type": "floor",
+          "x": -3.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-147",
+          "type": "floor",
+          "x": -3.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-148",
+          "type": "floor",
+          "x": -4.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-149",
+          "type": "floor",
+          "x": -4.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-150",
+          "type": "floor",
+          "x": -6.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-151",
+          "type": "floor",
+          "x": -5.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-152",
+          "type": "floor",
+          "x": -3.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-153",
+          "type": "floor",
+          "x": -2.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-154",
+          "type": "floor",
+          "x": -2.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-155",
+          "type": "floor",
+          "x": -2.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-156",
+          "type": "floor",
+          "x": -1.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-157",
+          "type": "floor",
+          "x": -2.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-158",
+          "type": "floor",
+          "x": -3.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-159",
+          "type": "floor",
+          "x": -3.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-160",
+          "type": "floor",
+          "x": -4.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-161",
+          "type": "floor",
+          "x": -4.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-162",
+          "type": "floor",
+          "x": -5.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-163",
+          "type": "floor",
+          "x": -6.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-164",
+          "type": "floor",
+          "x": -7.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-165",
+          "type": "floor",
+          "x": -8.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-166",
+          "type": "floor",
+          "x": -8.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-167",
+          "type": "floor",
+          "x": -6.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-168",
+          "type": "floor",
+          "x": -6.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-169",
+          "type": "floor",
+          "x": -5.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-170",
+          "type": "floor",
+          "x": -7.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-171",
+          "type": "floor",
+          "x": -8.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-172",
+          "type": "floor",
+          "x": -5.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-173",
+          "type": "floor",
+          "x": -3.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-174",
+          "type": "floor",
+          "x": -2.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-175",
+          "type": "floor",
+          "x": -2.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-176",
+          "type": "wall",
+          "x": -8.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-177",
+          "type": "wall",
+          "x": -8.5,
+          "z": 3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-178",
+          "type": "wall",
+          "x": -8.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-179",
+          "type": "wall",
+          "x": -3.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-180",
+          "type": "wall",
+          "x": -2.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-181",
+          "type": "wall",
+          "x": -6.5,
+          "z": 5.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-182",
+          "type": "hole",
+          "x": -5.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-183",
+          "type": "hole",
+          "x": -2.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-184",
+          "type": "hole",
+          "x": -0.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-185",
+          "type": "crumble",
+          "x": -7.5,
+          "z": -3.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-186",
+          "type": "crumble",
+          "x": -7.5,
+          "z": -2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-187",
+          "type": "crumble",
+          "x": -7.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-188",
+          "type": "crumble",
+          "x": -7.5,
+          "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-189",
+          "type": "crumble",
+          "x": -8.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-190",
+          "type": "crumble",
+          "x": -8.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-191",
+          "type": "crumble",
+          "x": -8.5,
+          "z": 2.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-192",
+          "type": "checkpoint",
+          "x": -7.5,
+          "z": 1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-193",
+          "type": "sweeper",
+          "x": -2.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1888,7 +2476,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-11",
           "type": "floor",
-          "x": -4.5,
+          "x": 3.5,
           "z": -3.5,
           "w": 1,
           "d": 1,
@@ -1900,7 +2488,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-12",
           "type": "floor",
-          "x": 3.5,
+          "x": 4.5,
           "z": -3.5,
           "w": 1,
           "d": 1,
@@ -1912,7 +2500,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-13",
           "type": "floor",
-          "x": 4.5,
+          "x": 5.5,
           "z": -3.5,
           "w": 1,
           "d": 1,
@@ -1924,7 +2512,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-14",
           "type": "floor",
-          "x": 5.5,
+          "x": 6.5,
           "z": -3.5,
           "w": 1,
           "d": 1,
@@ -1936,8 +2524,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-15",
           "type": "floor",
-          "x": 6.5,
-          "z": -3.5,
+          "x": -7.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -1948,7 +2536,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-16",
           "type": "floor",
-          "x": -7.5,
+          "x": -6.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1960,7 +2548,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-17",
           "type": "floor",
-          "x": -6.5,
+          "x": -5.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1972,7 +2560,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-18",
           "type": "floor",
-          "x": -5.5,
+          "x": -4.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1984,7 +2572,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-19",
           "type": "floor",
-          "x": -4.5,
+          "x": 4.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -1996,7 +2584,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-20",
           "type": "floor",
-          "x": 3.5,
+          "x": 5.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -2008,7 +2596,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-21",
           "type": "floor",
-          "x": 4.5,
+          "x": 6.5,
           "z": -2.5,
           "w": 1,
           "d": 1,
@@ -2020,8 +2608,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-22",
           "type": "floor",
-          "x": 5.5,
-          "z": -2.5,
+          "x": -7.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2032,8 +2620,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-23",
           "type": "floor",
-          "x": 6.5,
-          "z": -2.5,
+          "x": -6.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2044,7 +2632,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-24",
           "type": "floor",
-          "x": -7.5,
+          "x": -5.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2056,7 +2644,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-25",
           "type": "floor",
-          "x": -6.5,
+          "x": -4.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2068,7 +2656,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-26",
           "type": "floor",
-          "x": -5.5,
+          "x": 3.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2080,7 +2668,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-27",
           "type": "floor",
-          "x": -4.5,
+          "x": 4.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2092,7 +2680,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-28",
           "type": "floor",
-          "x": 3.5,
+          "x": 5.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2104,7 +2692,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-29",
           "type": "floor",
-          "x": 4.5,
+          "x": 6.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -2116,8 +2704,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-30",
           "type": "floor",
-          "x": 5.5,
-          "z": -1.5,
+          "x": -7.5,
+          "z": -0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2128,8 +2716,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-31",
           "type": "floor",
-          "x": 6.5,
-          "z": -1.5,
+          "x": -6.5,
+          "z": -0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2140,7 +2728,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-32",
           "type": "floor",
-          "x": -7.5,
+          "x": -5.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2152,7 +2740,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-33",
           "type": "floor",
-          "x": -6.5,
+          "x": -3.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2164,7 +2752,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-34",
           "type": "floor",
-          "x": -5.5,
+          "x": -2.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2176,7 +2764,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-35",
           "type": "floor",
-          "x": -4.5,
+          "x": -1.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2188,7 +2776,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-36",
           "type": "floor",
-          "x": -3.5,
+          "x": -0.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2200,7 +2788,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-37",
           "type": "floor",
-          "x": -2.5,
+          "x": 0.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2212,7 +2800,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-38",
           "type": "floor",
-          "x": -1.5,
+          "x": 1.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2224,7 +2812,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-39",
           "type": "floor",
-          "x": -0.5,
+          "x": 2.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2236,7 +2824,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-40",
           "type": "floor",
-          "x": 0.5,
+          "x": 3.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2248,7 +2836,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-41",
           "type": "floor",
-          "x": 1.5,
+          "x": 4.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2260,7 +2848,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-42",
           "type": "floor",
-          "x": 2.5,
+          "x": 5.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2272,7 +2860,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-43",
           "type": "floor",
-          "x": 3.5,
+          "x": 6.5,
           "z": -0.5,
           "w": 1,
           "d": 1,
@@ -2284,8 +2872,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-44",
           "type": "floor",
-          "x": 4.5,
-          "z": -0.5,
+          "x": -7.5,
+          "z": 0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2296,8 +2884,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-45",
           "type": "floor",
-          "x": 5.5,
-          "z": -0.5,
+          "x": -6.5,
+          "z": 0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2308,8 +2896,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-46",
           "type": "floor",
-          "x": 6.5,
-          "z": -0.5,
+          "x": -5.5,
+          "z": 0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2320,7 +2908,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-47",
           "type": "floor",
-          "x": -7.5,
+          "x": -4.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2332,7 +2920,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-48",
           "type": "floor",
-          "x": -6.5,
+          "x": -3.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2344,7 +2932,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-49",
           "type": "floor",
-          "x": -5.5,
+          "x": -2.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2356,7 +2944,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-50",
           "type": "floor",
-          "x": -4.5,
+          "x": -1.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2368,7 +2956,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-51",
           "type": "floor",
-          "x": -3.5,
+          "x": -0.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2380,7 +2968,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-52",
           "type": "floor",
-          "x": -2.5,
+          "x": 0.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2392,7 +2980,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-53",
           "type": "floor",
-          "x": -1.5,
+          "x": 1.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2404,7 +2992,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-54",
           "type": "floor",
-          "x": -0.5,
+          "x": 3.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2416,7 +3004,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-55",
           "type": "floor",
-          "x": 0.5,
+          "x": 4.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2428,7 +3016,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-56",
           "type": "floor",
-          "x": 1.5,
+          "x": 5.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2440,7 +3028,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-57",
           "type": "floor",
-          "x": 2.5,
+          "x": 6.5,
           "z": 0.5,
           "w": 1,
           "d": 1,
@@ -2452,8 +3040,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-58",
           "type": "floor",
-          "x": 3.5,
-          "z": 0.5,
+          "x": -7.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2464,8 +3052,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-59",
           "type": "floor",
-          "x": 4.5,
-          "z": 0.5,
+          "x": -6.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2476,8 +3064,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-60",
           "type": "floor",
-          "x": 5.5,
-          "z": 0.5,
+          "x": -5.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2488,8 +3076,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-61",
           "type": "floor",
-          "x": 6.5,
-          "z": 0.5,
+          "x": -4.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2500,7 +3088,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-62",
           "type": "floor",
-          "x": -7.5,
+          "x": -3.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2512,7 +3100,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-63",
           "type": "floor",
-          "x": -6.5,
+          "x": -2.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2524,7 +3112,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-64",
           "type": "floor",
-          "x": -5.5,
+          "x": -1.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2536,7 +3124,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-65",
           "type": "floor",
-          "x": -4.5,
+          "x": -0.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2548,7 +3136,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-66",
           "type": "floor",
-          "x": -3.5,
+          "x": 0.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2560,7 +3148,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-67",
           "type": "floor",
-          "x": -2.5,
+          "x": 1.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2572,7 +3160,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-68",
           "type": "floor",
-          "x": -1.5,
+          "x": 2.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2584,7 +3172,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-69",
           "type": "floor",
-          "x": -0.5,
+          "x": 3.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2596,7 +3184,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-70",
           "type": "floor",
-          "x": 0.5,
+          "x": 4.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2608,7 +3196,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-71",
           "type": "floor",
-          "x": 1.5,
+          "x": 6.5,
           "z": 1.5,
           "w": 1,
           "d": 1,
@@ -2620,8 +3208,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-72",
           "type": "floor",
-          "x": 2.5,
-          "z": 1.5,
+          "x": -7.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2632,8 +3220,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-73",
           "type": "floor",
-          "x": 3.5,
-          "z": 1.5,
+          "x": -6.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2644,8 +3232,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-74",
           "type": "floor",
-          "x": 4.5,
-          "z": 1.5,
+          "x": -5.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2656,8 +3244,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-75",
           "type": "floor",
-          "x": 5.5,
-          "z": 1.5,
+          "x": 4.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2668,8 +3256,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-76",
           "type": "floor",
-          "x": 6.5,
-          "z": 1.5,
+          "x": 5.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2680,7 +3268,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-77",
           "type": "floor",
-          "x": -7.5,
+          "x": 6.5,
           "z": 2.5,
           "w": 1,
           "d": 1,
@@ -2692,8 +3280,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-78",
           "type": "floor",
-          "x": -6.5,
-          "z": 2.5,
+          "x": -7.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2704,8 +3292,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-79",
           "type": "floor",
-          "x": -5.5,
-          "z": 2.5,
+          "x": -6.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2716,8 +3304,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-80",
           "type": "floor",
-          "x": 4.5,
-          "z": 2.5,
+          "x": -5.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2728,8 +3316,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-81",
           "type": "floor",
-          "x": 5.5,
-          "z": 2.5,
+          "x": 4.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2740,8 +3328,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-82",
           "type": "floor",
-          "x": 6.5,
-          "z": 2.5,
+          "x": 5.5,
+          "z": 3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -2752,7 +3340,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-83",
           "type": "floor",
-          "x": -7.5,
+          "x": 6.5,
           "z": 3.5,
           "w": 1,
           "d": 1,
@@ -2764,66 +3352,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-84",
           "type": "floor",
-          "x": -6.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-85",
-          "type": "floor",
-          "x": -5.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-86",
-          "type": "floor",
-          "x": 4.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-87",
-          "type": "floor",
-          "x": 5.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-88",
-          "type": "floor",
-          "x": 6.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-89",
-          "type": "floor",
           "x": -7.5,
           "z": 4.5,
           "w": 1,
@@ -2834,7 +3362,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-90",
+          "id": "unit-85",
           "type": "floor",
           "x": -6.5,
           "z": 4.5,
@@ -2846,7 +3374,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-91",
+          "id": "unit-86",
           "type": "floor",
           "x": -5.5,
           "z": 4.5,
@@ -2858,7 +3386,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-92",
+          "id": "unit-87",
           "type": "floor",
           "x": -4.5,
           "z": 4.5,
@@ -2870,9 +3398,69 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-93",
+          "id": "unit-88",
           "type": "floor",
           "x": -3.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-89",
+          "type": "floor",
+          "x": -2.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-90",
+          "type": "floor",
+          "x": -1.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-91",
+          "type": "floor",
+          "x": -0.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-92",
+          "type": "floor",
+          "x": 0.5,
+          "z": 4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-93",
+          "type": "floor",
+          "x": 1.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -2884,7 +3472,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-94",
           "type": "floor",
-          "x": -2.5,
+          "x": 2.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -2896,7 +3484,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-95",
           "type": "floor",
-          "x": -1.5,
+          "x": 3.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -2908,7 +3496,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-96",
           "type": "floor",
-          "x": -0.5,
+          "x": 4.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -2920,7 +3508,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-97",
           "type": "floor",
-          "x": 0.5,
+          "x": 5.5,
           "z": 4.5,
           "w": 1,
           "d": 1,
@@ -2932,66 +3520,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-98",
           "type": "floor",
-          "x": 1.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-99",
-          "type": "floor",
-          "x": 2.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-100",
-          "type": "floor",
-          "x": 3.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-101",
-          "type": "floor",
-          "x": 4.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-102",
-          "type": "floor",
-          "x": 5.5,
-          "z": 4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-103",
-          "type": "floor",
           "x": 6.5,
           "z": 4.5,
           "w": 1,
@@ -3002,9 +3530,69 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-104",
+          "id": "unit-99",
           "type": "wall",
           "x": -3.5,
+          "z": -4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-100",
+          "type": "wall",
+          "x": -2.5,
+          "z": -4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-101",
+          "type": "wall",
+          "x": -1.5,
+          "z": -4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-102",
+          "type": "wall",
+          "x": -0.5,
+          "z": -4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-103",
+          "type": "wall",
+          "x": 0.5,
+          "z": -4.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-104",
+          "type": "wall",
+          "x": 1.5,
           "z": -4.5,
           "w": 1,
           "d": 1,
@@ -3016,7 +3604,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-105",
           "type": "wall",
-          "x": -2.5,
+          "x": 2.5,
           "z": -4.5,
           "w": 1,
           "d": 1,
@@ -3028,8 +3616,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-106",
           "type": "wall",
-          "x": -1.5,
-          "z": -4.5,
+          "x": -3.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -3040,8 +3628,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-107",
           "type": "wall",
-          "x": -0.5,
-          "z": -4.5,
+          "x": 2.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -3052,8 +3640,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-108",
           "type": "wall",
-          "x": 0.5,
-          "z": -4.5,
+          "x": -3.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -3064,8 +3652,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-109",
           "type": "wall",
-          "x": 1.5,
-          "z": -4.5,
+          "x": 2.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -3075,66 +3663,6 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-110",
-          "type": "wall",
-          "x": 2.5,
-          "z": -4.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-111",
-          "type": "wall",
-          "x": -3.5,
-          "z": -3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-112",
-          "type": "wall",
-          "x": 2.5,
-          "z": -3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-113",
-          "type": "wall",
-          "x": -3.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-114",
-          "type": "wall",
-          "x": 2.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-115",
           "type": "sweeper",
           "x": -7.5,
           "z": -1.5,
@@ -3146,9 +3674,69 @@ const TEAM_MAP_SOURCE = {
           "axis": "z"
         },
         {
-          "id": "unit-116",
+          "id": "unit-111",
           "type": "wall",
           "x": -3.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-112",
+          "type": "wall",
+          "x": -2.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-113",
+          "type": "wall",
+          "x": -1.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-114",
+          "type": "wall",
+          "x": -0.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-115",
+          "type": "wall",
+          "x": 0.5,
+          "z": -1.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-116",
+          "type": "wall",
+          "x": 1.5,
           "z": -1.5,
           "w": 1,
           "d": 1,
@@ -3160,66 +3748,6 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-117",
           "type": "wall",
-          "x": -2.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-118",
-          "type": "wall",
-          "x": -1.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-119",
-          "type": "wall",
-          "x": -0.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-120",
-          "type": "wall",
-          "x": 0.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-121",
-          "type": "wall",
-          "x": 1.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-122",
-          "type": "wall",
           "x": 2.5,
           "z": -1.5,
           "w": 1,
@@ -3230,7 +3758,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-123",
+          "id": "unit-118",
           "type": "hole",
           "x": 5.5,
           "z": -1.5,
@@ -3242,7 +3770,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-124",
+          "id": "unit-119",
           "type": "sweeper",
           "x": 6.5,
           "z": -1.5,
@@ -3254,7 +3782,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "z"
         },
         {
-          "id": "unit-125",
+          "id": "unit-120",
           "type": "sweeper",
           "x": 0.5,
           "z": -0.5,
@@ -3266,7 +3794,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-126",
+          "id": "unit-121",
           "type": "hole",
           "x": -6.5,
           "z": 2.5,
@@ -3278,7 +3806,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-127",
+          "id": "unit-122",
           "type": "wall",
           "x": -2.5,
           "z": 2.5,
@@ -3290,7 +3818,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-128",
+          "id": "unit-123",
           "type": "wall",
           "x": -1.5,
           "z": 2.5,
@@ -3302,7 +3830,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-129",
+          "id": "unit-124",
           "type": "wall",
           "x": -0.5,
           "z": 2.5,
@@ -3314,7 +3842,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-130",
+          "id": "unit-125",
           "type": "wall",
           "x": 0.5,
           "z": 2.5,
@@ -3326,7 +3854,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-131",
+          "id": "unit-126",
           "type": "wall",
           "x": 1.5,
           "z": 2.5,
@@ -3338,7 +3866,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-132",
+          "id": "unit-127",
           "type": "hole",
           "x": -2.5,
           "z": 4.5,
@@ -3350,7 +3878,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-133",
+          "id": "unit-128",
           "type": "hole",
           "x": 1.5,
           "z": 4.5,
@@ -3362,7 +3890,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-134",
+          "id": "unit-129",
           "type": "start",
           "x": -6.5,
           "z": -3.5,
@@ -3374,7 +3902,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-135",
+          "id": "unit-130",
           "type": "checkpoint",
           "x": -5.5,
           "z": 0.5,
@@ -3386,7 +3914,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-136",
+          "id": "unit-131",
           "type": "checkpoint",
           "x": 4.5,
           "z": 0.5,
@@ -3398,7 +3926,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-137",
+          "id": "unit-132",
           "type": "goal",
           "x": 5.5,
           "z": -3.5,
@@ -3410,7 +3938,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-138",
+          "id": "unit-133",
           "type": "crumble",
           "x": -5.5,
           "z": -1.5,
@@ -3422,7 +3950,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-139",
+          "id": "unit-134",
           "type": "crumble",
           "x": -5.5,
           "z": -0.5,
@@ -3434,7 +3962,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-140",
+          "id": "unit-135",
           "type": "crumble",
           "x": -1.5,
           "z": 1.5,
@@ -3446,7 +3974,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-141",
+          "id": "unit-136",
           "type": "crumble",
           "x": -0.5,
           "z": 1.5,
@@ -3458,7 +3986,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-142",
+          "id": "unit-137",
           "type": "crumble",
           "x": -0.5,
           "z": 0.5,
@@ -3470,7 +3998,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-143",
+          "id": "unit-138",
           "type": "wall",
           "x": -7.5,
           "z": -4.5,
@@ -3482,7 +4010,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-144",
+          "id": "unit-139",
           "type": "wall",
           "x": -6.5,
           "z": -4.5,
@@ -3494,7 +4022,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-145",
+          "id": "unit-140",
           "type": "wall",
           "x": -7.5,
           "z": -0.5,
@@ -3506,7 +4034,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-146",
+          "id": "unit-141",
           "type": "wall",
           "x": -7.5,
           "z": 0.5,
@@ -3518,7 +4046,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-147",
+          "id": "unit-142",
           "type": "sweeper",
           "x": -7.5,
           "z": 1.5,
@@ -3530,7 +4058,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-148",
+          "id": "unit-143",
           "type": "sweeper",
           "x": 5.5,
           "z": 3.5,
@@ -3542,7 +4070,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-149",
+          "id": "unit-144",
           "type": "wall",
           "x": 6.5,
           "z": -4.5,
@@ -3554,7 +4082,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-150",
+          "id": "unit-145",
           "type": "wall",
           "x": 5.5,
           "z": -4.5,
@@ -3566,7 +4094,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-151",
+          "id": "unit-146",
           "type": "wall",
           "x": 4.5,
           "z": -4.5,
@@ -3578,7 +4106,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-152",
+          "id": "unit-147",
           "type": "wall",
           "x": 3.5,
           "z": -4.5,
@@ -3590,7 +4118,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-153",
+          "id": "unit-148",
           "type": "wall",
           "x": 6.5,
           "z": 2.5,
@@ -3602,7 +4130,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-154",
+          "id": "unit-149",
           "type": "wall",
           "x": 6.5,
           "z": 3.5,
@@ -3614,7 +4142,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-155",
+          "id": "unit-150",
           "type": "wall",
           "x": 6.5,
           "z": 4.5,
@@ -3626,7 +4154,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-156",
+          "id": "unit-151",
           "type": "wall",
           "x": -7.5,
           "z": 3.5,
@@ -3638,7 +4166,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-157",
+          "id": "unit-152",
           "type": "wall",
           "x": -7.5,
           "z": 4.5,
@@ -3650,7 +4178,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-158",
+          "id": "unit-153",
           "type": "wall",
           "x": -6.5,
           "z": 4.5,
@@ -3662,7 +4190,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-159",
+          "id": "unit-154",
           "type": "wall",
           "x": 5.5,
           "z": 4.5,
@@ -5002,7 +5530,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-110",
           "type": "wall",
-          "x": -6.5,
+          "x": 2.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5014,7 +5542,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-111",
           "type": "wall",
-          "x": -5.5,
+          "x": 3.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5026,7 +5554,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-112",
           "type": "wall",
-          "x": -4.5,
+          "x": 4.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5038,7 +5566,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-113",
           "type": "wall",
-          "x": -3.5,
+          "x": 5.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5050,7 +5578,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-114",
           "type": "wall",
-          "x": -2.5,
+          "x": 6.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5062,7 +5590,7 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-115",
           "type": "wall",
-          "x": -1.5,
+          "x": 7.5,
           "z": -5.5,
           "w": 1,
           "d": 1,
@@ -5074,8 +5602,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-116",
           "type": "wall",
-          "x": -0.5,
-          "z": -5.5,
+          "x": -8.5,
+          "z": -4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5086,8 +5614,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-117",
           "type": "wall",
-          "x": 0.5,
-          "z": -5.5,
+          "x": -4.5,
+          "z": -4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5099,7 +5627,7 @@ const TEAM_MAP_SOURCE = {
           "id": "unit-118",
           "type": "wall",
           "x": 1.5,
-          "z": -5.5,
+          "z": -4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5110,8 +5638,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-119",
           "type": "wall",
-          "x": 2.5,
-          "z": -5.5,
+          "x": 7.5,
+          "z": -4.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5122,8 +5650,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-120",
           "type": "wall",
-          "x": 3.5,
-          "z": -5.5,
+          "x": -8.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5134,8 +5662,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-121",
           "type": "wall",
-          "x": 4.5,
-          "z": -5.5,
+          "x": -4.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5146,8 +5674,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-122",
           "type": "wall",
-          "x": 5.5,
-          "z": -5.5,
+          "x": 1.5,
+          "z": -3.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5158,8 +5686,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-123",
           "type": "wall",
-          "x": 6.5,
-          "z": -5.5,
+          "x": -8.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5170,8 +5698,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-124",
           "type": "wall",
-          "x": 7.5,
-          "z": -5.5,
+          "x": -4.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5182,8 +5710,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-125",
           "type": "wall",
-          "x": -8.5,
-          "z": -4.5,
+          "x": 1.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5193,9 +5721,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-126",
-          "type": "wall",
-          "x": -4.5,
-          "z": -4.5,
+          "type": "hole",
+          "x": 2.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5205,9 +5733,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-127",
-          "type": "wall",
-          "x": 1.5,
-          "z": -4.5,
+          "type": "hole",
+          "x": 6.5,
+          "z": -2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5218,8 +5746,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-128",
           "type": "wall",
-          "x": 7.5,
-          "z": -4.5,
+          "x": -8.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5229,9 +5757,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-129",
-          "type": "wall",
-          "x": -8.5,
-          "z": -3.5,
+          "type": "hole",
+          "x": -7.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5243,7 +5771,7 @@ const TEAM_MAP_SOURCE = {
           "id": "unit-130",
           "type": "wall",
           "x": -4.5,
-          "z": -3.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5255,7 +5783,7 @@ const TEAM_MAP_SOURCE = {
           "id": "unit-131",
           "type": "wall",
           "x": 1.5,
-          "z": -3.5,
+          "z": -1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5265,138 +5793,6 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-132",
-          "type": "wall",
-          "x": 7.5,
-          "z": -3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-133",
-          "type": "wall",
-          "x": -8.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-134",
-          "type": "wall",
-          "x": -4.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-135",
-          "type": "wall",
-          "x": 1.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-136",
-          "type": "hole",
-          "x": 2.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-137",
-          "type": "hole",
-          "x": 6.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-138",
-          "type": "wall",
-          "x": 7.5,
-          "z": -2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-139",
-          "type": "wall",
-          "x": -8.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-140",
-          "type": "hole",
-          "x": -7.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-141",
-          "type": "wall",
-          "x": -4.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-142",
-          "type": "wall",
-          "x": 1.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-143",
           "type": "sweeper",
           "x": 4.5,
           "z": -1.5,
@@ -5408,19 +5804,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-144",
-          "type": "wall",
-          "x": 7.5,
-          "z": -1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-145",
+          "id": "unit-133",
           "type": "wall",
           "x": -8.5,
           "z": -0.5,
@@ -5432,7 +5816,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-146",
+          "id": "unit-134",
           "type": "wall",
           "x": -4.5,
           "z": -0.5,
@@ -5444,7 +5828,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-147",
+          "id": "unit-135",
           "type": "wall",
           "x": -3.5,
           "z": -0.5,
@@ -5456,10 +5840,154 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-148",
+          "id": "unit-136",
           "type": "wall",
           "x": -2.5,
           "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-137",
+          "type": "wall",
+          "x": -1.5,
+          "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-138",
+          "type": "wall",
+          "x": -0.5,
+          "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-139",
+          "type": "wall",
+          "x": 0.5,
+          "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-140",
+          "type": "wall",
+          "x": 1.5,
+          "z": -0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-141",
+          "type": "wall",
+          "x": -8.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-142",
+          "type": "crumble",
+          "x": -4.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-143",
+          "type": "crumble",
+          "x": -3.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-144",
+          "type": "crumble",
+          "x": -2.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-145",
+          "type": "crumble",
+          "x": -1.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-146",
+          "type": "crumble",
+          "x": -0.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-147",
+          "type": "crumble",
+          "x": 0.5,
+          "z": 0.5,
+          "w": 1,
+          "d": 1,
+          "period": 5,
+          "amp": 1,
+          "rotation": 0,
+          "axis": "x"
+        },
+        {
+          "id": "unit-148",
+          "type": "crumble",
+          "x": 1.5,
+          "z": 0.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5470,8 +5998,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-149",
           "type": "wall",
-          "x": -1.5,
-          "z": -0.5,
+          "x": -8.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5481,9 +6009,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-150",
-          "type": "wall",
-          "x": -0.5,
-          "z": -0.5,
+          "type": "crumble",
+          "x": -4.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5493,9 +6021,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-151",
-          "type": "wall",
-          "x": 0.5,
-          "z": -0.5,
+          "type": "crumble",
+          "x": -3.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5505,9 +6033,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-152",
-          "type": "wall",
-          "x": 1.5,
-          "z": -0.5,
+          "type": "crumble",
+          "x": -2.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5517,9 +6045,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-153",
-          "type": "wall",
-          "x": 7.5,
-          "z": -0.5,
+          "type": "crumble",
+          "x": -1.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5529,9 +6057,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-154",
-          "type": "wall",
-          "x": -8.5,
-          "z": 0.5,
+          "type": "crumble",
+          "x": -0.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5542,8 +6070,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-155",
           "type": "crumble",
-          "x": -4.5,
-          "z": 0.5,
+          "x": 0.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5554,8 +6082,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-156",
           "type": "crumble",
-          "x": -3.5,
-          "z": 0.5,
+          "x": 1.5,
+          "z": 1.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5565,9 +6093,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-157",
-          "type": "crumble",
-          "x": -2.5,
-          "z": 0.5,
+          "type": "wall",
+          "x": -8.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5577,9 +6105,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-158",
-          "type": "crumble",
-          "x": -1.5,
-          "z": 0.5,
+          "type": "wall",
+          "x": -4.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5589,9 +6117,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-159",
-          "type": "crumble",
-          "x": -0.5,
-          "z": 0.5,
+          "type": "wall",
+          "x": -3.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5601,9 +6129,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-160",
-          "type": "crumble",
-          "x": 0.5,
-          "z": 0.5,
+          "type": "wall",
+          "x": -2.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5613,9 +6141,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-161",
-          "type": "crumble",
-          "x": 1.5,
-          "z": 0.5,
+          "type": "wall",
+          "x": -1.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5626,8 +6154,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-162",
           "type": "wall",
-          "x": 7.5,
-          "z": 0.5,
+          "x": -0.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5638,8 +6166,8 @@ const TEAM_MAP_SOURCE = {
         {
           "id": "unit-163",
           "type": "wall",
-          "x": -8.5,
-          "z": 1.5,
+          "x": 0.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5649,9 +6177,9 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-164",
-          "type": "crumble",
-          "x": -4.5,
-          "z": 1.5,
+          "type": "wall",
+          "x": 1.5,
+          "z": 2.5,
           "w": 1,
           "d": 1,
           "period": 5,
@@ -5661,186 +6189,6 @@ const TEAM_MAP_SOURCE = {
         },
         {
           "id": "unit-165",
-          "type": "crumble",
-          "x": -3.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-166",
-          "type": "crumble",
-          "x": -2.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-167",
-          "type": "crumble",
-          "x": -1.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-168",
-          "type": "crumble",
-          "x": -0.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-169",
-          "type": "crumble",
-          "x": 0.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-170",
-          "type": "crumble",
-          "x": 1.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-171",
-          "type": "wall",
-          "x": 7.5,
-          "z": 1.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-172",
-          "type": "wall",
-          "x": -8.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-173",
-          "type": "wall",
-          "x": -4.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-174",
-          "type": "wall",
-          "x": -3.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-175",
-          "type": "wall",
-          "x": -2.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-176",
-          "type": "wall",
-          "x": -1.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-177",
-          "type": "wall",
-          "x": -0.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-178",
-          "type": "wall",
-          "x": 0.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-179",
-          "type": "wall",
-          "x": 1.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-180",
           "type": "hole",
           "x": 4.5,
           "z": 2.5,
@@ -5852,19 +6200,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-181",
-          "type": "wall",
-          "x": 7.5,
-          "z": 2.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-182",
+          "id": "unit-166",
           "type": "wall",
           "x": -8.5,
           "z": 3.5,
@@ -5876,7 +6212,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-183",
+          "id": "unit-167",
           "type": "hole",
           "x": -2.5,
           "z": 3.5,
@@ -5888,19 +6224,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-184",
-          "type": "wall",
-          "x": 7.5,
-          "z": 3.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-185",
+          "id": "unit-168",
           "type": "wall",
           "x": -8.5,
           "z": 4.5,
@@ -5912,7 +6236,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-186",
+          "id": "unit-169",
           "type": "wall",
           "x": 7.5,
           "z": 4.5,
@@ -5924,7 +6248,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-187",
+          "id": "unit-170",
           "type": "wall",
           "x": -8.5,
           "z": 5.5,
@@ -5936,103 +6260,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-188",
-          "type": "wall",
-          "x": -7.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-189",
-          "type": "wall",
-          "x": -6.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-190",
-          "type": "wall",
-          "x": -5.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-191",
-          "type": "wall",
-          "x": -4.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-192",
-          "type": "wall",
-          "x": -3.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-193",
-          "type": "wall",
-          "x": -2.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-194",
-          "type": "wall",
-          "x": -1.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-195",
-          "type": "wall",
-          "x": -0.5,
-          "z": 5.5,
-          "w": 1,
-          "d": 1,
-          "period": 5,
-          "amp": 1,
-          "rotation": 0,
-          "axis": "x"
-        },
-        {
-          "id": "unit-196",
+          "id": "unit-171",
           "type": "wall",
           "x": 0.5,
           "z": 5.5,
@@ -6044,7 +6272,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-197",
+          "id": "unit-172",
           "type": "wall",
           "x": 1.5,
           "z": 5.5,
@@ -6056,7 +6284,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-198",
+          "id": "unit-173",
           "type": "wall",
           "x": 2.5,
           "z": 5.5,
@@ -6068,7 +6296,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-199",
+          "id": "unit-174",
           "type": "wall",
           "x": 3.5,
           "z": 5.5,
@@ -6080,7 +6308,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-200",
+          "id": "unit-175",
           "type": "wall",
           "x": 4.5,
           "z": 5.5,
@@ -6092,7 +6320,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-201",
+          "id": "unit-176",
           "type": "wall",
           "x": 5.5,
           "z": 5.5,
@@ -6104,7 +6332,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-202",
+          "id": "unit-177",
           "type": "wall",
           "x": 6.5,
           "z": 5.5,
@@ -6116,7 +6344,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-203",
+          "id": "unit-178",
           "type": "wall",
           "x": 7.5,
           "z": 5.5,
@@ -6128,7 +6356,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-204",
+          "id": "unit-179",
           "type": "start",
           "x": -7.5,
           "z": -4.5,
@@ -6140,7 +6368,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-205",
+          "id": "unit-180",
           "type": "checkpoint",
           "x": -5.5,
           "z": 0.5,
@@ -6152,7 +6380,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-206",
+          "id": "unit-181",
           "type": "checkpoint",
           "x": 2.5,
           "z": 0.5,
@@ -6164,7 +6392,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-207",
+          "id": "unit-182",
           "type": "goal",
           "x": 4.5,
           "z": -4.5,
@@ -6176,7 +6404,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-208",
+          "id": "unit-183",
           "type": "hole",
           "x": -5.5,
           "z": -0.5,
@@ -6188,7 +6416,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-209",
+          "id": "unit-184",
           "type": "hole",
           "x": -7.5,
           "z": 3.5,
@@ -6200,7 +6428,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-210",
+          "id": "unit-185",
           "type": "hole",
           "x": 1.5,
           "z": 4.5,
@@ -6212,7 +6440,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-211",
+          "id": "unit-186",
           "type": "hole",
           "x": 5.5,
           "z": 1.5,
@@ -6224,7 +6452,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-212",
+          "id": "unit-187",
           "type": "hole",
           "x": 6.5,
           "z": -0.5,
@@ -6236,7 +6464,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-213",
+          "id": "unit-188",
           "type": "sweeper",
           "x": 3.5,
           "z": 4.5,
@@ -6248,7 +6476,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-214",
+          "id": "unit-189",
           "type": "sweeper",
           "x": -5.5,
           "z": -1.5,
@@ -6260,7 +6488,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-215",
+          "id": "unit-190",
           "type": "crumble",
           "x": 3.5,
           "z": -3.5,
@@ -6272,7 +6500,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-216",
+          "id": "unit-191",
           "type": "crumble",
           "x": 3.5,
           "z": -2.5,
@@ -6284,7 +6512,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-217",
+          "id": "unit-192",
           "type": "crumble",
           "x": 4.5,
           "z": -2.5,
@@ -6296,7 +6524,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-218",
+          "id": "unit-193",
           "type": "crumble",
           "x": 4.5,
           "z": -3.5,
@@ -6308,7 +6536,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-219",
+          "id": "unit-194",
           "type": "crumble",
           "x": -4.5,
           "z": 3.5,
@@ -6320,7 +6548,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-220",
+          "id": "unit-195",
           "type": "crumble",
           "x": -5.5,
           "z": 3.5,
@@ -6332,7 +6560,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-221",
+          "id": "unit-196",
           "type": "crumble",
           "x": -5.5,
           "z": 4.5,
@@ -6344,7 +6572,7 @@ const TEAM_MAP_SOURCE = {
           "axis": "x"
         },
         {
-          "id": "unit-222",
+          "id": "unit-197",
           "type": "crumble",
           "x": -4.5,
           "z": 4.5,
