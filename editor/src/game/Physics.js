@@ -214,8 +214,31 @@ function tick(dt) {
   }
   if(falling) {
     fallTime += dt;
-    px += vx * dt * GAME_CONFIG.physics.fallingDrift;
-    pz += vz * dt * GAME_CONFIG.physics.fallingDrift;
+    if(flung) {
+// 물레에 튕긴 옹기는 바닥 위를 구르다가, 길을 벗어나거나 구멍 위에 오면 그때부터 떨어집니다.
+      const oldX = px, oldZ = pz, slow = Math.exp(- GAME_CONFIG.physics.flingDamping * dt);
+      vx *= slow;
+      vz *= slow;
+      px += vx * dt;
+      pz += vz * dt;
+      resolveWalls(activeFloor(), oldX, oldZ);
+      rollQ = rollStep(rollQ, px - oldX, pz - oldZ, R);
+      if(inHole(STAGES [stage], px, pz) || ! onCourse(activeFloor(), px, pz)) {
+        flung = false;
+        fallStart = fallTime;
+        fallTarget = STAGES [stage].holes.find(h => Math.hypot(px - h.x, pz - h.z) < h.r - .04) || null;
+      }
+    }
+    else {
+      px += vx * dt * GAME_CONFIG.physics.fallingDrift;
+      pz += vz * dt * GAME_CONFIG.physics.fallingDrift;
+    }
+    if(fallTarget) {
+// 구멍에 빠지면 가운데로 빨려 들어가 바닥을 뚫고 떨어지는 것처럼 보이지 않게 합니다.
+      const pull = 1 - Math.exp(- GAME_CONFIG.physics.holePull * dt);
+      px += (fallTarget.x - px) * pull;
+      pz += (fallTarget.z - pz) * pull;
+    }
     if(fallTime > GAME_CONFIG.physics.fallDelay) resetCheckpoint();
     dirty = true;
     return;
@@ -256,15 +279,16 @@ function tick(dt) {
   oldZ = pz;
   px += vx * dt;
   pz += vz * dt;
-  roll -= vx * dt / R;
-  rollX += vz * dt / R;
 // Low outer walls collide with the moving circle; holes remain unguarded.
   resolveWalls(activeFloor(), oldX, oldZ);
+// 벽에 막힌 뒤 실제로 이동한 거리만큼만 굴립니다.
+  rollQ = rollStep(rollQ, px - oldX, pz - oldZ, R);
   if(! onCourse(activeFloor(), px, pz, R * .18)) {
     fail('앗, 길 가장자리에서 떨어졌어요!');
     return;
   }
   if(inHole(st, px, pz)) {
+    fallTarget = st.holes.find(h => Math.hypot(px - h.x, pz - h.z) < h.r - .04) || null;
     fail('앗, 바닥 구멍에 빠졌어요!');
     return;
   }
@@ -297,9 +321,13 @@ function tick(dt) {
   }
   if(invulnerable <= 0) for(const h of st.sweepers) {
     const q = sweeperAt(h, simulationTime);
-    if(inRect(px, pz, q, R * .8)) {
-      vx +=(px - q.x >= 0 ? 1 : - 1) * GAME_CONFIG.physics.obstacleKick;
-      fail('앗, 움직이는 가마 도구에 닿았어요!');
+    const dx = px - q.x, dz = pz - q.z, distance = Math.hypot(dx, dz);
+// 물레는 둥글므로 원으로 판정하고, 바깥쪽과 도는 방향을 섞어 튕겨 냅니다.
+    if(distance < Math.min(q.w, q.d) / 2 + R * .8) {
+      const nx = distance > 1e-6 ? dx / distance : 1, nz = distance > 1e-6 ? dz / distance : 0;
+      vx = (nx + nz * .5) * GAME_CONFIG.physics.obstacleKick;
+      vz = (nz - nx * .5) * GAME_CONFIG.physics.obstacleKick;
+      fail('앗, 빙글빙글 도는 물레에 튕겨 나갔어요!', true);
       return;
     }
   }

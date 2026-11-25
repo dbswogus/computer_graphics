@@ -1,4 +1,5 @@
-/src/export/*Bundle.js
+# FolderBundle.js는 release ZIP 내보내기에 필요하므로 Git에 포함합니다. src 변경 후 npm run build:editor로 갱신하세요.
+/src/export/PlayerBundle.js
 /src/data/EditorProject.js
 /content/project.generated.json
 /node_modules/

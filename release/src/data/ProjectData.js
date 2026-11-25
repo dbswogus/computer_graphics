@@ -16,10 +16,10 @@ const ProjectData = (() => {
       } else points.push([Math.floor(source.x)+0.5,Math.floor(source.z)+0.5]);
       for (const [x,z] of points) {
         if (x < -8.5 || x > 7.5 || z < -5.5 || z > 5.5) continue;
-        const key = `${source.type}:${x}:${z}`;
+        const key = `${source.type}:${source.preset || ''}:${x}:${z}`;
         if (occupied.has(key)) continue;
         occupied.add(key);
-        blocks.push({...source,id:`unit-${blocks.length}`,x,z,w:1,d:1});
+        blocks.push({...source,id:`unit-${blocks.length}`,x,z,w:source.room?3:1,d:source.room?3:1});
       }
     }
     return BlockMap.validate({...old,blocks});
@@ -42,6 +42,10 @@ const ProjectData = (() => {
     for(const [key,kind]of [['imageAssetId','image'],['bgmAssetId','audio'],['floorAssetId','image']])if(project.ui?.[key]&&!project.assets.some(a=>a.id===project.ui[key]&&a.kind===kind))throw Error('UI/BGM이 참조하는 에셋이 없습니다.');
     for(const id of Object.values(project.ui?.onggiAssets||{}))if(!project.assets.some(a=>a.id===id&&a.kind==='model'))throw Error('옹기가 참조하는 OBJ 에셋이 없습니다.');
     for(const map of maps)for(const block of map.blocks)if(block.assetId&&!ids.has(block.assetId))throw Error('블록이 참조하는 에셋이 JSON에 없습니다.');
+    for (const [model,image] of Object.entries(project.ui?.modelTextures||{})) {
+      if (!project.assets.some(a=>a.id===model&&a.kind==='model') ||
+          !project.assets.some(a=>a.id===image&&a.kind==='image')) throw Error('OBJ 텍스처에 연결된 모델 또는 이미지가 없습니다.');
+    }
     const visual = (id, type) => {
       const asset = project.assets.find(a => a.id === id);
       const allowed = ['floor','hole'].includes(type) ? ['image'] : ['image','model'];
@@ -67,6 +71,12 @@ const ProjectData = (() => {
     }
     for(const key of ['imageAssetId','floorAssetId','bgmAssetId'])if(project.ui[key]===id){project.ui[key]='';clearedBindings++;}
     for(const field of ['onggiAssets','blockAssets','sfx'])for(const [key,asset]of Object.entries(project.ui[field]||{}))if(asset===id){delete project.ui[field][key];clearedBindings++;}
+    for (const [model,image] of Object.entries(project.ui.modelTextures||{})) {
+      if (model===id || image===id) {
+        delete project.ui.modelTextures[model];
+        clearedBindings++;
+      }
+    }
     if(project.ui.fontFamily==='onggi_'+id.replace(/[^a-zA-Z0-9]/g,'')){project.ui.fontFamily='sans-serif';clearedBindings++;}
     return {project:validate(project),removedBlocks,clearedBindings};
   }

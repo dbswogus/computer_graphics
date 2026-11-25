@@ -15,10 +15,11 @@
 </head>
 <body>
 <canvas id="game" tabindex="0" aria-label="데굴데굴 옹기 3D 탑뷰 게임. 화면 가운데 아래 조이스틱 또는 키보드 화살표로 움직이세요. 구멍과 움직이는 장애물을 피하세요."></canvas>
-<p id="error" role="alert">WebGL을 시작하지 못했어요. 브라우저의 하드웨어 가속 설정을 확인하고 최신 브라우저에서 다시 열어 주세요.</p>
+<p id="error" role="alert">WebGL 2를 시작하지 못했어요. 브라우저의 하드웨어 가속 설정을 확인하고 최신 브라우저에서 다시 열어 주세요.</p>
 <script defer src="src/config/UILayout.js"></script>
 <script defer src="src/config/GameConfig.js"></script>
 <script defer src="src/config/UIText.js"></script>
+<script defer src="src/render/Lighting.js"></script>
 <script defer src="src/render/Renderer.js"></script>
 <script defer src="src/models/Onggi.js"></script>
 <script defer src="src/data/onggiData.js"></script>
@@ -27,9 +28,12 @@
 <script defer src="src/editor/ProjectData.js"></script>
 <script defer src="src/editor/GameDocument.js"></script>
 <script defer src="src/game/GyroInput.js"></script>
+<script defer src="src/ui/SettingsMenu.js"></script>
 <script defer src="src/game/OnggiPhysics.js"></script>
 <script defer src="src/game/Physics.js"></script>
 <script defer src="src/map/Map.js"></script>
+<script defer src="src/map/Obstacles.js"></script>
+<script defer src="src/core/PlayRecord.js"></script>
 <script defer src="src/core/Game.js"></script>
 <script defer src="src/ui/UI.js"></script>
 <script defer src="src/camera/Camera.js"></script>
@@ -42,11 +46,11 @@
 <script defer src="src/editor/StudioUI.js"></script>
 <script defer src="src/main.js"></script>
 <script defer src="src/data/EditorProject.js"></script>
-<script defer src="src/config/uiConfig.js"></script>
+<script defer src="src/config/UIConfig.js"></script>
 <script defer src="src/config/soundConfig.js"></script>
 <script defer src="src/config/assetConfig.js"></script>
-<script defer src="src/config/mapConfig.js"></script>
-<script defer src="src/config/physicsConfig.js"></script>
+<script defer src="src/config/MapConfig.js"></script>
+<script defer src="src/config/PhysicsConfig.js"></script>
 <script defer src="src/editor/TeamSource.js"></script>
 <script defer src="src/editor/MapEditor.js"></script>
 <script defer src="src/editor/StudioBootstrap.js"></script>

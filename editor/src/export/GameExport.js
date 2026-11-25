@@ -30,7 +30,7 @@ const GameExport = (() => {
   }
   /** @param value {object} 현재 프로젝트. @returns {object} 파일별 바이트. 프로젝트/에셋을 HTML에 인라인하지 않습니다. */
   function createFolderFiles(value) {
-    if(typeof GAME_FOLDER_TEMPLATE==='undefined')throw Error('npm run build 후 페이지를 새로고침하세요.');
+    if(typeof GAME_FOLDER_TEMPLATE==='undefined')throw Error('src/export/FolderBundle.js가 없습니다. npm run build:editor 후 페이지를 새로고침하세요.');
     const project=ProjectData.validate(value);project.ui=StudioUI.validate(project.ui);
     project.maps.forEach((map,i)=>{try{BlockMap.compile(map,OnggiPhysics.maxRadius(project.ui.onggiPhysics));}catch(error){throw Error((i+1)+'번 맵: '+error.message);}});
     return FolderExport.createFiles(GAME_FOLDER_TEMPLATE,project);

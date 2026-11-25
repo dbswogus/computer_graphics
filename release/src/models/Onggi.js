@@ -15,31 +15,67 @@ function lathe(profile) {
   const v = [],
   n = [],
   N = 48;
+  // 각 마디의 법선 [반지름 방향, 높이 방향]. 완만하게 이어지는 마디끼리는 평균내어 반사광이 끊기지 않게 합니다.
+  const normals = profile.slice(1).map(([r1, y1], j) => {
+    const [r0, y0] = profile [j], len = Math.hypot(y1 - y0, r1 - r0) || 1;
+    return [(y1 - y0) / len, - (r1 - r0) / len];
+  });
+  const blend = (a, b) => {
+    if(! b || a [0] * b [0] + a [1] * b [1] < .64) return a;
+    const x = a [0] + b [0], y = a [1] + b [1], len = Math.hypot(x, y) || 1;
+    return [x / len, y / len];
+  };
   for(let j = 0; j < profile.length - 1; j ++) {
     const [r0,
     y0] = profile [j],
     [r1,
     y1] = profile [j + 1],
-    len = Math.hypot(y1 - y0, r1 - r0) || 1;
+    n0 = blend(normals [j], normals [j - 1]),
+    n1 = blend(normals [j], normals [j + 1]);
     for(let i = 0; i < N; i ++) {
       const a = i * TAU / N,
       b =(i + 1) * TAU / N;
-      for(const [r, y, t] of [[r0, y0, a], [r1, y1, a], [r1, y1, b], [r0, y0, a], [r1, y1, b], [r0, y0, b]]) {
+      for(const [r, y, t, m] of [[r0, y0, a, n0], [r1, y1, a, n1], [r1, y1, b, n1], [r0, y0, a, n0], [r1, y1, b, n1], [r0, y0, b, n0]]) {
         v.push(r * Math.cos(t), y, r * Math.sin(t));
-        n.push((y1 - y0) * Math.cos(t) / len, -(r1 - r0) / len,(y1 - y0) * Math.sin(t) / len);
+        n.push(m [0] * Math.cos(t), m [1], m [0] * Math.sin(t));
       }
     }
   }
   return mesh(v, n);
 }
 const cube = boxMesh();
-const pots = [lathe([[0, - .62], [.36, - .62], [.48, - .46], [.62, - .12], [.61, .20], [.49, .45], [.35, .53], [.36, .62], [.27, .62], [.27, .52], [.29, .48]]),
-lathe([[0, - .62], [.32, - .62], [.40, - .46], [.48, .02], [.43, .35], [.28, .51], [.28, .68], [.21, .68], [.21, .50]]),
-lathe([[0, - .51], [.37, - .51], [.58, - .34], [.69, - .02], [.62, .25], [.49, .39], [.50, .49], [.39, .49], [.39, .36]]),
-lathe([[0, - .62], [.42, - .62], [.54, - .49], [.60, - .25], [.58, .05], [.46, .24], [.36, .30], [.37, .44], [.28, .44], [.28, .29]]),
-lathe([[0, - .62], [.33, - .62], [.48, - .43], [.59, - .12], [.55, .15], [.33, .39], [.20, .47], [.20, .86], [.15, .86], [.15, .47]]),
-lathe([[0, - .62], [.46, - .62], [.53, - .48], [.55, .05], [.54, .40], [.51, .56], [.42, .56], [.42, .42]])];
+const potProfiles = [[[0, - .62], [.36, - .62], [.48, - .46], [.62, - .12], [.61, .20], [.49, .45], [.35, .53], [.36, .62], [.27, .62], [.27, .52], [.29, .48]],
+[[0, - .62], [.32, - .62], [.40, - .46], [.48, .02], [.43, .35], [.28, .51], [.28, .68], [.21, .68], [.21, .50]],
+[[0, - .51], [.37, - .51], [.58, - .34], [.69, - .02], [.62, .25], [.49, .39], [.50, .49], [.39, .49], [.39, .36]],
+[[0, - .62], [.42, - .62], [.54, - .49], [.60, - .25], [.58, .05], [.46, .24], [.36, .30], [.37, .44], [.28, .44], [.28, .29]],
+[[0, - .62], [.33, - .62], [.48, - .43], [.59, - .12], [.55, .15], [.33, .39], [.20, .47], [.20, .86], [.15, .86], [.15, .47]],
+[[0, - .62], [.46, - .62], [.53, - .48], [.55, .05], [.54, .40], [.51, .56], [.42, .56], [.42, .42]]];
+const pots = potProfiles.map(lathe);
+/** @param profile {number[][]} 옹기 단면 [반지름,높이]. @param y {number} 높이. @returns {number} 그 높이의 바깥 반지름. */
+function profileRadius(profile, y) {
+  let radius = 0;
+  for(let i = 1; i < profile.length; i ++) {
+    const [r0, y0] = profile [i - 1], [r1, y1] = profile [i];
+    if(y0 === y1 || y < Math.min(y0, y1) || y > Math.max(y0, y1)) continue;
+    radius = Math.max(radius, mix(r0, r1, (y - y0) / (y1 - y0)));
+  }
+  return radius;
+}
+// 몸통 곡선을 따라 감기는 띠. 높이별로 실제 반지름에 맞춰 얇은 고리를 만듭니다.
+const potBands = potProfiles.map(profile => [- .25, .04].map(y => {
+  const low = profileRadius(profile, y - .018), high = profileRadius(profile, y + .018);
+  return lathe([[low - .01, y - .022], [low + .014, y - .016], [high + .014, y + .016], [high - .01, y + .022]]);
+}));
 const lids = lathe([[0, 0], [.37, 0], [.40, .06], [.32, .13], [.10, .17], [.08, .25], [0, .25]]);
+/** @param id {number} 옹기. @returns {number} 똑바로 섰을 때 중심에서 바닥까지의 거리(배율 1). */
+function potBottom(id) {
+  return AssetBank.onggiSupport(id, [0, 0, 0, 1]) ?? COLLECTION [id].bottom;
+}
+/** @param id {number} 옹기. @param q {number[4]} 구른 자세. @returns {number} 그 자세에서 바닥 위 중심 높이(배율 1).
+ * OBJ는 실제 모양대로 바닥에 닿고, 기본 모델은 기존의 고정 높이를 씁니다. 충돌 판정과는 무관합니다. */
+function potRest(id, q) {
+  return AssetBank.onggiSupport(id, q) ?? .47 / .66;
+}
 const potColors = ['#915432',
 '#78452e',
 '#ab7046',
@@ -61,11 +97,9 @@ const potColors = ['#915432',
 function pot(parent, id = 0, roll = 0, size = 1) {
   if(AssetBank.drawOnggi(parent,id,roll,size))return;
   const base = mul(parent, mul(rz(roll), scale(size, size, size))),
-  info = COLLECTION [id];
-  draw(pots [id], base, potColors [id]);
-  draw(lids, mul(base, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), potColors [id]);
-  for(const yy of [- .25, .04]) {
-    const ring = mul(base, mul(translate(0, yy, 0), scale(1.013, .032, 1.013)));
-    draw(pots [id], ring, '#bd8b5c');
-  }
+  info = COLLECTION [id],
+  shine = GAME_CONFIG.lighting.gloss.pot;
+  draw(pots [id], base, potColors [id], false, shine);
+  draw(lids, mul(base, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), potColors [id], false, shine);
+  for(const band of potBands [id]) draw(band, base, '#bd8b5c', false, shine);
 }

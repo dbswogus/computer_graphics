@@ -16,7 +16,9 @@ function frame(ms) {
   const dt = last ? Math.min((ms - last) / 1000, GAME_CONFIG.physics.maxFrameDelta) : 0;
   last = ms;
   // 편집 중에는 게임의 물리/3D 렌더링을 쉬어 편집 UI에 자원을 사용합니다.
-  if (screen === 'editor' || GyroInput.isChoosing()) { acc = 0; requestAnimationFrame(frame); return; }
+  if (screen === 'editor') { acc = 0; requestAnimationFrame(frame); return; }
+  // 조작 선택·설정 창이 열려 있으면 시간만 멈추고 화면은 계속 그립니다.
+  if (GyroInput.isChoosing()) { acc = 0; if (!document.hidden) render(); requestAnimationFrame(frame); return; }
   if(! document.hidden) {
     acc += dt;
     while(acc >= GAME_CONFIG.physics.fixedStep) {

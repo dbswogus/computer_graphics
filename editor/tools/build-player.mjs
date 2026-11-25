@@ -28,7 +28,7 @@ function namedFunction(source,name) {
 
 /** @param base {string} 소스 루트. @returns {string} 편집 DOM이 없는 UI 설정 검증/반영 모듈. */
 function settingsModule(base) {
-  const studio=fs.readFileSync(path.join(base,'src/editor/StudioUI.js'),'utf8');
+  const studio=fs.readFileSync(path.join(base,'src/editor/StudioUI.js'),'utf8').replace(/\r\n/g,'\n');
   const defaults=studio.match(/const defaults=([^;]+);/);
   if(!defaults)throw Error('StudioUI 기본 설정을 찾을 수 없습니다.');
   return `const StudioUI=(()=>{const defaults=${defaults[1]};let settings={...defaults};const defaultLayout=JSON.parse(JSON.stringify(UI_LAYOUT));const defaultTexts={...UI_TEXT},defaultOnggiTexts=collectOnggiText();\n${namedFunction(studio,'collectOnggiText')}\n${namedFunction(studio,'applyTextSettings')}\n${namedFunction(studio,'validate')}\nfunction apply(value){const next=validate(value);settings={...next};delete settings.layout;GAME_CONFIG.ui.fontFamily=settings.fontFamily;applyTextSettings(next);OnggiPhysics.applySelected();for(const [screen,items]of Object.entries(next.layout))for(const [id,props]of Object.entries(items))Object.assign(UI_LAYOUT[screen][id],props);dirty=true;}return {validate,apply,get settings(){return settings;}};})();`;
@@ -36,8 +36,8 @@ function settingsModule(base) {
 
 /** @param base {string} 소스 루트. @returns {{prefix:string,suffix:string}} 프로젝트 JSON을 끼워 넣을 단일 HTML 템플릿. */
 export function makeTemplate(base) {
-  const read=file=>fs.readFileSync(path.join(base,'src',file),'utf8');
-  const order=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','STAGES','editor/BlockMap.js','editor/ProjectData.js','game/GyroInput.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','editor/AssetBank.js','ui/UIPageData.js','ui/PageUI.js','SETTINGS','main.js','export/PlayerBootstrap.js'];
+  const read=file=>fs.readFileSync(path.join(base,'src',file),'utf8').replace(/\r\n/g,'\n');
+  const order=['config/UILayout.js','config/GameConfig.js','config/UIText.js','render/Lighting.js','render/Renderer.js','models/Onggi.js','data/onggiData.js','STAGES','editor/BlockMap.js','editor/ProjectData.js','game/GyroInput.js','ui/SettingsMenu.js','game/OnggiPhysics.js','game/Physics.js','map/Map.js','map/Obstacles.js','core/PlayRecord.js','core/Game.js','ui/UI.js','camera/Camera.js','game/Input.js','editor/AssetBank.js','ui/UIPageData.js','ui/PageUI.js','SETTINGS','main.js','export/PlayerBootstrap.js'];
   const scripts=order.map(file=>{
     let source=file==='STAGES'?'const STAGES=[];':file==='SETTINGS'?settingsModule(base):read(file);
     if(file==='core/Game.js'){
@@ -47,7 +47,7 @@ export function makeTemplate(base) {
     if(file==='main.js')source=source.replace(/\ninitializeGame\(\);\s*$/,'\n');
     return '<script>\n'+source.replace(/<\/script/gi,'<\\/script')+'\n</script>';
   }).join('\n');
-  const prefix='<!doctype html>\n<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>데굴데굴 옹기</title><style>*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#292f2a}canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:none;outline:none}#error{display:none;color:white;padding:24px}#player-loading{position:fixed;inset:30% 15%;padding:24px;background:#fffdf3;color:#344638;z-index:50;font:18px/1.6 sans-serif}#player-loading[hidden],.studio-dialog[hidden]{display:none}.studio-dialog{position:fixed;inset:0;z-index:100;background:#223425bb;display:flex;align-items:center;justify-content:center;padding:20px;font:16px/1.6 sans-serif}.studio-card{max-width:620px;padding:28px;background:#fffdf3;color:#30462f;border-radius:24px}.studio-card button,#control-bar button{padding:10px;border:1px solid #a4b493;border-radius:12px;background:#f6f6e9;color:#405f40;cursor:pointer}#control-bar{position:fixed;top:10px;left:10px;z-index:30;display:flex;gap:5px;flex-wrap:wrap;max-width:95%}@media(max-width:700px){#control-bar{top:auto;bottom:8px}#control-bar button{font-size:11px;padding:6px}}</style></head><body><canvas id="game" tabindex="0" aria-label="옹기 게임"></canvas><p id="error" role="alert">WebGL을 시작할 수 없습니다. WebGL을 지원하는 브라우저에서 열어 주세요.</p><p id="player-loading" role="status">게임과 에셋을 준비하고 있습니다…</p>\n<script type="application/json" id="onggi-project">';
+  const prefix='<!doctype html>\n<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>데굴데굴 옹기</title><style>*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#292f2a}canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:none;outline:none}#error{display:none;color:white;padding:24px}#player-loading{position:fixed;inset:30% 15%;padding:24px;background:#fffdf3;color:#344638;z-index:50;font:18px/1.6 sans-serif}#player-loading[hidden],.studio-dialog[hidden]{display:none}.studio-dialog{position:fixed;inset:0;z-index:100;background:#223425bb;display:flex;align-items:center;justify-content:center;padding:20px;font:16px/1.6 sans-serif}.studio-card{max-width:620px;padding:28px;background:#fffdf3;color:#30462f;border-radius:24px}.studio-card button{padding:10px;border:1px solid #a4b493;border-radius:12px;background:#f6f6e9;color:#405f40;cursor:pointer}</style></head><body><canvas id="game" tabindex="0" aria-label="옹기 게임"></canvas><p id="error" role="alert">WebGL 2를 시작할 수 없습니다. WebGL 2를 지원하는 브라우저에서 열어 주세요.</p><p id="player-loading" role="status">게임과 에셋을 준비하고 있습니다…</p>\n<script type="application/json" id="onggi-project">';
   return {prefix,suffix:'</script>\n'+scripts+'\n</body></html>'};
 }
 

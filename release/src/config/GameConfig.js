@@ -38,14 +38,18 @@ const GAME_CONFIG = {
 // 낙하 후 체크포인트 복귀까지 시간.
     fallingDrift : 0.25,
 // 낙하 중 수평 이동 배율.
+    holePull : 12,
+// 구멍에 빠질 때 가운데로 끌려가는 빠르기.
     respawnInvulnerability : 1.5,
 // 복귀 후 이동 장애물에 대한 무적 시간.
     crumblingDelay : 2.2,
 // 금 간 바닥을 밟은 뒤 무너지기까지 시간.
     crumblingRecovery : 2.8,
 // 무너진 바닥의 복구 시간.
-    obstacleKick : 1.8,
-// 이동 장애물 접촉 시 X축 속도 변화량.
+    obstacleKick : 3.2,
+// 물레에 닿았을 때 튕겨 나가는 속도.
+    flingDamping : 2.6,
+// 튕겨 나간 뒤 느려지는 정도.
     checkpointHalfSize : 0.575,
 // 정사각 체크포인트 판정의 절반 폭.
     goalHalfSize : 0.85,
@@ -96,20 +100,75 @@ const GAME_CONFIG = {
     topDownAngle : 1.18,
 // 라디안. 원본 카메라의 내려다보는 각도.
     verticalOffset : 0.9,
-// 월드 화면의 상하 오프셋.
+// 월드 화면의 상하 오프셋. autoFit이 false일 때 사용.
+    mode : 'perspective',
+// 'perspective'=원근, 'orthographic'=원본 직교 투영.
+    fieldOfViewDegrees : 32,
+// 원근 카메라의 세로 시야각. 클수록 원근감이 강합니다.
+    autoFit : true,
+// true면 맵 전체가 safeArea 안에 들어오게 거리와 중심을 맞춥니다. false면 zoom을 사용.
+    safeArea : {
+      left : 60,
+      right : 60,
+      top : 115,
+      bottom : 262,
+// 맵을 맞출 화면 여백, UI 논리 픽셀(1600×1000). 아래쪽은 조이스틱 자리입니다.
+      quizTop : 215
+// O/X 문제가 표시되는 맵의 위쪽 여백.
+    }
+    ,
     maxPixelRatio : 2// 렌더링 픽셀 밀도 상한.
+  }
+  ,
+  lighting : {
+    direction : [- .45, 1, .5],
+// 맵에서 빛이 오는 방향 [왼쪽-/오른쪽+, 위, 화면 아래+]. 위 값을 줄이면 그림자가 길어집니다.
+    ambient : .42,
+// 주변광. 그림자 속의 밝기입니다.
+    diffuse : .54,
+// 확산광. 빛을 정면으로 받는 면에 더해지는 밝기.
+    studio : [.6, .46],
+// 타이틀·선택·결과 화면의 [주변광, 확산광].
+    gloss : {
+      pot : [.5, 36],
+// 옹기 유약의 윤기 [반사 세기, 선명도]. 선명도가 클수록 빛점이 작고 또렷합니다.
+      block : [.08, 14],
+      earth : [.03, 8],
+      prop : [.12, 18],
+      wet : [.38, 26]
+// 구멍 테두리·물레 / 젖은 흙.
+    }
+    ,
+    shadow : {
+      enabled : true,
+      strength : .85,
+// 0=그림자 없음, 1=가장 진함.
+      size : 2048,
+// 섀도 맵 해상도. 느린 기기에서는 1024로 낮추세요.
+      softness : 1.2,
+// 경계의 부드러움, 섀도 맵 텍셀 단위.
+      bias : .0012
+// 표면에 줄무늬가 생기면 키우고, 그림자가 물체에서 떨어져 보이면 줄이세요.
+    }
+  }
+  ,
+  record : {
+    threeStarFailures : 0,
+// 이 횟수 이하로 실패하면 별 3개.
+    twoStarFailures : 3
+// 이 횟수 이하로 실패하면 별 2개, 넘으면 1개.
   }
   ,
   map : {
     startRoomRadius : 1.55,
     endRoomRadius : 1.45,
     checkpointRoomRadius : 1.5,
-    gridStep : 0.16,
+    gridStep : 0.125,
 // 지형 메시 격자 크기. 작을수록 생성 비용 증가.
     minX : - 10,
     minZ : - 7,
-    gridColumns : 116,
-    gridRows : 87// 맵 생성 범위: X=[minX, minX+gridColumns*gridStep], Z도 동일.
+    gridColumns : 150,
+    gridRows : 112// 맵 생성 범위: X=[minX, minX+gridColumns*gridStep], Z도 동일.
   // route·rooms·구멍은 이 범위 안에 놓으세요. 길 위치는 StageData.js에서 수정.
   }
 }

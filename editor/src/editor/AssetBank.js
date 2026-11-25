@@ -11,7 +11,7 @@ const AssetBank = (() => {
 
   /** @param text {string} OBJ 원문. @returns {object} mesh에 전달할 {vertices,normals}. 음수 인덱스·다각형 지원. 면별 UV를 보존합니다. */
   function parseOBJ(text) {
-    const points=[], triangles=[], uvPoints=[], triangleUVs=[];
+    const points=[], triangles=[], uvPoints=[], triangleUVs=[], normalPoints=[], triangleNormals=[];
     for(const match of text.matchAll(/[^\r\n]+/g)) {
       const line=match[0];
       const parts=line.split('#')[0].trim().split(/\s+/);
@@ -25,9 +25,14 @@ const AssetBank = (() => {
         if(!uv.every(Number.isFinite)) throw Error('OBJ UV 좌표가 잘못되었습니다.');
         uvPoints.push(uv);
       }
+      if(parts[0]==='vn') {
+        const n=parts.slice(1,4).map(Number);
+        if(n.length!==3||!n.every(Number.isFinite)) throw Error('OBJ 법선이 잘못되었습니다.');
+        normalPoints.push(n);
+      }
       if(parts[0]==='f') {
         const face=parts.slice(1).map(part=>{
-          const [vertex,texture]=part.split('/');
+          const [vertex,texture,normal]=part.split('/');
           const i=Number(vertex), index=i<0?points.length+i:i-1;
           if(!Number.isInteger(i)||i===0||!points[index])throw Error('OBJ 면 인덱스가 잘못되었습니다.');
           let uvIndex=-1;
@@ -36,13 +41,20 @@ const AssetBank = (() => {
             uvIndex=t<0?uvPoints.length+t:t-1;
             if(!Number.isInteger(t)||t===0||uvIndex<0)throw Error('OBJ UV 인덱스가 잘못되었습니다.');
           }
-          return [index,uvIndex];
+          let normalIndex=-1;
+          if(normal) {
+            const t=Number(normal);
+            normalIndex=t<0?normalPoints.length+t:t-1;
+            if(!Number.isInteger(t)||t===0||normalIndex<0)throw Error('OBJ 법선 인덱스가 잘못되었습니다.');
+          }
+          return [index,uvIndex,normalIndex];
         });
         if(face.length<3)throw Error('OBJ 면은 정점이 3개 이상이어야 합니다.');
         for(let i=1;i<face.length-1;i++){
-          for(const [index,uvIndex] of [face[0],face[i],face[i+1]]) {
+          for(const [index,uvIndex,normalIndex] of [face[0],face[i],face[i+1]]) {
             triangles.push(index);
             triangleUVs.push(uvIndex);
+            triangleNormals.push(normalIndex);
           }
           if(triangles.length>maxOBJTriangles*3)throw Error('OBJ 삼각형은 25만 개 이하로 줄여 주세요.');
         }
@@ -56,6 +68,7 @@ const AssetBank = (() => {
     // 삼각형 수에 맞춰 한 번만 메모리를 할당하고 큰 일반 배열의 재복사를 피합니다.
     const vertices=new Float32Array(triangles.length*3),normals=new Float32Array(triangles.length*3);
     if (triangleUVs.some(index=>index>=uvPoints.length)) throw Error('OBJ UV 인덱스가 잘못되었습니다.');
+    if (triangleNormals.some(index=>index>=normalPoints.length)) throw Error('OBJ 법선 인덱스가 잘못되었습니다.');
     let uvs=null;
     for(let i=0;i<triangles.length;i+=3){
       const textured=triangleUVs[i]>=0 && triangleUVs[i+1]>=0 && triangleUVs[i+2]>=0;
@@ -65,7 +78,10 @@ const AssetBank = (() => {
       const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,len=Math.hypot(nx,ny,nz)||1;
       for(let j=0;j<3;j++){
         const offset=(i+j)*3;vertices.set(normalized[triangles[i+j]],offset);
-        normals[offset]=nx/len;normals[offset+1]=ny/len;normals[offset+2]=nz/len;
+        // 파일에 법선(vn)이 있으면 그대로 사용해 곡면을 부드럽게, 없으면 면의 법선을 사용합니다.
+        const given=normalPoints[triangleNormals[i+j]],length=given?Math.hypot(...given):0;
+        if(length>1e-8)normals.set(given.map(n=>n/length),offset);
+        else {normals[offset]=nx/len;normals[offset+1]=ny/len;normals[offset+2]=nz/len;}
         if (textured) {
           const [u,v]=uvPoints[triangleUVs[i+j]];
           uvs[offset]=u;uvs[offset+1]=v;uvs[offset+2]=1;
@@ -75,14 +91,26 @@ const AssetBank = (() => {
     return {vertices,normals,uvs};
   }
 
+  /** decode()는 탭이 가려져 화면을 그리지 않는 동안 멈출 수 있어 onload를 사용합니다.
+   * @param src {string} Data URL. @param name {string} 오류 안내용 이름. @returns {Promise<HTMLImageElement>} 읽은 이미지. */
+  function loadImage(src,name) {
+    return new Promise((resolve,reject)=>{
+      const image=new Image();
+      image.onload=()=>resolve(image);
+      image.onerror=()=>reject(Error('이미지를 읽지 못했습니다: '+name));
+      image.src=src;
+    });
+  }
+
   /** @param record {object} {id,name,kind,data}. @returns {Promise<object>} 브라우저 리소스를 로드. 실패하면 프로젝트 상태는 변경하지 않음. */
   async function decode(record) {
     const ext=record.name.split('.').pop().toLowerCase(),spec=extensions[ext];
     if(!spec||record.kind!==spec[0]||typeof record.data!=='string'||!record.data.startsWith(`data:${spec[1]};base64,`))throw Error('에셋 형식/인코딩이 잘못되었습니다: '+record.name);
     if(record.kind==='image') {
-      const image=new Image();image.src=record.data;await image.decode();
+      const image=await loadImage(record.data,record.name);
       if(image.width>4096||image.height>4096)throw Error('이미지는 가로·세로 4096px 이하로 줄여 주세요.');
-      const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+      const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+      gl.generateMipmap(gl.TEXTURE_2D);
       return {image,texture};
     }
     if(record.kind==='font') {const family='onggi_'+record.id.replace(/[^a-zA-Z0-9]/g,'');const font=new FontFace(family,`url(${record.data})`);await font.load();return {font,family};}
@@ -94,11 +122,15 @@ const AssetBank = (() => {
       });
       const geometry=mesh(parsed.vertices,parsed.normals);
       if (parsed.uvs) {
-        geometry.uv=gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,geometry.uv);
-        gl.bufferData(gl.ARRAY_BUFFER,parsed.uvs,gl.STATIC_DRAW);
+        addTexcoords(geometry,parsed.uvs);
       }
-      return {mesh:geometry,dimensions};
+      // 바닥에 닿는 높이를 잴 대표 점. 가까운 점은 하나로 합칩니다.
+      const contact=new Map();
+      for(let i=0;i<parsed.vertices.length;i+=3) {
+        const p=[parsed.vertices[i],parsed.vertices[i+1],parsed.vertices[i+2]];
+        contact.set(p.map(n=>Math.round(n*40)).join(),p);
+      }
+      return {mesh:geometry,dimensions,contact:[...contact.values()]};
     }
     return {src:record.data};
   }
@@ -123,7 +155,7 @@ const AssetBank = (() => {
   }
 
   /** @param bank {Map} 해제 대상. @returns {void} GPU/폰트 리소스를 해제. */
-  function release(bank) {for(const resource of bank.values()){if(resource.texture)gl.deleteTexture(resource.texture);if(resource.mesh){gl.deleteBuffer(resource.mesh.b);gl.deleteBuffer(resource.mesh.nb);if(resource.mesh.uv)gl.deleteBuffer(resource.mesh.uv);}if(resource.font)document.fonts.delete(resource.font);}}
+  function release(bank) {for(const resource of bank.values()){if(resource.texture)gl.deleteTexture(resource.texture);if(resource.mesh)deleteMesh(resource.mesh);if(resource.font)document.fonts.delete(resource.font);}}
 
   /** @param candidate {object} prepare 반환값. @returns {void} 리소스를 원자적으로 교체. */
   function applyPrepared(candidate) {
@@ -168,31 +200,25 @@ const AssetBank = (() => {
 
   function hasModelUV(id) {return Boolean(resources.get(id)?.mesh?.uv);}
 
-  function drawModel(id, geometry, model, color) {
+  function drawModel(id, geometry, model, color, shine = GAME_CONFIG.lighting.gloss.block) {
+    if (Lighting.drawDepth(geometry,model)) return;
     const image=resources.get(StudioUI.settings.modelTextures?.[id]);
     if (!geometry.uv || !image?.texture) {
-      draw(geometry,model,color);
+      draw(geometry,model,color,false,shine);
       return;
     }
     if (!modelProgram) modelProgram=program(
-      'attribute vec3 position,normal,texcoord;uniform mat4 mvp,model;varying vec3 uv;varying float light;void main(){uv=vec3(texcoord.x,1.-texcoord.y,texcoord.z);vec3 n=normalize(mat3(model)*normal);light=.61+.39*max(dot(n,normalize(vec3(-.4,.8,1.))),0.);gl_Position=mvp*vec4(position,1.);}',
-      'precision mediump float;uniform sampler2D picture;uniform vec3 baseColor;varying vec3 uv;varying float light;void main(){vec4 c=texture2D(picture,uv.xy);gl_FragColor=vec4(mix(baseColor,c.rgb,c.a*uv.z)*light,1.);}'
+      'layout(location=0) in vec3 position;layout(location=1) in vec3 normal;layout(location=2) in vec3 texcoord;uniform mat4 mvp;out vec3 uv;'+Lighting.vertex+'void main(){uv=vec3(texcoord.x,1.-texcoord.y,texcoord.z);lightVertex(position,normal);gl_Position=mvp*vec4(position,1.);}',
+      Lighting.precision+'uniform sampler2D picture;uniform vec3 baseColor;in vec3 uv;'+Lighting.fragment+'void main(){vec4 c=texture(picture,uv.xy);fragColor=vec4(shade(mix(baseColor,c.rgb,c.a*uv.z)),1.);}'
     );
     gl.useProgram(modelProgram);
-    for (const [name,buffer] of [['position',geometry.b],['normal',geometry.nb],['texcoord',geometry.uv]]) {
-      const location=gl.getAttribLocation(modelProgram,name);
-      gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-      gl.enableVertexAttribArray(location);
-      gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);
-    }
     gl.uniformMatrix4fv(gl.getUniformLocation(modelProgram,'mvp'),false,mul(vp,model));
-    gl.uniformMatrix4fv(gl.getUniformLocation(modelProgram,'model'),false,model);
+    Lighting.apply(modelProgram,model,shine);
     gl.uniform3fv(gl.getUniformLocation(modelProgram,'baseColor'),rgb(color));
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,image.texture);
     gl.uniform1i(gl.getUniformLocation(modelProgram,'picture'),0);
-    gl.drawArrays(gl.TRIANGLES,0,geometry.count);
-    gl.disableVertexAttribArray(gl.getAttribLocation(modelProgram,'texcoord'));
+    drawMesh(geometry);
   }
 
   /** @param parent {Float32Array} 기울어진 월드 행렬. @param stage {object} placedAssets가 있는 스테이지.
@@ -202,9 +228,9 @@ const AssetBank = (() => {
       const record=records.find(r=>r.id===block.assetId),resource=resources.get(block.assetId);if(!record||!resource)continue;
       const model=mul(parent,mul(translate(block.x,0.07,block.z),ry(block.rotation*Math.PI/180)));
       if(record.kind==='model'){drawModel(record.id,resource.mesh,model,'#bd9060');continue;}
-      if(record.kind!=='image')continue;
-      if(!imageProgram){imageProgram=program('attribute vec3 position;uniform mat4 mvp;varying vec2 uv;void main(){uv=vec2(position.x+.5,position.z+.5);gl_Position=mvp*vec4(position,1.);}','precision mediump float;uniform sampler2D picture;varying vec2 uv;void main(){vec4 c=texture2D(picture,uv);if(c.a<.02)discard;gl_FragColor=c;}');plane=mesh([-.5,0,-.5,.5,0,-.5,.5,0,.5,-.5,0,-.5,.5,0,.5,-.5,0,.5],Array(18).fill(0));}
-      gl.useProgram(imageProgram);gl.bindBuffer(gl.ARRAY_BUFFER,plane.b);const pos=gl.getAttribLocation(imageProgram,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(gl.getUniformLocation(imageProgram,'mvp'),false,mul(vp,model));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,resource.texture);gl.uniform1i(gl.getUniformLocation(imageProgram,'picture'),0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,6);gl.disable(gl.BLEND);
+      if(record.kind!=='image'||Lighting.inShadowPass)continue;
+      if(!imageProgram){imageProgram=program('layout(location=0) in vec3 position;uniform mat4 mvp;out vec2 uv;void main(){uv=vec2(position.x+.5,position.z+.5);gl_Position=mvp*vec4(position,1.);}',Lighting.precision+'uniform sampler2D picture;in vec2 uv;void main(){vec4 c=texture(picture,uv);if(c.a<.02)discard;fragColor=c;}');plane=mesh([-.5,0,-.5,.5,0,-.5,.5,0,.5,-.5,0,-.5,.5,0,.5,-.5,0,.5],Array(18).fill(0));}
+      gl.useProgram(imageProgram);gl.uniformMatrix4fv(gl.getUniformLocation(imageProgram,'mvp'),false,mul(vp,model));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,resource.texture);gl.uniform1i(gl.getUniformLocation(imageProgram,'picture'),0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);drawMesh(plane);gl.disable(gl.BLEND);
     }
   }
 
@@ -220,14 +246,26 @@ const AssetBank = (() => {
   /** 매개변수 없음. @returns {void} 현재 소리 중지. */
   function stopSound(){soundEpoch++;for(const source of sources){try{source.stop();}catch{}}sources.clear();for(const sound of effects){sound.pause();sound.src='';}effects.clear();if(audio){audio.pause();audio.src='';audio=null;}}
 
+  /** @param id {number} 옹기 0~5. @param q {number[4]} 구른 자세. @returns {number|undefined} 배율 1에서 중심부터 가장 낮은 점까지의 거리.
+   * 지정한 OBJ가 없으면 undefined. drawOnggi와 같은 배치(중심 0.5, 배율 1.24)를 사용합니다. */
+  function onggiSupport(id,q) {
+    const points=resources.get(StudioUI.settings.onggiAssets?.[String(id)])?.contact;
+    if(!points)return undefined;
+    const m=quatMatrix(q);let lowest=0;
+    for(const [x,y,z] of points)lowest=Math.min(lowest,m[1]*x+m[5]*(y-.5)+m[9]*z);
+    return -lowest*1.24;
+  }
+
   /** @param parent {Float32Array} 옹기 위치/회전 행렬. @param id {number} 옹기 0~5.
+   * @param flatColor {string} 지정하면 텍스처 없이 이 색으로 그림(도착 깃발 실루엣).
    * @param roll {number} 굴림 각도(라디안). @param size {number} 표시 배율.
    * @returns {boolean} 지정한 OBJ를 그렸으면 true. 충돌 반지름/중력 값은 기존대로 유지. */
-  function drawOnggi(parent,id,roll,size) {
+  function drawOnggi(parent,id,roll,size,flatColor='') {
     const assetId=StudioUI.settings.onggiAssets?.[String(id)],resource=resources.get(assetId);
     if(!resource?.mesh)return false;
     const local=mul(rz(roll),mul(scale(size,size,size),mul(translate(0,-0.62,0),scale(1.24,1.24,1.24))));
-    drawModel(assetId,resource.mesh,mul(parent,local),potColors[id]||'#a8784d');return true;
+    if(flatColor){draw(resource.mesh,mul(parent,local),flatColor);return true;}
+    drawModel(assetId,resource.mesh,mul(parent,local),potColors[id]||'#a8784d',GAME_CONFIG.lighting.gloss.pot);return true;
   }
 
   /** @param floor {object} 구멍/낙하 경계를 반영한 기존 바닥 메시. @param model {Float32Array} 맵 변환.
@@ -250,25 +288,24 @@ const AssetBank = (() => {
   function drawSurface(geometry, model, color, id, clip = null) {
     const resource=resources.get(id);
     if (!resource?.texture) return false;
+    if (Lighting.inShadowPass) {
+      if (!clip) Lighting.drawDepth(geometry,model);
+      return true;
+    }
     if (!surfaceProgram) surfaceProgram=program(
-      'attribute vec3 position;attribute vec3 normal;uniform mat4 mvp;uniform mat4 model;uniform float uvOffset;varying vec2 uv;varying vec2 point;varying float light;varying float top;void main(){vec3 n=abs(normal);uv=n.y>.5?position.xz+uvOffset:(n.x>.5?position.zy+uvOffset:position.xy+uvOffset);point=position.xz;top=normal.y;vec3 wn=normalize(mat3(model)*normal);light=.61+.39*max(dot(wn,normalize(vec3(-.4,.8,1.))),0.);gl_Position=mvp*vec4(position,1.);}',
-      'precision mediump float;uniform sampler2D picture;uniform vec3 baseColor;uniform vec4 bounds;uniform float clipped;varying vec2 uv;varying vec2 point;varying float light;varying float top;void main(){if(clipped>.5&&(top<.5||point.x<bounds.x||point.y<bounds.y||point.x>bounds.z||point.y>bounds.w))discard;vec4 c=texture2D(picture,fract(uv));gl_FragColor=vec4(mix(baseColor,c.rgb,c.a)*light,1.);}'
+      'layout(location=0) in vec3 position;layout(location=1) in vec3 normal;uniform mat4 mvp;uniform float uvOffset;out vec2 uv;out vec2 point;out float top;'+Lighting.vertex+'void main(){vec3 n=abs(normal);uv=n.y>.5?position.xz+uvOffset:(n.x>.5?position.zy+uvOffset:position.xy+uvOffset);point=position.xz;top=normal.y;lightVertex(position,normal);gl_Position=mvp*vec4(position,1.);}',
+      Lighting.precision+'uniform sampler2D picture;uniform vec3 baseColor;uniform vec4 bounds;uniform float clipped;in vec2 uv;in vec2 point;in float top;'+Lighting.fragment+'void main(){if(clipped>.5&&(top<.5||point.x<bounds.x||point.y<bounds.y||point.x>bounds.z||point.y>bounds.w))discard;vec4 c=textureGrad(picture,fract(uv),dFdx(uv),dFdy(uv));fragColor=vec4(shade(mix(baseColor,c.rgb,c.a)),1.);}'
     );
     gl.useProgram(surfaceProgram);
-    for (const [name, buffer] of [['position',geometry.b],['normal',geometry.nb]]) {
-      const location=gl.getAttribLocation(surfaceProgram,name);
-      gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(location);
-      gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);
-    }
     gl.uniformMatrix4fv(gl.getUniformLocation(surfaceProgram,'mvp'),false,mul(vp,model));
-    gl.uniformMatrix4fv(gl.getUniformLocation(surfaceProgram,'model'),false,model);
+    Lighting.apply(surfaceProgram,model);
     gl.uniform3fv(gl.getUniformLocation(surfaceProgram,'baseColor'),rgb(color));
     gl.uniform1f(gl.getUniformLocation(surfaceProgram,'uvOffset'),geometry===cube?.5:0);
     gl.uniform1f(gl.getUniformLocation(surfaceProgram,'clipped'),clip?1:0);
     gl.uniform4fv(gl.getUniformLocation(surfaceProgram,'bounds'),clip?[clip.x-clip.w/2,clip.z-clip.d/2,clip.x+clip.w/2,clip.z+clip.d/2]:[0,0,0,0]);
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,resource.texture);
     gl.uniform1i(gl.getUniformLocation(surfaceProgram,'picture'),0);
-    gl.drawArrays(gl.TRIANGLES,0,geometry.count);
+    drawMesh(geometry);
     return true;
   }
 
@@ -359,7 +396,7 @@ const AssetBank = (() => {
   /** @param value {boolean} 전체 음소거 여부. @returns {void} BGM/효과음을 함께 중지/허용. */
   function setMuted(value) { muted=Boolean(value);if(muted)stopSound(); }
 
-  return {hasModelUV,skinId,drawSurface,drawFloorSkins,drawBlock,playEffect,unlockEffects,setMuted,drawOnggi,drawFloor,parseOBJ,prepare,applyPrepared,addFiles,drawWorld,drawOverlay,playSound,stopSound,
+  return {hasModelUV,onggiSupport,skinId,drawSurface,drawFloorSkins,drawBlock,playEffect,unlockEffects,setMuted,drawOnggi,drawFloor,parseOBJ,prepare,applyPrepared,addFiles,drawWorld,drawOverlay,playSound,stopSound,
     exportData:()=>records.map(r=>({...r})),list:()=>records.map(({data,...r})=>r),
     select:id=>{selectedId=id;},selected:()=>selectedId,fontFamily:id=>resources.get(id)?.family,
     image:id=>resources.get(id)?.image};

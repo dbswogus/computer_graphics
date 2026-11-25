@@ -11,8 +11,7 @@ px = - 7,
 pz = - 4.8,
 vx = 0,
 vz = 0,
-roll = 0,
-rollX = 0,
+rollQ = [0, 0, 0, 1],
 hold = 0,
 elapsed = 0,
 totalTime = 0,
@@ -31,6 +30,9 @@ fallTime = 0,
 falling = false,
 failures = 0,
 fallReason = '',
+fallTarget = null,
+fallStart = 0,
+flung = false,
 invulnerable = 0;
 let dialoguePage = 0,
 dialogueTime = 0;
@@ -100,8 +102,10 @@ function startStage(n) {
   const p = STAGES [n].route [0];
   px = p [0];
   pz = p [1];
-  vx = vz = angle = tiltZ = roll = rollX = hold = elapsed = transition = 0;
-  done = falling = false;
+  vx = vz = angle = tiltZ = hold = elapsed = transition = 0;
+  rollQ = [0, 0, 0, 1];
+  done = falling = flung = false;
+  fallTarget = null;
   fallTime = 0;
   invulnerable = 0;
   floorLevel = 0;
@@ -139,8 +143,10 @@ function resetCheckpoint() {
   pz = checkpoint.z;
   floorLevel = checkpoint.level || 0;
   py = STAGES [stage].surfaces [floorLevel].height;
-  vx = vz = angle = tiltZ = hold = roll = rollX = 0;
-  falling = false;
+  vx = vz = angle = tiltZ = hold = 0;
+  rollQ = [0, 0, 0, 1];
+  falling = flung = false;
+  fallTarget = null;
   fallTime = 0;
   crumbles = STAGES [stage].crumbles.map(() =>({
     charge : 0, down : 0
@@ -155,14 +161,17 @@ function resetCheckpoint() {
  * [읽기 7: 상태 전환 / 함수 번호 33] fail
  * 역할: 실패 이유와 낙하 애니메이션 상태를 설정합니다.
  * @param reason — string: 실패 원인. fallReason에 기록
+ * @param thrown — boolean: true면 떨어지지 않고 튕겨 나갑니다.
  * @returns void: 반환값 없음
  * 사용: 반환값 대신 공유 상태·GPU·캔버스·입력 목록 중 본문에 표시된 대상을 갱신합니다.
  * 다음에 읽을 함수: clearInput
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
-function fail(reason) {
+function fail(reason, thrown = false) {
   if(falling || done) return;
   falling = true;
+  flung = thrown;
+  fallStart = 0;
   fallReason = reason;
   fallTime = 0;
   failures ++;
@@ -182,6 +191,7 @@ function fail(reason) {
  */
 function next() {
   void AssetBank.playEffect('arrival');
+  PlayRecord.finishStage();
   if (STAGES[stage].editorStage) { if(!MapEditor.advance())beginArrival(); return; }
   if(stage < STAGES.length - 1) startStage(stage + 1);
   else beginArrival();
@@ -196,6 +206,7 @@ function next() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function beginArrival() {
+  PlayRecord.finish();
   const goal = STAGES [stage].route.at(- 1);
   arrival = {
     t : 0,
@@ -203,8 +214,7 @@ function beginArrival() {
     x : px,
     z : pz,
     y : py,
-    roll,
-    rollX,
+    rollQ,
     angle,
     tiltZ,
     toX : goal [0],
@@ -233,13 +243,13 @@ function tickArrival(dt) {
   e = q * q *(3 - 2 * q);
   px = mix(arrival.x, arrival.toX, e);
   pz = mix(arrival.z, arrival.toZ, e);
-  py = mix(arrival.y, .4 + (-.47 + COLLECTION [selected].bottom * .66) * (R / GAME_CONFIG.physics.playerRadius), e);
-  roll = mix(arrival.roll, Math.round(arrival.roll / TAU) * TAU, e);
-  rollX = mix(arrival.rollX, Math.round(arrival.rollX / TAU) * TAU, e);
+  py = mix(arrival.y, .4 + (potBottom(selected) - potRest(selected, [0, 0, 0, 1])) * .66 * (R / GAME_CONFIG.physics.playerRadius), e);
+  rollQ = quatToUpright(arrival.rollQ, e);
   angle = arrival.angle *(1 - e);
   tiltZ = arrival.tiltZ *(1 - e);
   if(q === 1) {
-    roll = rollX = angle = tiltZ = 0;
+    rollQ = [0, 0, 0, 1];
+    angle = tiltZ = 0;
     screen = 'finish';
   }
   dirty = true;

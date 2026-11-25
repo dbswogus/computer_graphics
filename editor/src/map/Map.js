@@ -60,6 +60,19 @@ function cornerPatches(sf) {
   );
   return patches;
 }
+/** @param st {object} 스테이지. @returns {object} 카메라가 맞출 맵의 월드 경계 {minX,maxX,minZ,maxZ,minY,maxY}. */
+function stageBounds(st) {
+  const boxes = st.editorStage ? [... st.floorBlocks, ... st.editorWalls] : [
+    ... st.surfaces.flatMap(sf => sf.route.map(([x, z]) => ({ x, z, w : Math.max(st.width, 3.2), d : Math.max(st.width, 3.2) }))),
+    ... (st.rooms || []).map(r => ({ x : r.x, z : r.z, w : r.r * 2, d : r.r * 2 }))
+  ];
+  const heights = st.surfaces.map(sf => sf.height || 0);
+  return {
+    minX : Math.min(... boxes.map(b => b.x - b.w / 2)), maxX : Math.max(... boxes.map(b => b.x + b.w / 2)),
+    minZ : Math.min(... boxes.map(b => b.z - b.d / 2)), maxZ : Math.max(... boxes.map(b => b.z + b.d / 2)),
+    minY : Math.min(... heights) - .42, maxY : Math.max(... heights) + .9
+  };
+}
 /**
  * [읽기 8: 맵 생성·배치 / 함수 번호 26] buildStageGeometry
  * 역할: 각 스테이지의 바닥·모서리 벽·구멍 테두리 메시와 충돌 데이터를 초기 생성합니다.
@@ -81,9 +94,11 @@ function buildStageGeometry() {
       ;
     }
     );
+    st.bounds = stageBounds(st);
     for(const surface of st.surfaces) {
       const cells = new Set(),
       outer = new Set(),
+      sunken = new Set(),
       step = GAME_CONFIG.map.gridStep,
       minX = GAME_CONFIG.map.minX,
       minZ = GAME_CONFIG.map.minZ,
@@ -94,13 +109,17 @@ function buildStageGeometry() {
         z = minZ +(iz + .5) * step;
         if(! onCourse(surface, x, z)) continue;
         outer.add(ix + ',' + iz);
-        if(! surface.holes.some(h => Math.hypot(x - h.x, z - h.z) < h.r) && ! surface.crumbles.some(r => inRect(x, z, r)) &&
-            ! surface.quizGoals?.some(r => r.room && inRect(x,z,r))) cells.add(ix + ',' + iz);
+        if(surface.quizGoals?.some(r => r.room && inRect(x, z, r))) continue;
+        // 무너지는 바닥 아래는 구덩이, 나머지는 바닥. 둥근 구멍은 면을 만들 때 잘라냅니다.
+        if(surface.crumbles.some(r => ! r.quizTrap && inRect(x, z, r))) sunken.add(ix + ',' + iz);
+        else cells.add(ix + ',' + iz);
       }
       const patches = cornerPatches(surface);
       surface.wallSegments = [];
       const vv = [],
       nn = [],
+      pv = [],
+      pn = [],
       wv = [],
       wn = [];
 /**
@@ -150,6 +169,37 @@ function buildStageGeometry() {
         face([[a, 0, c], [a, 0, e], [a, h, e], [a, h, c]], [- 1, 0, 0], wv, wn);
         face([[b, 0, e], [b, 0, c], [b, h, c], [b, h, e]], [1, 0, 0], wv, wn);
       }
+      // 맵 바깥에서 이어지지 않는 빈칸(벽과 바닥에 둘러싸인 틈)도 구덩이로 채웁니다.
+      const blocked = (ix, iz) => {
+        const key = ix + ',' + iz;
+        if(outer.has(key)) return true;
+        const x = minX + (ix + .5) * step, z = minZ + (iz + .5) * step;
+        return (surface.editorWalls || []).some(w => Math.abs(x - w.x) < w.w / 2 && Math.abs(z - w.z) < w.d / 2);
+      };
+      const solid = new Set(), outside = new Set(['-1,-1']), queue = [[- 1, - 1]];
+      for(let iz = 0; iz < nz; iz ++) for(let ix = 0; ix < nx; ix ++) if(blocked(ix, iz)) solid.add(ix + ',' + iz);
+      while(queue.length) {
+        const [ix, iz] = queue.pop();
+        for(const [dx, dz] of [[1, 0], [- 1, 0], [0, 1], [0, - 1]]) {
+          const jx = ix + dx, jz = iz + dz, key = jx + ',' + jz;
+          if(jx < - 1 || jz < - 1 || jx > nx || jz > nz || solid.has(key) || outside.has(key)) continue;
+          outside.add(key);
+          queue.push([jx, jz]);
+        }
+      }
+      for(let iz = 0; iz < nz; iz ++) for(let ix = 0; ix < nx; ix ++) {
+        const key = ix + ',' + iz;
+        if(! solid.has(key) && ! outside.has(key)) sunken.add(key);
+      }
+      for(const key of sunken) {
+        const [ix, iz] = key.split(',').map(Number), x = minX + ix * step, z = minZ + iz * step, X = x + step, Z = z + step, low = - PIT_DEPTH;
+        face([[x, low, Z], [X, low, Z], [X, low, z], [x, low, z]], [0, 1, 0], pv, pn);
+        if(! sunken.has((ix - 1) + ',' + iz)) face([[x, low, z], [x, low, Z], [x, 0, Z], [x, 0, z]], [1, 0, 0], pv, pn);
+        if(! sunken.has((ix + 1) + ',' + iz)) face([[X, low, z], [X, low, Z], [X, 0, Z], [X, 0, z]], [- 1, 0, 0], pv, pn);
+        if(! sunken.has(ix + ',' + (iz - 1))) face([[x, low, z], [X, low, z], [X, 0, z], [x, 0, z]], [0, 0, 1], pv, pn);
+        if(! sunken.has(ix + ',' + (iz + 1))) face([[x, low, Z], [X, low, Z], [X, 0, Z], [x, 0, Z]], [0, 0, - 1], pv, pn);
+      }
+      const solidFloor = key => cells.has(key) || sunken.has(key);
       for(const key of cells) {
         const [ix,
         iz] = key.split(',').map(Number),
@@ -157,11 +207,15 @@ function buildStageGeometry() {
         z = minZ + iz * step,
         X = x + step,
         Z = z + step;
-        face([[x, 0, Z], [X, 0, Z], [X, 0, z], [x, 0, z]], [0, 1, 0]);
-        if(! cells.has((ix - 1) + ',' + iz)) face([[x, - .42, z], [x, - .42, Z], [x, 0, Z], [x, 0, z]], [- 1, 0, 0]);
-        if(! cells.has((ix + 1) + ',' + iz)) face([[X, - .42, Z], [X, - .42, z], [X, 0, z], [X, 0, Z]], [1, 0, 0]);
-        if(! cells.has(ix + ',' +(iz - 1))) face([[X, - .42, z], [x, - .42, z], [x, 0, z], [X, 0, z]], [0, 0, - 1]);
-        if(! cells.has(ix + ',' +(iz + 1))) face([[x, - .42, Z], [X, - .42, Z], [X, 0, Z], [x, 0, Z]], [0, 0, 1]);
+        const top = Obstacles.floorPolygon([[x, Z], [X, Z], [X, z], [x, z]], surface.holes);
+        for(let i = 1; top && i < top.length - 1; i ++) for(const p of [top [0], top [i], top [i + 1]]) {
+          vv.push(p [0], 0, p [1]);
+          nn.push(0, 1, 0);
+        }
+        if(! solidFloor((ix - 1) + ',' + iz)) face([[x, - .42, z], [x, - .42, Z], [x, 0, Z], [x, 0, z]], [- 1, 0, 0]);
+        if(! solidFloor((ix + 1) + ',' + iz)) face([[X, - .42, Z], [X, - .42, z], [X, 0, z], [X, 0, Z]], [1, 0, 0]);
+        if(! solidFloor(ix + ',' +(iz - 1))) face([[X, - .42, z], [x, - .42, z], [x, 0, z], [X, 0, z]], [0, 0, - 1]);
+        if(! solidFloor(ix + ',' +(iz + 1))) face([[x, - .42, Z], [X, - .42, Z], [X, 0, Z], [x, 0, Z]], [0, 0, 1]);
       }
       for(const key of outer) {
         const [ix,
@@ -175,7 +229,10 @@ function buildStageGeometry() {
       }
       surface.floor = mesh(vv, nn);
       surface.walls = mesh(wv, wn);
-      surface.rims = surface.holes.map(h => lathe([[h.r, .02], [h.r + .1, .02], [h.r + .1, .055], [h.r, .055], [h.r, .02]]));
+      surface.pit = mesh(pv, pn);
+      const holes = surface.holes.map(h => Obstacles.holeMeshes(h));
+      surface.rims = holes.map(h => h.rim);
+      surface.pits = holes.map(h => h.pit);
     }
   }
 }
@@ -235,7 +292,18 @@ function mapScenery(root) {
 function worldScene() {
   vp = getWorldViewProjection();
   const root = mul(rz(angle), rx(tiltZ)),
-  st = STAGES [stage];
+  st = STAGES [stage],
+  shadowed = Lighting.beginShadow(root, st.bounds);
+  if(shadowed) {
+    worldObjects(root, st, true);
+    Lighting.endShadow();
+  }
+  Lighting.useWorld(worldEye, shadowed);
+  worldObjects(root, st, shadowed);
+}
+/** @param root {Float32Array} 기울어진 맵 행렬. @param st {object} 스테이지. @param shadowed {boolean} 섀도 맵을 쓰는 프레임인지.
+ * @returns {void} 맵과 옹기를 그립니다. 그림자 패스와 화면 패스에서 같은 물체를 그리기 위해 함께 사용합니다. */
+function worldObjects(root, st, shadowed) {
 // The canvas clear colour is the full-bleed backdrop; no bounded background slab.
   for(const sf of st.surfaces) {
     const base = mul(root, translate(0, sf.height, 0));
@@ -248,6 +316,7 @@ function worldScene() {
     }
     if(!AssetBank.drawFloor(sf.floor,base,st.color))draw(sf.floor, base, st.color,sf.editorStage);
     AssetBank.drawFloorSkins(sf,base,st.color);
+    draw(sf.pit, base, '#8a5c3c', MATERIAL.pit, undefined, { origin : [0, sf.height || 0, 0] });
     draw(sf.walls, base, sf.editorStage ? '#a47448' : '#e6d5ad', sf.editorStage);
     for (const wall of sf.editorWalls || []) {
       if (!wall.roomId && !AssetBank.drawBlock('wall',wall,base,.35,.7,'#a47448')) {
@@ -265,12 +334,7 @@ function worldScene() {
         if(! inHole(sf, x, z) && ! sf.crumbles.some(r => inRect(x, z, r))) block(base, x, .014, z, .1, .025, .1, '#eee2c5');
       }
     }
-    for(let i = 0; i < sf.holes.length; i ++) {
-      const h = sf.holes [i];
-      const rimModel=mul(base,translate(h.x,0,h.z));
-      if(!AssetBank.drawSurface(sf.rims[i],rimModel,'#d17f56',AssetBank.skinId('hole',h))) draw(sf.rims[i],rimModel,'#d17f56');
-      block(base, h.x, - 2.3, h.z, h.r * 1.4, .08, h.r * 1.4, '#746659');
-    }
+    for(let i = 0; i < sf.holes.length; i ++) Obstacles.drawHole(sf, base, i);
     for(const index of st.checks) {
       if((st.checkLevels ?. [index] || 0) !== sf.level) continue;
       const p = st.route [index];
@@ -292,17 +356,16 @@ function worldScene() {
     for(let i = 0; i < sf.crumbles.length; i ++) {
       const r = sf.crumbles [i],
       c = crumbles [i];
-      if(c.down > 0) continue;
       if (r.quizTrap) continue;
+      const skin = AssetBank.skinId('crumble', r);
+      if(skin && c.down > 0) continue;
       const shake = c.charge > 0 ? Math.sin(simulationTime * 48) * .025 : 0;
-      if(!AssetBank.drawBlock('crumble',r,base,.015+shake,.12,c.charge>1.6?'#cf6950':'#c99c63')) block(base, r.x, .015 + shake, r.z, r.w + .15, .12, r.d + .15, c.charge > 1.6 ? '#cf6950' : '#c99c63');
-      for(let j = 0; j < 3; j ++) block(base, r.x +(j - 1) * r.w * .2, .085 + shake, r.z +(j % 2 ? .12 : - .12), r.w * .12, .018, r.d * .7, '#795d43', .3);
+      if(! skin || ! AssetBank.drawBlock('crumble',r,base,.015+shake,.12,c.charge>1.6?'#cf6950':'#c99c63')) Obstacles.drawCrumble(base, r, c, simulationTime, sf.height || 0);
     }
     for(const h of sf.sweepers) {
       const q = sweeperAt(h, simulationTime);
-      block(base, h.x, - .02, h.z, h.axis === 'x' ? h.amp * 2 + .7 : .22, .03, h.axis === 'z' ? h.amp * 2 + .7 : .22, '#bd7c57');
-      if(!AssetBank.drawBlock('sweeper',{...h,...q},base,.38,.76,'#c75f44')) block(base, q.x, .38, q.z, q.w, .76, q.d, '#c75f44');
-      block(base, q.x, .79, q.z, q.w * .8, .07, q.d * .8, '#f2c185');
+      Obstacles.drawTrack(base, h, sf.height || 0);
+      if(! AssetBank.drawBlock('sweeper',{...h,...q},base,.38,.76,'#c75f44')) Obstacles.drawWheel(base, q, simulationTime, sf.height || 0);
     }
   }
   AssetBank.drawWorld(root, st);
@@ -356,8 +419,10 @@ function worldScene() {
     if(stage === STAGES.length - 1) {
       const silhouette = mul(goalRoot, mul(translate(g [0] + .55, 1.58, g [1] + .77), scale(.28, .28, .025))),
       info = COLLECTION [selected];
-      draw(pots [selected], silhouette, '#466744');
-      draw(lids, mul(silhouette, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), '#466744');
+      if(! AssetBank.drawOnggi(silhouette, selected, 0, 1, '#466744')) {
+        draw(pots [selected], silhouette, '#466744');
+        draw(lids, mul(silhouette, mul(translate(0, info.lidY, 0), scale(info.lidSize, 1, info.lidSize))), '#466744');
+      }
       if(screen === 'arrival') {
         const q = arrival.t / arrival.duration;
         block(goalRoot, g [0], .2 * q, g [1], 1.55, .4 * q + .01, 1.55, '#b7bba3');
@@ -374,8 +439,9 @@ function worldScene() {
     }
     else pot(mul(root, translate(x, .45, z)), i % 3, 0, .72);
   }
-  if(! falling) block(root, px, py + .025, pz, .6, .035, .55, '#7a735f');
+// 섀도 맵을 쓸 수 없는 기기에서는 기존의 네모 그림자를 표시합니다.
+  if(! falling && ! shadowed) block(root, px, py + .025, pz, .6, .035, .55, '#7a735f');
   const sizeRatio = R / GAME_CONFIG.physics.playerRadius;
-  const drop = falling ? Math.min(5, fallTime * fallTime * 6) : 0;
-  pot(mul(root, mul(translate(px, py + .47 * sizeRatio - drop, pz), rx(rollX))), selected, roll, .66 * sizeRatio);
+  const drop = ! falling ? 0 : flung ? - .35 * Math.sin(Math.min(1, fallTime / .45) * Math.PI) : Math.min(5, (fallTime - fallStart) ** 2 * 6);
+  pot(mul(root, mul(translate(px, py + potRest(selected, rollQ) * .66 * sizeRatio - drop, pz), quatMatrix(rollQ))), selected, 0, .66 * sizeRatio);
 }

@@ -783,3 +783,9 @@ const UI_LAYOUT = {
   }
 }
 ;
+
+// 옹기 물리값·플레이 기록 패널 배치. 편집기의 UI 배치에서도 옮길 수 있습니다.
+UI_LAYOUT.drawSelect.stats = { x : 1225, y : 354, width : 280, rowHeight : 27, fontSize : 17 };
+UI_LAYOUT.drawSelect.photo = { x : 1385, y : 596, width : 120, height : 120 };
+UI_LAYOUT.drawPlay.record = { x : 64, y : 790, width : 290, height : 126, radius : 20, fontSize : 20 };
+UI_LAYOUT.drawFinish.record = { x : 790, y : 138, width : 740, height : 148, radius : 24, fontSize : 19 };
