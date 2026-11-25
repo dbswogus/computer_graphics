@@ -220,7 +220,27 @@ function header() {
  * 다음에 읽을 함수: fillRound → round → text
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
+/** @param word {string} 앞말. @param rest {string} '와…' 또는 '가…'로 시작하는 문구. @returns {string} 받침에 맞게 과/이로 바꾼 문장. */
+function withParticle(word, rest) {
+  const code = word.charCodeAt(word.length - 1) - 0xac00;
+  if(code < 0 || code > 11171 || code % 28 === 0) return word + rest;
+  const change = { '와' : '과', '가' : '이' } [rest [0]];
+  return word + (change ? change + rest.slice(1) : rest);
+}
+/** @returns {boolean} 소장품 사진을 둥근 사각형에 꽉 채워 그렸으면 true. 사진이 없으면 false. @param id {number} 옹기. */
+function museumPhoto(x, y, w, h, id, radius = 16) {
+  const image = AssetBank.image(COLLECTION [id].museum.photoAssetId);
+  if(! image) return false;
+  const ratio = Math.max(w / image.width, h / image.height), sw = w / ratio, sh = h / ratio;
+  ctx.save();
+  round(x, y, w, h, radius);
+  ctx.clip();
+  ctx.drawImage(image, (image.width - sw) / 2, (image.height - sh) / 2, sw, sh, x, y, w, h);
+  ctx.restore();
+  return true;
+}
 function photoPlaceholder(x, y, w, h, id) {
+  if(museumPhoto(x, y, w, h, id)) return;
   fillRound(x, y, w, h, '#eee7d8', UI_LAYOUT.photoPlaceholder.fillRound_01.radius);
   ctx.save();
   ctx.strokeStyle = '#d4c9b4';
@@ -305,10 +325,13 @@ function drawSelect() {
   text(item.question, UI_LAYOUT.drawSelect.text_09.x, UI_LAYOUT.drawSelect.text_09.y, UI_LAYOUT.drawSelect.text_09.fontSize, C.green, 600);
   text(UI_TEXT.drawSelect_05, UI_LAYOUT.drawSelect.text_10.x, UI_LAYOUT.drawSelect.text_10.y, UI_LAYOUT.drawSelect.text_10.fontSize, C.green, 700);
   fillRound(UI_LAYOUT.drawSelect.fillRound_04.x, UI_LAYOUT.drawSelect.fillRound_04.y, UI_LAYOUT.drawSelect.fillRound_04.width, UI_LAYOUT.drawSelect.fillRound_04.height, '#e9eddf', UI_LAYOUT.drawSelect.fillRound_04.radius);
-  text(UI_TEXT.drawSelect_06, UI_LAYOUT.drawSelect.text_11.x, UI_LAYOUT.drawSelect.text_11.y, UI_LAYOUT.drawSelect.text_11.fontSize, C.muted, 500, 'center');
+  text(item.museum.verified ? [UI_TEXT.drawSelect_06, item.museum.period, item.museum.use].join(' · ') : UI_TEXT.drawSelect_06, UI_LAYOUT.drawSelect.text_11.x, UI_LAYOUT.drawSelect.text_11.y, UI_LAYOUT.drawSelect.text_11.fontSize, C.muted, 500, 'center');
   btn('title', UI_LAYOUT.drawSelect.btn_01.x, UI_LAYOUT.drawSelect.btn_01.y, UI_LAYOUT.drawSelect.btn_01.width, UI_LAYOUT.drawSelect.btn_01.height, UI_TEXT.drawSelect_07);
-  btn('guide', UI_LAYOUT.drawSelect.btn_02.x, UI_LAYOUT.drawSelect.btn_02.y, UI_LAYOUT.drawSelect.btn_02.width, UI_LAYOUT.drawSelect.btn_02.height, item.name + UI_TEXT.drawSelect_08, true);
+  btn('guide', UI_LAYOUT.drawSelect.btn_02.x, UI_LAYOUT.drawSelect.btn_02.y, UI_LAYOUT.drawSelect.btn_02.width, UI_LAYOUT.drawSelect.btn_02.height, withParticle(item.name, UI_TEXT.drawSelect_08), true);
   text(UI_TEXT.drawSelect_09, UI_LAYOUT.drawSelect.text_12.x, UI_LAYOUT.drawSelect.text_12.y, UI_LAYOUT.drawSelect.text_12.fontSize, C.muted, 400, 'center');
+  drawOnggiStats();
+  const photo = UI_LAYOUT.drawSelect.photo;
+  museumPhoto(photo.x, photo.y, photo.width, photo.height, selected);
 }
 /**
  * [읽기 10: 화면·UI 출력 / 함수 번호 74] drawGuide
@@ -454,6 +477,7 @@ function drawMonologuePortrait() {
   gl.enable(gl.DEPTH_TEST);
   gl.clear(gl.DEPTH_BUFFER_BIT);
   vp = ortho(0, 16, 0, 10, - 30, 30);
+  Lighting.useStudio();
   pot(mul(translate(2.24, 2.0, 0), mul(rx(.1), ry(- .18))), selected, 0, 1);
 }
 /**
@@ -493,6 +517,17 @@ function drawJoystick() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function drawPlay() {
+  drawPlayRecord();
+  const quiz = STAGES[stage]?.quiz;
+  if (quiz) {
+    fillRound(190, 104, 1220, 100, 18, C.paper);
+    ctx.save();
+    ctx.font = '700 30px sans-serif';
+    const size = Math.min(30, 30 * 1160 / Math.max(1, ctx.measureText(quiz.question).width));
+    ctx.restore();
+    text(quiz.question, 800, 140, size, C.ink, 700, 'center');
+    text('O 또는 X 방 중앙의 표시를 밟으세요', 800, 177, 22, C.green, 600, 'center');
+  }
   for(let i = Math.max(0,Math.min(stage-1,STAGES.length-3)); i < Math.min(STAGES.length,Math.max(3,stage+2)); i ++) {
     const x = 1065 + (i-Math.max(0,Math.min(stage-1,STAGES.length-3))) * 120;
     fillRound(x, UI_LAYOUT.drawPlay.fillRound_01.y, UI_LAYOUT.drawPlay.fillRound_01.width, UI_LAYOUT.drawPlay.fillRound_01.height, i === stage ? C.green : '#e7e9dc', UI_LAYOUT.drawPlay.fillRound_01.radius);
@@ -550,7 +585,7 @@ function drawFinish() {
   header();
   label('MY LITTLE EXHIBITION', UI_LAYOUT.drawFinish.label_01.x, UI_LAYOUT.drawFinish.label_01.y);
   text(UI_TEXT.drawFinish_01, UI_LAYOUT.drawFinish.text_01.x, UI_LAYOUT.drawFinish.text_01.y, UI_LAYOUT.drawFinish.text_01.fontSize, C.ink, 800);
-  text(item.name + UI_TEXT.drawFinish_02, UI_LAYOUT.drawFinish.text_02.x, UI_LAYOUT.drawFinish.text_02.y, UI_LAYOUT.drawFinish.text_02.fontSize, C.muted);
+  text(withParticle(item.name, UI_TEXT.drawFinish_02), UI_LAYOUT.drawFinish.text_02.x, UI_LAYOUT.drawFinish.text_02.y, UI_LAYOUT.drawFinish.text_02.fontSize, C.muted);
   fillRound(UI_LAYOUT.drawFinish.fillRound_01.x, UI_LAYOUT.drawFinish.fillRound_01.y, UI_LAYOUT.drawFinish.fillRound_01.width, UI_LAYOUT.drawFinish.fillRound_01.height, '#e6ead8', UI_LAYOUT.drawFinish.fillRound_01.radius);
   ctx.fillStyle = '#c9cfb8';
   ctx.beginPath();
@@ -566,15 +601,87 @@ function drawFinish() {
   text(UI_TEXT.drawFinish_07, UI_LAYOUT.drawFinish.text_06.x, UI_LAYOUT.drawFinish.text_06.y, UI_LAYOUT.drawFinish.text_06.fontSize, C.muted, 600);
   text(museum.verified ? museum.use : UI_TEXT.drawFinish_08, UI_LAYOUT.drawFinish.text_07.x, UI_LAYOUT.drawFinish.text_07.y, UI_LAYOUT.drawFinish.text_07.fontSize, C.ink);
   text(UI_TEXT.drawFinish_09, UI_LAYOUT.drawFinish.text_08.x, UI_LAYOUT.drawFinish.text_08.y, UI_LAYOUT.drawFinish.text_08.fontSize, C.muted, 600);
-  text(museum.verified ? museum.period : UI_TEXT.drawFinish_10, UI_LAYOUT.drawFinish.text_09.x, UI_LAYOUT.drawFinish.text_09.y, UI_LAYOUT.drawFinish.text_09.fontSize, C.ink);
+  text(museum.verified ? museum.period + ' · ' + museum.size : UI_TEXT.drawFinish_10, UI_LAYOUT.drawFinish.text_09.x, UI_LAYOUT.drawFinish.text_09.y, UI_LAYOUT.drawFinish.text_09.fontSize, C.ink);
   line(UI_LAYOUT.drawFinish.line_01.x1, UI_LAYOUT.drawFinish.line_01.y1, UI_LAYOUT.drawFinish.line_01.x2, UI_LAYOUT.drawFinish.line_01.y2);
   text(UI_TEXT.drawFinish_11, UI_LAYOUT.drawFinish.text_10.x, UI_LAYOUT.drawFinish.text_10.y, UI_LAYOUT.drawFinish.text_10.fontSize, C.green, 700);
-  item.lines.forEach((str, i) => text(str, UI_LAYOUT.drawFinish.text_11.x, 669 + i * 33, UI_LAYOUT.drawFinish.text_11.fontSize, C.ink));
+  (museum.verified ? museum.story : item.lines).forEach((str, i) => text(str, UI_LAYOUT.drawFinish.text_11.x, 669 + i * 33, UI_LAYOUT.drawFinish.text_11.fontSize, C.ink));
   text(UI_TEXT.drawFinish_12, UI_LAYOUT.drawFinish.text_12.x, UI_LAYOUT.drawFinish.text_12.y, UI_LAYOUT.drawFinish.text_12.fontSize, C.muted);
   btn('select', UI_LAYOUT.drawFinish.btn_01.x, UI_LAYOUT.drawFinish.btn_01.y, UI_LAYOUT.drawFinish.btn_01.width, UI_LAYOUT.drawFinish.btn_01.height, UI_TEXT.drawFinish_13, true);
   btn('replay', UI_LAYOUT.drawFinish.btn_02.x, UI_LAYOUT.drawFinish.btn_02.y, UI_LAYOUT.drawFinish.btn_02.width, UI_LAYOUT.drawFinish.btn_02.height, UI_TEXT.drawFinish_14);
   text(UI_TEXT.drawFinish_15, UI_LAYOUT.drawFinish.text_13.x, UI_LAYOUT.drawFinish.text_13.y, UI_LAYOUT.drawFinish.text_13.fontSize, C.muted, 400, 'right');
+  drawFinishRecord();
 }
+/** 매개변수 없음. @returns {void} 선택한 옹기의 실제 물리값을 숫자와 막대로 표시.
+ * 막대 길이는 옹기 6종 중 최댓값 기준입니다. 편집기/PhysicsConfig에서 바꾼 값이 그대로 반영됩니다. */
+function drawOnggiStats() {
+  const box = UI_LAYOUT.drawSelect.stats, profile = OnggiPhysics.get(selected);
+  const rows = [
+    ['radius', UI_TEXT.drawSelect_stat_radius, 2], ['accelerationScale', UI_TEXT.drawSelect_stat_acceleration, 2],
+    ['damping', UI_TEXT.drawSelect_stat_damping, 2], ['maxSpeed', UI_TEXT.drawSelect_stat_speed, 1],
+    ['wallRestitution', UI_TEXT.drawSelect_stat_bounce, 2]
+  ];
+  PageUI.lock(1);
+  rows.forEach(([key, name, digits], i) => {
+    const y = box.y + i * box.rowHeight, barX = box.x + 92, barWidth = box.width - 152;
+    const highest = Math.max(... COLLECTION.map((_, id) => OnggiPhysics.get(id) [key]), 1e-6);
+    const ratio = clamp(profile [key] / highest, 0, 1);
+    text(name, box.x, y, box.fontSize, C.muted, 600);
+    fillRound(barX, y - 6, barWidth, 12, '#e7e9dc', 6);
+    if(ratio > 0) fillRound(barX, y - 6, Math.max(12, barWidth * ratio), 12, C.orange, 6);
+    text(profile [key].toFixed(digits), box.x + box.width, y, box.fontSize, C.ink, 700, 'right');
+  });
+  PageUI.lock(- 1);
+}
+/** 매개변수 없음. @returns {void} 플레이 중 왼쪽 아래에 이번 맵/전체 시간과 최고 기록을 표시. */
+function drawPlayRecord() {
+  const box = UI_LAYOUT.drawPlay.record, best = PlayRecord.best;
+  PageUI.lock(1);
+  fillRound(box.x, box.y, box.width, box.height, C.paper, box.radius);
+  [[UI_TEXT.drawPlay_record_stage, PlayRecord.format(elapsed)], [UI_TEXT.drawPlay_record_total, PlayRecord.format(totalTime)],
+    [UI_TEXT.drawPlay_record_best, best ? PlayRecord.format(best.time) : '-']].forEach(([name, value], i) => {
+    const y = box.y + box.height * (i * 2 + 1) / 6;
+    text(name, box.x + 24, y, box.fontSize, C.muted, 600);
+    text(value, box.x + box.width - 24, y, box.fontSize, i === 1 ? C.green : C.ink, 700, 'right');
+  });
+  PageUI.lock(- 1);
+}
+/** 매개변수 없음. @returns {void} 결과 화면에 별점·시간·실패 횟수·최고 기록·맵별 시간을 표시. */
+function drawFinishRecord() {
+  const result = PlayRecord.result;
+  if(! result) return;
+  const box = UI_LAYOUT.drawFinish.record, right = box.x + box.width - 28;
+  PageUI.lock(1);
+  fillRound(box.x, box.y, box.width, box.height, C.paper, box.radius);
+  text('★'.repeat(result.stars) + '☆'.repeat(3 - result.stars), box.x + 28, box.y + 42, 40, C.orange, 700);
+  text(PlayRecord.format(result.time), box.x + 190, box.y + 43, 38, C.green, 800);
+  text(UI_TEXT.drawFinish_record_failures + result.failures + UI_TEXT.drawFinish_record_count, box.x + 190, box.y + 84, box.fontSize, C.muted, 600);
+  const best = result.isNew ? (result.previous ? UI_TEXT.drawFinish_record_new + '  (' + UI_TEXT.drawFinish_record_previous + PlayRecord.format(result.previous.time) + ')' : UI_TEXT.drawFinish_record_first)
+    : UI_TEXT.drawPlay_record_best + ' ' + PlayRecord.format(result.previous.time);
+  text(best, right, box.y + 43, box.fontSize + 2, result.isNew ? C.orange : C.muted, 700, 'right');
+  const last = result.stageTimes.slice(- 4).map(s => s.name + ' ' + PlayRecord.format(s.time)).join('   ');
+  ctx.save();
+  ctx.font = '500 ' + box.fontSize + 'px sans-serif';
+  const size = Math.min(box.fontSize, box.fontSize * (box.width - 56) / Math.max(1, ctx.measureText(last).width));
+  ctx.restore();
+  text(last, box.x + 28, box.y + 120, size, C.muted, 500);
+  PageUI.lock(- 1);
+}
+function drawSaveLabels() {
+  const st = STAGES[stage];
+  if (!st.editorStage) return;
+  const m = mul(vp,mul(rz(angle),rx(tiltZ)));
+  for (const [i,marker] of st.checkpointBlocks.entries()) {
+    const saved = st.checks[i] <= checkpoint.index;
+    const {x,z} = marker;
+    if (falling || Math.hypot(px-x,pz-z)>1.65) continue;
+    const y = .1;
+    const [sx,sy] = projectToUI(m,x,y,z);
+    const width = saved ? 76 : 60;
+    fillRound(sx-width/2,sy-54,width,27,saved?'#22775e':'#215e65',5);
+    text(saved?'저장됨':'저장',sx,sy-40,18,'#fff8e9',700,'center');
+  }
+}
+
 /**
  * [읽기 10: 화면·UI 출력 / 함수 번호 82] drawHomeLabel
  * 역할: 마지막 목표 위치 위에 이름표를 그립니다.
@@ -585,14 +692,13 @@ function drawFinish() {
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function drawHomeLabel() {
-  if(stage !== STAGES.length - 1) return;
+  if(stage !== STAGES.length - 1 || STAGES[stage].quiz) return;
   const goal = STAGES [stage].route.at(- 1),
   m = mul(vp, mul(rz(angle), rx(tiltZ))),
   x = goal [0] + .55,
   y = 1.9,
   z = goal [1] + .7,
-  sx =(m [0] * x + m [4] * y + m [8] * z + m [12]) * .5 * W + W / 2,
-  sy = H / 2 -(m [1] * x + m [5] * y + m [9] * z + m [13]) * .5 * H;
+  [sx, sy] = projectToUI(m, x, y, z);
   fillRound(sx - 107, sy - 75, UI_LAYOUT.drawHomeLabel.fillRound_01.width, UI_LAYOUT.drawHomeLabel.fillRound_01.height, C.paper, UI_LAYOUT.drawHomeLabel.fillRound_01.radius);
   text(COLLECTION [selected].name + UI_TEXT.drawHomeLabel_01, sx, sy - 51, UI_LAYOUT.drawHomeLabel.text_01.fontSize, C.green, 700, 'center');
   line(sx, sy - 24, sx, sy - 7, '#789068', UI_LAYOUT.drawHomeLabel.line_01.lineWidth);
@@ -606,16 +712,19 @@ function drawHomeLabel() {
  * 다음에 읽을 함수: drawTitle → drawSelect → drawGuide → drawStory → drawMonologue → drawPlay → drawHomeLabel → drawArrival → drawFinish → fillRound → text
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
-function drawUI() {
+function drawUI(preview = false) {
   ctx.clearRect(0, 0, W, H);
   buttons = [];
-  PageUI.begin();
+  PageUI.begin(preview);
   if(screen === 'title') drawTitle();
   if(screen === 'select') drawSelect();
   if(screen === 'guide') drawGuide();
   if(screen === 'story') drawStory();
   if(screen === 'monologue') drawMonologue();
   if(screen === 'play') {
+    PageUI.lock(1);
+    drawSaveLabels();
+    PageUI.lock(-1);
     drawPlay();
     drawHomeLabel();
   }

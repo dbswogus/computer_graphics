@@ -2,11 +2,11 @@
  * UI: 유리 / 맵: 다유 / 물리: 재현. 파일명은 안정적으로 두고 이름은 주석과 편집기에 표시합니다. */
 const TeamSource = (() => {
   const roles = {
-    ui: { owner:'UI', name:'uiConfig.js', symbol:'TEAM_UI_SOURCE' },
+    ui: { owner:'UI', name:'UIConfig.js', symbol:'TEAM_UI_SOURCE' },
     sound: { owner:'소리', name:'soundConfig.js', symbol:'TEAM_SOUND_SOURCE' },
     asset: { owner:'에셋', name:'assetConfig.js', symbol:'TEAM_ASSET_SOURCE' },
-    physics: { owner:'물리', name:'physicsConfig.js', symbol:'TEAM_PHYSICS_SOURCE' },
-    map: { owner:'맵', name:'mapConfig.js', symbol:'TEAM_MAP_SOURCE' }
+    physics: { owner:'물리', name:'PhysicsConfig.js', symbol:'TEAM_PHYSICS_SOURCE' },
+    map: { owner:'맵', name:'MapConfig.js', symbol:'TEAM_MAP_SOURCE' }
   };
   const uiKeys=['fontFamily','fontScale','imageAssetId','imageX','imageY','imageW','imageH','texts','onggiTexts','layout','pageDesign'];
   const soundKeys=['bgmAssetId','sfx','sfxVolume'];

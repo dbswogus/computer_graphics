@@ -28,6 +28,18 @@ function validate(value={}) {
         }
       }
     }
+    next.modelTextures={};
+    if (value.modelTextures!==undefined) {
+      if (!value.modelTextures || typeof value.modelTextures!=='object' || Array.isArray(value.modelTextures)) {
+        throw Error('OBJ 텍스처 설정을 확인하세요.');
+      }
+      for (const [model,image] of Object.entries(value.modelTextures)) {
+        if (!/^[\w-]{1,80}$/.test(model) || typeof image!=='string' || !/^[\w-]{1,80}$/.test(image)) {
+          throw Error('OBJ 또는 텍스처 이미지 ID가 잘못되었습니다.');
+        }
+        Object.defineProperty(next.modelTextures,model,{value:image,enumerable:true,writable:true,configurable:true});
+      }
+    }
     if (value.sfxVolume !== undefined) {
       if (typeof value.sfxVolume !== 'number' || !Number.isFinite(value.sfxVolume) || value.sfxVolume < 0 || value.sfxVolume > 1) throw Error('효과음 음량은 0~1입니다.');
       next.sfxVolume = value.sfxVolume;

@@ -230,8 +230,8 @@ const MapEditor = (() => {
 
   /** @param st {object} 해제할 스테이지. @returns {void} 기존 지형의 GPU 버퍼 해제 후 surfaces를 비웁니다. 모델 공용 메시에는 영향 없음. */
   function releaseGeometry(st) {
-    for (const sf of st.surfaces || []) for (const m of [sf.floor, sf.walls, ...(sf.rims || [])]) {
-      gl.deleteBuffer(m.b); gl.deleteBuffer(m.nb);
+    for (const sf of st.surfaces || []) for (const m of [sf.floor, sf.walls, sf.pit, ...(sf.rims || []), ...(sf.pits || [])]) {
+      deleteMesh(m);
     }
     st.surfaces = [];
   }
@@ -245,6 +245,8 @@ const MapEditor = (() => {
 
   /** 매개변수 없음. @returns {void} validate/compile 통과 시 원본 공방을 잠시 교체하고 3D 물리 플레이 시작. */
   function play() {
+    // 프로젝트를 읽는 동안 시작하면 이전 맵이 실행되므로 기다립니다.
+    if(panel.inert){status('프로젝트를 불러오는 중입니다. 잠시 후 다시 눌러 주세요.',true);return;}
     AssetBank.unlockEffects();
     finishStroke();
     try {
@@ -260,7 +262,7 @@ const MapEditor = (() => {
       if (!testing) originalStages = [...STAGES];
       for(const st of STAGES)releaseGeometry(st);
       STAGES.splice(0,STAGES.length,...custom); testing=true;
-      rebuild(); startStage(0); screen='play';PageUI.enterStage(true);dirty=true;
+      rebuild(); PlayRecord.start(); startStage(0); screen='play';PageUI.enterStage(true);dirty=true;
       panel.hidden=true;launchButton.textContent='편집으로 돌아가기';clearInput();canvas.focus();
       const bgm=StudioUI.settings.bgmAssetId;
       if(bgm)AssetBank.playSound(bgm).catch(()=>notify('BGM을 재생하지 못했습니다. 미리 듣기로 오디오 파일을 확인하세요.',5));

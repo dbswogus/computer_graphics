@@ -237,6 +237,11 @@ canvas.addEventListener('lostpointercapture', onLostPointerCapture);
  * 주의: 위 목록은 본문에서 참조하는 함수 순서이며 조건문에 따라 일부는 호출되지 않습니다.
  */
 function onKeyDown(e) {
+  if(e.key === 'Escape') {
+    if(! e.repeat) SettingsMenu.toggle();
+    return;
+  }
+  if(SettingsMenu.isOpen()) return;
   if(screen === 'monologue' &&(e.key === 'Enter' || e.key === ' ')) {
     e.preventDefault();
     if(! e.repeat) action('dialogue-next');

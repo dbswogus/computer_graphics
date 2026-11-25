@@ -7,7 +7,7 @@ import path from 'node:path';
 export async function runPlayerTests(base, html) {
   const elements=new Map(),classes=new Map(),liveBuffers=new Set(),saved=new Map(),events=new Map();
   const noop=()=>{};let nextBuffer=0,clock=100;
-  const gl=new Proxy({createBuffer(){const b={id:++nextBuffer};liveBuffers.add(b);return b;},deleteBuffer:b=>liveBuffers.delete(b),getShaderParameter:()=>true,getProgramParameter:()=>true,createShader:()=>({}),createProgram:()=>({}),createTexture:()=>({}),getAttribLocation:()=>0,getUniformLocation:()=>({})},{get:(o,k)=>k in o?o[k]:/^[A-Z_0-9]+$/.test(k)?1:noop});
+  const gl=new Proxy({createBuffer(){const b={id:++nextBuffer};liveBuffers.add(b);return b;},deleteBuffer:b=>liveBuffers.delete(b),getShaderParameter:()=>true,getProgramParameter:()=>true,createShader:()=>({}),createProgram:()=>({}),createTexture:()=>({}),createVertexArray:()=>({}),createFramebuffer:()=>({}),checkFramebufferStatus:()=>1,getParameter:()=>4096,getAttribLocation:()=>0,getUniformLocation:()=>({})},{get:(o,k)=>k in o?o[k]:/^[A-Z_0-9]+$/.test(k)?1:noop});
   const drawing=new Proxy({measureText:s=>({width:String(s).length*12})},{get:(o,k)=>k in o?o[k]:noop,set:(o,k,v)=>(o[k]=v,true)});
   class Element {
     constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.style={};this.dataset={};this.listeners={};this.hidden=false;this.value='';this.width=816;this.height=576;this.checked=false;this.classList={toggle:noop,add:noop,remove:noop};}
@@ -17,12 +17,12 @@ export async function runPlayerTests(base, html) {
     querySelector(selector){return selector[0]==='#'?elements.get(selector.slice(1)):classes.get(selector.slice(1))?.[0];}
     setAttribute(key,value){this[key]=value;}addEventListener(name,callback){(this.listeners[name]||=[]).push(callback);}
     dispatch(name,event={}){for(const callback of this.listeners[name]||[])callback({...event,preventDefault:noop});}
-    getContext(kind){return kind==='webgl'?gl:drawing;}getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};}
+    getContext(kind){assert.notEqual(kind,'webgl','WebGL 2 only');return kind==='webgl2'?gl:drawing;}getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};}
     focus(){document.activeElement=this;}setPointerCapture(){}click(){return this.onclick?.();}
   }
   const canvas=new Element('canvas');canvas.id='game';const error=new Element('p');error.id='error';
   const document={hidden:false,head:new Element('head'),body:new Element('body'),activeElement:canvas,createElement:tag=>new Element(tag),getElementById:id=>elements.get(id),addEventListener:noop,fonts:{add:noop,delete:noop}};
-  class Image {constructor(){this.width=16;this.height=16;}decode(){return Promise.resolve();}}
+  class Image {constructor(){this.width=16;this.height=16;}set src(value){this._src=value;queueMicrotask(()=>this.onload?.());}get src(){return this._src;}decode(){return Promise.resolve();}}
   class FontFace {constructor(family){this.family=family;}load(){return Promise.resolve(this);}}
   class Audio {pause(){}play(){return Promise.resolve();}}
   class FileReader {readAsDataURL(file){this.result="data:application/octet-stream;base64,"+Buffer.from(file.bytes).toString("base64");this.onload();}}

@@ -58,7 +58,7 @@ const GyroInput = (() => {
     } catch(error) {mode='manual';window.removeEventListener('deviceorientation',orientation);clearTimeout(timer);latest=neutral=null;message.textContent=error.message;}
   }
 
-  /** 매개변수 없음. @returns {void} 입력을 비우고 시작 시/상단 조작 방식 버튼에서 선택 창 표시. */
+  /** 매개변수 없음. @returns {void} 입력을 비우고 시작 시/설정 창의 조작 방식 버튼에서 선택 창 표시. */
   function choose() {dialog.hidden=false;clearInput();}
 
   /** 매개변수 없음. @returns {void} 시작 선택·재보정 버튼 구성. 권한 요청은 자동 실행하지 않음. */
@@ -69,16 +69,16 @@ const GyroInput = (() => {
     document.getElementById('choose-manual').onclick=()=>{requestId++;mode='manual';window.removeEventListener('deviceorientation',orientation);clearTimeout(timer);dialog.hidden=true;clearInput();};
     document.getElementById('choose-gyro').onclick=enable;
     document.getElementById('gyro-continue').onclick=()=>{if(!latest){message.textContent='센서가 아직 준비되지 않았습니다. 일반 조작을 선택할 수 있습니다.';return;}calibrate();dialog.hidden=true;};
-    const bar=document.createElement('div');bar.id='control-bar';
-    const select=document.createElement('button');select.id='control-choose';select.textContent=UI_TEXT.controls_choose;select.onclick=choose;
-    const reset=document.createElement('button');reset.id='control-calibrate';reset.textContent=UI_TEXT.controls_calibrate;reset.onclick=()=>{if(!calibrate()){choose();message.textContent='먼저 기울이기 모드를 선택하고 센서 값을 기다려 주세요.';}};
-    bar.append(select,reset);document.body.append(bar);refreshLabels();
+    SettingsMenu.initialize();
+    const select=document.createElement('button');select.id='control-choose';select.textContent=UI_TEXT.controls_choose;select.onclick=()=>{SettingsMenu.close();choose();};
+    const reset=document.createElement('button');reset.id='control-calibrate';reset.textContent=UI_TEXT.controls_calibrate;reset.onclick=()=>{SettingsMenu.close();if(!calibrate()){choose();message.textContent='먼저 기울이기 모드를 선택하고 센서 값을 기다려 주세요.';}};
+    SettingsMenu.add(select);SettingsMenu.add(reset);refreshLabels();
     window.addEventListener('orientationchange',()=>{neutral=null;filter={x:0,z:0};});
     window.addEventListener('blur',()=>{filter={x:0,z:0};stamp=0;});
   }
 
   /** 매개변수 없음. @returns {void} UI 편집에서 변경한 조작 메뉴 문구를 반영. 권한 오류 메시지는 덮어쓰지 않습니다. */
-  function refreshLabels(){if(!dialog)return;for(const [id,key]of [['control-title','controls_title'],['control-hint','controls_hint'],['choose-manual','controls_manual'],['choose-gyro','controls_gyro'],['gyro-continue','controls_continue'],['control-choose','controls_choose'],['control-calibrate','controls_calibrate']]){const node=document.getElementById(id);if(node)node.textContent=UI_TEXT[key];}}
+  function refreshLabels(){if(!dialog)return;SettingsMenu.refreshLabels();for(const [id,key]of [['control-title','controls_title'],['control-hint','controls_hint'],['choose-manual','controls_manual'],['choose-gyro','controls_gyro'],['gyro-continue','controls_continue'],['control-choose','controls_choose'],['control-calibrate','controls_calibrate']]){const node=document.getElementById(id);if(node)node.textContent=UI_TEXT[key];}}
 
-  return {refreshLabels,initialize,choose,enable,orientation,calibrate,project,sample,isChoosing:()=>dialog&&!dialog.hidden};
+  return {refreshLabels,initialize,choose,enable,orientation,calibrate,project,sample,isChoosing:()=>Boolean(dialog&&!dialog.hidden)||SettingsMenu.isOpen()};
 })();
