@@ -4,7 +4,7 @@ const TEAM_UI_SOURCE = {
   "version": 1,
   "assets": [],
   "settings": {
-    "fontFamily": "sans-serif",
+    "fontFamily": "onggi_asset17956344917472owtmm9",
     "fontScale": 1,
     "imageAssetId": "",
     "imageX": 1100,
@@ -121,7 +121,22 @@ const TEAM_UI_SOURCE = {
       "controls_permission_hint": "기울이기는 센서 지원과 권한이 필요합니다. 브라우저에 따라 HTTPS 실행이 필요합니다.",
       "controls_home": "처음 화면",
       "controls_sound": "소리 재생",
-      "controls_mute": "소리 끄기"
+      "controls_mute": "소리 끄기",
+      "controls_settings": "설정",
+      "controls_close": "계속하기",
+      "drawSelect_stat_radius": "크기",
+      "drawSelect_stat_acceleration": "가속",
+      "drawSelect_stat_damping": "마찰",
+      "drawSelect_stat_speed": "최고 속도",
+      "drawSelect_stat_bounce": "튕김",
+      "drawPlay_record_stage": "이번 맵",
+      "drawPlay_record_total": "전체 시간",
+      "drawPlay_record_best": "최고 기록",
+      "drawFinish_record_failures": "재도전 ",
+      "drawFinish_record_count": "회",
+      "drawFinish_record_new": "새 최고 기록!",
+      "drawFinish_record_previous": "이전 ",
+      "drawFinish_record_first": "첫 기록 달성!"
     },
     "onggiTexts": {
       "0.name": "태양문 항아리",
@@ -377,6 +392,19 @@ const TEAM_UI_SOURCE = {
           "x": 800,
           "y": 965,
           "fontSize": 17
+        },
+        "stats": {
+          "x": 1225,
+          "y": 354,
+          "width": 280,
+          "rowHeight": 27,
+          "fontSize": 17
+        },
+        "photo": {
+          "x": 1385,
+          "y": 596,
+          "width": 120,
+          "height": 120
         }
       },
       "drawGuide": {
@@ -637,6 +665,14 @@ const TEAM_UI_SOURCE = {
           "x": 800,
           "y": 477,
           "fontSize": 25
+        },
+        "record": {
+          "x": 64,
+          "y": 790,
+          "width": 290,
+          "height": 126,
+          "radius": 20,
+          "fontSize": 20
         }
       },
       "drawArrival": {
@@ -770,6 +806,14 @@ const TEAM_UI_SOURCE = {
           "x": 1500,
           "y": 963,
           "fontSize": 17
+        },
+        "record": {
+          "x": 790,
+          "y": 138,
+          "width": 740,
+          "height": 148,
+          "radius": 24,
+          "fontSize": 19
         }
       },
       "drawHomeLabel": {
@@ -806,9 +850,49 @@ const TEAM_UI_SOURCE = {
       }
     },
     "pageDesign": {
-      "pages": {},
+      "pages": {
+        "drawTitle": {
+          "elements": {
+            "button:select": {
+              "x": 103,
+              "y": 748
+            },
+            "text:1": {
+              "x": 119,
+              "y": 61,
+              "text": "컴퓨터그래픽스 4조 · 옹기종기"
+            },
+            "text:3": {
+              "x": 123,
+              "y": 187
+            },
+            "text:4": {
+              "x": 119,
+              "y": 276
+            },
+            "text:5": {
+              "x": 130,
+              "y": 363
+            }
+          },
+          "extras": [],
+          "enabled": true,
+          "background": "#f5efdf"
+        }
+      },
       "extraPages": [],
-      "dialogues": {}
+      "dialogues": {
+        "1": [
+          {
+            "speaker": "",
+            "text": "여기까지 오니 가마가 보인다.\n저 도구들이 왔다 갔다 하네. 지금 가면 부딪히겠어."
+          },
+          {
+            "speaker": "",
+            "text": "앗 뜨거! 도구가 옆으로 가자마자 출발해야겠어.\n저 다리를 건너면 내 전시실에 더 가까워질 거야."
+          }
+        ]
+      }
     }
   }
 };
