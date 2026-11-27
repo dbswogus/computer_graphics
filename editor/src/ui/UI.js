@@ -64,6 +64,8 @@ function round(x, y, w, h, r = 20) {
 function fillRound(x, y, w, h, col, r = 20) {
   const edit=PageUI.resolve('shape',{x,y,width:w,height:h,background:col});if(edit.hidden)return;
   x=edit.x;y=edit.y;w=edit.width;h=edit.height;col=edit.background;
+  // 편집기에서 사진으로 채운 상자는 색 대신 사진을 그립니다.
+  if(edit.assetId&&PageUI.drawPhoto({...edit,x,y,width:w,height:h},r,false))return;
   ctx.fillStyle = col;
   round(x, y, w, h, r);
   ctx.fill();
@@ -147,7 +149,7 @@ function label(str, x, y) {
 function btn(id, x, y, w, h, str, primary = false) {
   const edit=PageUI.resolve('button',{id,x,y,width:w,height:h,text:str,color:primary?'#ffffff':C.ink,background:primary?C.green:C.paper});if(edit.hidden)return;
   id=edit.action;x=edit.x;y=edit.y;w=edit.width;h=edit.height;str=edit.text;PageUI.lock(1);
-  fillRound(x, y, w, h, edit.background, UI_LAYOUT.btn.fillRound_01.radius);
+  if(!(edit.assetId&&PageUI.drawPhoto({...edit,x,y,width:w,height:h},UI_LAYOUT.btn.fillRound_01.radius,false)))fillRound(x, y, w, h, edit.background, UI_LAYOUT.btn.fillRound_01.radius);
   if(! primary) {
     ctx.strokeStyle = C.line;
     ctx.lineWidth = 2;

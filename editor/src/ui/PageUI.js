@@ -21,6 +21,26 @@ const PageUI = (() => {
       ctx.fillStyle=background;
       ctx.fillRect(0,0,W,H);
     }
+    // 사진은 배경처럼 다른 글자·버튼보다 먼저(뒤에) 그립니다. '앞으로' 보낸 사진은 finish에서 그립니다.
+    for(const e of page().extras||[]){
+      if(e.type!=='image'||e.hidden||e.front)continue;
+      const item={x:0,y:0,width:W,height:H,opacity:1,...e,id:'extra:'+e.id};
+      items.push(item);
+      drawPhoto(item);
+    }
+  }
+  /** @param item {object} 사진 요소 또는 사진으로 채운 버튼·상자. @param radius {number} 둥근 모서리. @param placeholder {boolean} 사진이 없을 때 점선 상자를 그릴지.
+   * @returns {boolean} 사진을 그렸으면 true. 상자를 꽉 채우도록 가운데를 잘라 그립니다. */
+  function drawPhoto(item,radius=0,placeholder=true){
+    const image=AssetBank.image(item.assetId);
+    if(!image){if(placeholder){ctx.save();ctx.strokeStyle='#9aa88f';ctx.setLineDash([10,8]);ctx.lineWidth=3;ctx.strokeRect(item.x,item.y,item.width,item.height);ctx.restore();}return false;}
+    ctx.save();
+    const ratio=Math.max(item.width/image.width,item.height/image.height),sw=item.width/ratio,sh=item.height/ratio;
+    ctx.globalAlpha=item.opacity??1;
+    ctx.beginPath();if(radius&&ctx.roundRect)ctx.roundRect(item.x,item.y,item.width,item.height,radius);else ctx.rect(item.x,item.y,item.width,item.height);ctx.clip();
+    ctx.drawImage(image,(image.width-sw)/2,(image.height-sh)/2,sw,sh,item.x,item.y,item.width,item.height);
+    ctx.restore();
+    return true;
   }
   /** @param type {string} text/button/shape. @param raw {object} 원래 출력값.
    * @returns {object} 수정값을 적용한 좌표·문구·색. 버튼 내부 장식은 독립 요소로 등록하지 않음. */
@@ -39,16 +59,19 @@ const PageUI = (() => {
   function lock(value){locked=Math.max(0,locked+value);}
   /** 매개변수 없음. @returns {void} 사용자 추가 요소 표시. 새 버튼의 표시와 클릭 영역을 함께 등록. */
   function finish(){
-    for(const e of page().extras||[]){if(e.hidden)continue;const item={x:100,y:200,width:300,height:70,size:30,color:'#294732',background:'#dfe8d8',align:'left',...e};items.push({...item,id:'extra:'+e.id});lock(1);
+    for(const e of page().extras||[]){if(e.hidden)continue;
+      if(e.type==='image'){if(e.front){const photo={x:0,y:0,width:W,height:H,opacity:1,...e,id:'extra:'+e.id};items.push(photo);drawPhoto(photo);}continue;}
+      const item={x:100,y:200,width:300,height:70,size:30,color:'#294732',background:'#dfe8d8',align:'left',...e};items.push({...item,id:'extra:'+e.id});lock(1);
       if(e.type==='text')text(item.text||'텍스트',item.x,item.y,item.size,item.color,500,item.align);
-      if(e.type==='shape')fillRound(item.x,item.y,item.width,item.height,item.background,12);
-      if(e.type==='button'){fillRound(item.x,item.y,item.width,item.height,item.background,12);text(item.text||'버튼',item.x+item.width/2,item.y+item.height/2,item.size,item.color,700,'center');buttons.push({id:item.action==='page-next'?'page-next':item.action||'title',x:item.x,y:item.y,w:item.width,h:item.height});}
+      const fill=()=>{if(!(item.assetId&&drawPhoto(item,12,false)))fillRound(item.x,item.y,item.width,item.height,item.background,12);};
+      if(e.type==='shape')fill();
+      if(e.type==='button'){fill();text(item.text||'버튼',item.x+item.width/2,item.y+item.height/2,item.size,item.color,700,'center');buttons.push({id:item.action==='page-next'?'page-next':item.action||'title',x:item.x,y:item.y,w:item.width,h:item.height});}
       lock(-1);
     }
     if((design().extraPages||[]).some(p=>p.id===pageId)&&!(page().extras||[]).some(e=>e.type==='button'&&e.action==='page-next'&&!e.hidden))btn('page-next',1280,880,240,65,'다음',true);
   }
   /** @param x {number} 논리 X. @param y {number} 논리 Y. @returns {object|null} 실제 경계 안의 맨 위 요소. */
-  function hit(x,y){const inside=e=>{let left=e.x,top=e.y;if(e.type==='text'){left-=e.align==='center'?e.width/2:e.align==='right'?e.width:0;top-=(e.size||24)*.65;}return !e.hidden&&x>=left&&x<=left+e.width&&y>=top&&y<=top+e.height;};return [...items].reverse().filter(e=>e.type!=='shape').find(inside)||[...items].reverse().find(inside)||null;}
+  function hit(x,y){const inside=e=>{let left=e.x,top=e.y;if(e.type==='text'){left-=e.align==='center'?e.width/2:e.align==='right'?e.width:0;top-=(e.size||24)*.65;}return !e.hidden&&x>=left&&x<=left+e.width&&y>=top&&y<=top+e.height;};return [...items].reverse().filter(e=>!['shape','image'].includes(e.type)).find(inside)||[...items].reverse().filter(e=>e.type!=='image').find(inside)||[...items].reverse().find(inside)||null;}
   /** @param settings {object} 페이지 설정. @returns {void} 추가/삭제한 독백을 런타임 대사 배열에 반영. */
   function syncNarrative(settings){for(let i=0;i<20;i++){if(!STAGE_MONOLOGUES[i])STAGE_MONOLOGUES[i]=[['']];const list=settings?.dialogues?.[i];if(list!==undefined)STAGE_MONOLOGUES[i]=list.map(p=>p.text.split('\n'));}}
   /** @param index {number} 맵 번호. @param n {number} 독백 페이지 번호. @returns {string} 입력한 화자 이름. */
@@ -61,5 +84,5 @@ const PageUI = (() => {
   function action(id){if(id!=='page-next')return false;const extras=design().extraPages||[];introIndex=extras.findIndex((p,i)=>i>introIndex&&p.enabled!==false);if(introIndex<0)beginDialogue();dirty=true;return true;}
   /** @param id {string} 미리보기 페이지. @returns {void} 화면 상태를 바꾸지 않고 사용할 페이지 지정. */
   function setPreview(id){previewId=id||'';}
-  return {begin,worldBackground,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
+  return {drawPhoto,begin,worldBackground,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
 })();

@@ -19,7 +19,13 @@ const UIPageData = (() => {
       if(raw.hidden!==undefined){if(typeof raw.hidden!=='boolean')throw Error('표시 여부 오류');e.hidden=raw.hidden;}
       if(raw.align!==undefined){if(!['left','center','right'].includes(raw.align))throw Error('정렬 오류');e.align=raw.align;}
       if(raw.action!==undefined){if(!['title','select','guide','start','replay','page-next'].includes(raw.action))throw Error('버튼 동작 오류');e.action=raw.action;}
-      if(extra){if(!/^[\w-]{1,80}$/.test(raw.id)||!['text','button','shape'].includes(raw.type))throw Error('추가 요소 종류/ID 오류');e.id=raw.id;e.type=raw.type;}
+      if(extra){if(!/^[\w-]{1,80}$/.test(raw.id)||!['text','button','shape','image'].includes(raw.type))throw Error('추가 요소 종류/ID 오류');e.id=raw.id;e.type=raw.type;}
+      // 사진 요소: 에셋 ID와 투명도. 사진 파일 자체는 에셋(assetConfig.js)에 들어 있습니다.
+      if(raw.assetId!==undefined){if(typeof raw.assetId!=='string'||!/^[\w-]{1,80}$/.test(raw.assetId))throw Error('사진 에셋 ID 오류');e.assetId=raw.assetId;}
+      if(raw.opacity!==undefined)e.opacity=number(raw.opacity,0,1);
+      // 사진을 다른 화면 요소보다 앞에 그릴지 여부. 기본은 뒤(배경).
+      if(raw.front!==undefined){if(typeof raw.front!=='boolean')throw Error('앞뒤 순서 오류');e.front=raw.front;}
+      if(extra&&e.type==='image'&&!e.assetId)throw Error('사진 요소에는 사진 에셋이 필요합니다.');
       return e;
     };
     const page=raw=>{

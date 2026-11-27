@@ -77,6 +77,11 @@ const ProjectData = (() => {
         clearedBindings++;
       }
     }
+    for(const p of [...Object.values(project.ui.pageDesign?.pages||{}),...(project.ui.pageDesign?.extraPages||[])]){
+      const before=(p.extras||[]).length;
+      p.extras=(p.extras||[]).filter(e=>!(e.type==='image'&&e.assetId===id));
+      clearedBindings+=before-p.extras.length;
+    }
     if(project.ui.fontFamily==='onggi_'+id.replace(/[^a-zA-Z0-9]/g,'')){project.ui.fontFamily='sans-serif';clearedBindings++;}
     return {project:validate(project),removedBlocks,clearedBindings};
   }
