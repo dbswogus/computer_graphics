@@ -174,7 +174,7 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
 
   run("StudioUI.apply({...StudioUI.exportData(),floorAssetId:'image-test',onggiAssets:{'0':'model-test'},texts:{drawTitle_01:'새로운 출발',STORY_02:'바뀐 이야기',STAGE_MONOLOGUES_01:'바뀐 대사'},onggiTexts:{'0.name':'나의 옹기'}})");
   check("UI_TEXT.drawTitle_01==='새로운 출발'&&STORY[0].title==='바뀐 이야기'&&STAGE_MONOLOGUES[0][0][0]==='바뀐 대사'&&COLLECTION[0].name==='나의 옹기'",'text/narrative/onggi propagation');
-  assert.throws(()=>run("StudioUI.validate({texts:{notAKey:'bad'}})"));
+  check("StudioUI.validate({texts:{notAKey:'bad'}}).skipped[0]==='notAKey'&&!('notAKey' in StudioUI.validate({texts:{notAKey:'bad'}}).texts)",'unknown text key skipped, not stored');
   check("AssetBank.drawOnggi(identity(),0,0,1)",'custom onggi model rendered');
   run('MapEditor.play();dirty=true;render();MapEditor.open();');
   context.roundtripHTML=run('GameExport.createHTML(MapEditor.exportProject())');
@@ -222,6 +222,10 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   check("!AssetBank.drawBlock('wall',{x:0,z:0,w:1,d:1,skinAssetId:'missing'},identity(),.35,.7,'#65785c')",'missing skin uses fallback');
   assert.throws(()=>run("StudioUI.validate({sfxVolume:1.1})"));
   assert.throws(()=>run("StudioUI.validate({blockAssets:{unknown:'image-test'}})"));
+  check("StudioUI.validate({texts:{future_key:'새 문구',drawTitle_01:'제목'},layout:{futureScreen:{a:{x:1}},drawTitle:{futureItem:{x:1},text_01:{futureProp:2,x:5}}}}).skipped.length===4",'newer editor settings are skipped, not rejected');
+  check("StudioUI.validate({texts:{drawTitle_01:'제목'},layout:{drawTitle:{text_01:{x:5}}}}).layout.drawTitle.text_01.x===5",'known settings still apply');
+  assert.throws(()=>run("StudioUI.validate({texts:{drawTitle_01:'가'.repeat(501)}})"),/500/);
+  assert.throws(()=>run("StudioUI.validate({layout:{drawTitle:{text_01:{x:'5'}}}})"));
   assert.throws(()=>run("ProjectData.validate({...skinProject,ui:{...skinProject.ui,blockAssets:{floor:'model-test'}}})"));
   assert.throws(()=>run("ProjectData.validate({...skinProject,ui:{...skinProject.ui,sfx:{arrival:'image-test'}}})"));
   assert.throws(()=>run("ProjectData.validate({...skinProject,maps:[{...skinProject.maps[0],blocks:skinProject.maps[0].blocks.map(b=>({...b,skinAssetId:'missing'}))}]})"));
@@ -417,6 +421,14 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   if(onExport)onExport(run('GameExport.createHTML(MapEditor.exportProject())'));
   if(onFolderExport){const files=run('GameExport.createFolderFiles(MapEditor.exportProject())');const archive=run('FolderExport.zip(GameExport.createFolderFiles(MapEditor.exportProject()))');assert.equal(run('FolderExport.crc32(new TextEncoder().encode("123456789"))'),0xcbf43926,'ZIP CRC32 standard');onFolderExport(files,archive);}
   for(const task of startupTasks)await task();
-  check('MapEditor.exportProject().maps.length===EDITOR_INITIAL_PROJECT.maps.length','initial editor project restored');
+  check('MapEditor.exportProject().maps.length===TeamSource.fromScripts().maps.length','initial editor project restored');
+  // 편집기를 열 때 설정 파일을 못 읽은 상태: 경고가 남고, 내보내기는 한 번 더 확인합니다.
+  context.goodProject=JSON.stringify(run('MapEditor.exportProject()'));
+  await run("MapEditor.load({size:4,text:async()=>'{bad'},{startup:true})");
+  assert.equal(elements.get('editor-startup-warning').hidden,false,'startup failure warning stays visible');
+  run('MapEditor.open()');check("MapEditor.startupProblem()!==''",'startup failure remembered after reopening editor');
+  check("MapEditor.confirmExport('MapConfig.js')===false&&MapEditor.confirmExport('MapConfig.js')===true",'export needs a second click while in fallback state');
+  await run('MapEditor.load({size:goodProject.length,text:async()=>goodProject})');
+  assert.equal(elements.get('editor-startup-warning').hidden,true,'successful load clears warning');check("MapEditor.confirmExport('MapConfig.js')===true",'normal export after recovery');
   return 'PASS: editor entry/default project; per-pot radius, acceleration, damping, speed cap, restitution, invalid UI input and export; unit blocks; placement/history; map add/copy/delete/undo; sequential multi-map completion; original-map restore/GPU cleanup; UI fonts/layout; project import/export; invalid-input atomicity; OBJ/image resources; gyro projection/staleness/manual fallback; original screens (mock DOM/GPU).';
 }
