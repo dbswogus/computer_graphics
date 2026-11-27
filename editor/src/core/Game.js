@@ -265,6 +265,20 @@ function tickArrival(dt) {
  */
 function action(id) {
   if(PageUI.action(id))return;
+// 편집기에서 만든 버튼: 소개 페이지 열기, 설정 창, 웹 링크.
+  if(id.startsWith('page:')) {
+    if(! PageUI.showPage(id.slice(5))) notify('이 버튼이 열 소개 페이지가 없습니다.', 3);
+    return;
+  }
+  if(id === 'settings') {
+    if(typeof SettingsMenu !== 'undefined') SettingsMenu.open();
+    return;
+  }
+  if(id.startsWith('link:')) {
+    const url = id.slice(5);
+    if(/^https:\/\/[^\s"'<>]+$/.test(url)) window.open(url, '_blank', 'noopener');
+    return;
+  }
   if((id==='guide'&&PageUI.page('drawGuide').enabled===false)||(id==='select'&&PageUI.page('drawSelect').enabled===false)){screen='title';dirty=true;return;}
   if(id==='start'||id==='replay'){MapEditor.playProject();return;}
   if(id.startsWith('pot')) {
@@ -278,6 +292,11 @@ function action(id) {
   if(id === 'title') screen = 'title';
   if(id === 'select') screen = 'select';
   if(id === 'guide') screen = 'guide';
+// 편집기 테스트에서 옹기를 고른 뒤에는 설명 화면을 건너뛰고 바로 출발합니다.
+  if(id === 'guide' && typeof MapEditor !== 'undefined' && MapEditor.isChoosing?.()) {
+    MapEditor.playProject();
+    return;
+  }
   if(id === 'start' || id === 'replay') {
     totalTime = 0;
     failures = 0;

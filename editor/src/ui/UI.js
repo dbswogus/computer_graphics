@@ -148,7 +148,7 @@ function label(str, x, y) {
  */
 function btn(id, x, y, w, h, str, primary = false) {
   const edit=PageUI.resolve('button',{id,x,y,width:w,height:h,text:str,color:primary?'#ffffff':C.ink,background:primary?C.green:C.paper});if(edit.hidden)return;
-  id=edit.action;x=edit.x;y=edit.y;w=edit.width;h=edit.height;str=edit.text;PageUI.lock(1);
+  id=PageUI.command(edit);x=edit.x;y=edit.y;w=edit.width;h=edit.height;str=edit.text;PageUI.lock(1);
   if(!(edit.assetId&&PageUI.drawPhoto({...edit,x,y,width:w,height:h},UI_LAYOUT.btn.fillRound_01.radius,false)))fillRound(x, y, w, h, edit.background, UI_LAYOUT.btn.fillRound_01.radius);
   if(! primary) {
     ctx.strokeStyle = C.line;

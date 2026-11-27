@@ -18,7 +18,10 @@ const UIPageData = (() => {
       if(raw.text!==undefined)e.text=word(raw.text);
       if(raw.hidden!==undefined){if(typeof raw.hidden!=='boolean')throw Error('표시 여부 오류');e.hidden=raw.hidden;}
       if(raw.align!==undefined){if(!['left','center','right'].includes(raw.align))throw Error('정렬 오류');e.align=raw.align;}
-      if(raw.action!==undefined){if(!['title','select','guide','start','replay','page-next'].includes(raw.action))throw Error('버튼 동작 오류');e.action=raw.action;}
+      if(raw.action!==undefined){if(!['title','select','guide','start','replay','page-next','page','settings','link'].includes(raw.action))throw Error('버튼 동작 오류');e.action=raw.action;}
+      // 버튼 동작의 대상: 소개 페이지 ID, 또는 https로 시작하는 웹 주소.
+      if(raw.target!==undefined){if(typeof raw.target!=='string'||!/^[\w-]{0,80}$/.test(raw.target))throw Error('버튼이 열 페이지 오류');e.target=raw.target;}
+      if(raw.url!==undefined){if(typeof raw.url!=='string'||raw.url.length>300||!(raw.url===''||/^https:\/\/[^\s"'<>]+$/.test(raw.url)))throw Error('링크는 https://로 시작하는 주소여야 합니다.');e.url=raw.url;}
       if(extra){if(!/^[\w-]{1,80}$/.test(raw.id)||!['text','button','shape','image'].includes(raw.type))throw Error('추가 요소 종류/ID 오류');e.id=raw.id;e.type=raw.type;}
       // 사진 요소: 에셋 ID와 투명도. 사진 파일 자체는 에셋(assetConfig.js)에 들어 있습니다.
       if(raw.assetId!==undefined){if(typeof raw.assetId!=='string'||!/^[\w-]{1,80}$/.test(raw.assetId))throw Error('사진 에셋 ID 오류');e.assetId=raw.assetId;}

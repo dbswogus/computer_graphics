@@ -10,6 +10,8 @@ const MapEditor = (() => {
   let panel, board, brush, message, properties, launchButton, undoButton, redoButton;
   // 편집기를 열 때 설정 파일을 읽지 못하면 예제 맵만 남습니다. 그 사실을 계속 보여 주고 내보내기 전에 한 번 더 확인합니다.
   let startupProblem = '', startupWarning = null;
+  // 테스트 버튼을 누른 뒤 옹기를 고르는 중이면 {all:전체 맵 여부}. 출발하면 그 설정으로 테스트를 시작합니다.
+  let choosing = null;
 
   /** @param value {object} JSON 호환 맵. @returns {object} 참조를 공유하지 않는 복사본. */
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -273,6 +275,7 @@ const MapEditor = (() => {
 
   /** 매개변수 없음. @returns {void} 편집기 표시. 테스트 중이면 원본 맵과 GPU 지형을 복원하고 입력/시간 누적을 초기화. */
   function open() {
+    choosing=null;
     if(startupProblem){openEditor();status('설정 파일을 불러오지 못했습니다. 위의 경고를 확인하세요.',true);return;}
     openEditor();
     status('도구를 고르고 클릭·드래그로 배치하세요. 우클릭은 삭제입니다.');
@@ -404,7 +407,7 @@ const MapEditor = (() => {
       } else delete map.quiz;
       commit(before);
     };
-    panel.querySelector('#editor-play').onclick=play;
+    panel.querySelector('#editor-play').onclick=()=>chooseThenPlay();
     panel.querySelector('#editor-close').onclick=()=>{finishStroke();panel.hidden=true;screen='title';clearInput();dirty=true;canvas.focus();};
     panel.querySelector('#editor-save').onclick=download;
     panel.querySelector('#editor-load-legacy').onclick=loadLegacyDraft;
@@ -446,7 +449,24 @@ const MapEditor = (() => {
 
   createInterface();
   /** 매개변수 없음. @returns {void} 편집기를 열어 검증 오류를 볼 수 있게 한 뒤 전체 프로젝트를 플레이. */
-  function playProject(){open();panel.querySelector('#editor-all-maps').checked=true;play();}
+  function playProject(){
+    // 테스트 버튼으로 옹기를 고르던 중이면, 고른 옹기와 처음 정한 맵 범위로 시작합니다.
+    const all=choosing?choosing.all:true;
+    open();panel.querySelector('#editor-all-maps').checked=all;play();
+  }
+  /** @param all {boolean|undefined} 전체 맵 테스트 여부. 생략하면 편집기의 "전체 맵" 체크를 따름.
+   * @returns {void} 맵 오류를 먼저 검사한 뒤 옹기 선택 화면을 엽니다. 옹기를 고르고 출발하면 테스트가 시작됩니다. */
+  function chooseThenPlay(all){
+    AssetBank.unlockEffects();finishStroke();
+    if(panel.inert){status('프로젝트를 불러오는 중입니다. 잠시 후 다시 눌러 주세요.',true);return;}
+    const allMaps=all??panel.querySelector('#editor-all-maps').checked;
+    maps[activeMap]=map;
+    try{(allMaps?maps:[map]).forEach((m,i)=>{try{BlockMap.compile(m,OnggiPhysics.maxRadius(StudioUI.settings.onggiPhysics));}catch(e){throw Error((i+1)+'번 맵: '+e.message);}});}
+    catch(error){status(error.message,true);return;}
+    choosing={all:allMaps};
+    panel.hidden=true;launchButton.textContent='편집으로 돌아가기';
+    clearInput();screen='select';dirty=true;canvas.focus();
+  }
   /** @param id {string} 블록 ID. @returns {object|null} 에셋 화면에서 선택해도 본 격자와 같은 선택/속성을 사용. */
   function selectBlock(id){finishStroke();selectedId=map.blocks.some(b=>b.id===id)?id:null;render();return getSelected();}
   /** 매개변수 없음. @returns {object|null} 선택 블록 복사본. */
@@ -456,5 +476,5 @@ const MapEditor = (() => {
   /** @param what {string} 내보낼 대상 이름. @returns {boolean} 내보내도 되면 true. 시작 실패 상태면 첫 번째 시도는 막고 경고합니다. */
   let exportArmed='';
   function confirmExport(what){if(!startupProblem||exportArmed===what)return true;exportArmed=what;status('지금은 설정 파일을 읽지 못해 예제 맵 상태입니다. 그래도 '+what+'을(를) 내보내려면 한 번 더 누르세요.',true);return false;}
-  return {confirmExport,startupProblem:()=>startupProblem,listMaps, selectBlock,getSelected,setSelectedSkin:id=>updateProperty('skinAssetId',id),getActiveMap:()=>activeMap,open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
+  return {chooseThenPlay,isChoosing:()=>Boolean(choosing),confirmExport,startupProblem:()=>startupProblem,listMaps, selectBlock,getSelected,setSelectedSkin:id=>updateProperty('skinAssetId',id),getActiveMap:()=>activeMap,open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
 })();
