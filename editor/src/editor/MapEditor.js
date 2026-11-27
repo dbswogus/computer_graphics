@@ -8,6 +8,8 @@ const MapEditor = (() => {
   let maps = [ProjectData.unitMap(BlockMap.example())], activeMap = 0, map = maps[0], tool = 'floor', selectedId = null, undoStack = [], redoStack = [];
   let testing = false, originalStages = null, dragging = false, strokeBefore = null, lastCell = '';
   let panel, board, brush, message, properties, launchButton, undoButton, redoButton;
+  // 편집기를 열 때 설정 파일을 읽지 못하면 예제 맵만 남습니다. 그 사실을 계속 보여 주고 내보내기 전에 한 번 더 확인합니다.
+  let startupProblem = '', startupWarning = null;
 
   /** @param value {object} JSON 호환 맵. @returns {object} 참조를 공유하지 않는 복사본. */
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -271,10 +273,17 @@ const MapEditor = (() => {
 
   /** 매개변수 없음. @returns {void} 편집기 표시. 테스트 중이면 원본 맵과 GPU 지형을 복원하고 입력/시간 누적을 초기화. */
   function open() {
+    if(startupProblem){openEditor();status('설정 파일을 불러오지 못했습니다. 위의 경고를 확인하세요.',true);return;}
+    openEditor();
+    status('도구를 고르고 클릭·드래그로 배치하세요. 우클릭은 삭제입니다.');
+  }
+
+  /** 매개변수 없음. @returns {void} 편집 화면 표시. */
+  function openEditor() {
     finishStroke();
     if(testing){AssetBank.stopSound();for(const st of STAGES)releaseGeometry(st);STAGES.splice(0,STAGES.length,...originalStages);stage=0;testing=false;rebuild();launchButton.textContent='편집 모드';}
     clearInput(); screen='editor';acc=0;last=0;
-    panel.hidden=false;render();status('도구를 고르고 클릭·드래그로 배치하세요. 우클릭은 삭제입니다.');
+    panel.hidden=false;render();
   }
 
   /** 매개변수 없음. @returns {void} 현재 문서를 검증하고 JSON 다운로드. 브라우저가 저장 위치를 결정. */
@@ -294,7 +303,16 @@ const MapEditor = (() => {
   async function loadLegacyDraft(){try{const draft=localStorage.getItem(storageKey)||localStorage.getItem('onggi-studio-v4');if(!draft){status('이 브라우저에 이전 자동 저장 초안이 없습니다.');return false;}return await load({size:draft.length,text:async()=>draft});}catch(error){status('이전 초안을 읽지 못했습니다: '+error.message,true);return false;}}
 
   /** @param file {File} 사용자가 고른 JSON(최대 1MB). @returns {Promise<void>} 검증 후 원자적으로 교체. 실패하면 기존 문서 유지. */
-  async function load(file) {
+  /** @param text {string} 실패 이유. 빈 문자열이면 해결됨. @returns {void} 시작 실패 경고를 표시하거나 숨김. */
+  function setStartupProblem(text) {
+    startupProblem = text;
+    if (!startupWarning) return;
+    startupWarning.hidden = !text;
+    startupWarning.textContent = text ? '⚠ 설정 파일을 불러오지 못해 예제 맵으로 열렸습니다. (' + text + ') 이 상태로 설정 파일이나 release를 내보내면 팀 데이터가 예제 맵으로 덮어써집니다. 최신 편집기로 열었는지, editor/src/config의 파일이 올바른지 확인하세요.' : '';
+  }
+
+  /** @param file {File} 프로젝트 파일. @param options {object} startup:true면 편집기를 열 때 설정 파일을 읽는 경우. */
+  async function load(file, { startup = false } = {}) {
     if(!file)return;
     panel.inert=true;
     try {
@@ -305,8 +323,8 @@ const MapEditor = (() => {
       AssetBank.applyPrepared(prepared);
       maps=next.maps;activeMap=0;map=maps[0];selectedId=null;undoStack=[];redoStack=[];
       StudioUI.apply(nextUI,{history:false});UIHistory.reset();StudioUI.refreshAssets();
-      markModified();SaveStatus.sourceLoaded();render();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.');return true;
-    }catch(error){status('불러오기 실패: '+error.message,true);return false;}finally{panel.inert=false;}
+      setStartupProblem('');markModified();SaveStatus.sourceLoaded();render();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();status('프로젝트를 불러왔습니다. 맵·UI·에셋이 함께 복원되었습니다.'+(nextUI.skipped.length?' 이 편집기에 없는 설정 '+nextUI.skipped.length+'개는 건너뛰었습니다. 최신 편집기로 열면 모두 적용됩니다.':''));return true;
+    }catch(error){status('불러오기 실패: '+error.message,true);if(startup)setStartupProblem(error.message);return false;}finally{panel.inert=false;}
   }
 
   /** 매개변수 없음. @returns {void} 포인터/키 이벤트 연결. 편집기 밖의 게임 키 입력은 가로채지 않습니다. */
@@ -362,15 +380,19 @@ const MapEditor = (() => {
     mapsBar.innerHTML='<label>맵 <select id="editor-map-select" aria-label="편집할 맵"></select></label><input id="editor-map-name" aria-label="맵 이름" maxlength="40"><button id="editor-undo" aria-label="실행 취소" title="Ctrl+Z">↶</button><button id="editor-redo" aria-label="다시 실행" title="Ctrl+Y">↷</button><details class="editor-menu"><summary>맵 관리</summary><div><button id="map-add">맵 추가</button><button id="map-copy">맵 복제</button><button id="map-quiz">O/X 예제 추가</button><button id="map-delete">맵 삭제</button><button id="map-up">앞으로 이동</button><button id="map-down">뒤로 이동</button><button id="editor-example">예제 맵으로 교체</button><button id="editor-empty">전체 비우기</button><label><input id="editor-all-maps" type="checkbox" checked>모든 맵 연속 테스트</label></div></details>';
 
     panel.querySelector('.editor-top').after(mapsBar);
+    startupWarning=document.createElement('p');startupWarning.id='editor-startup-warning';startupWarning.setAttribute('role','alert');startupWarning.hidden=true;
+    startupWarning.style.cssText='margin:0 0 12px;padding:12px 14px;border:2px solid #a73528;border-radius:12px;background:#fbe9e4;color:#7d2418;font-weight:bold';
+    panel.querySelector('.editor-top').after(startupWarning);
     board=panel.querySelector('#editor-board');brush=panel.querySelector('#editor-tools');message=panel.querySelector('#editor-status');properties=panel.querySelector('#editor-properties');undoButton=panel.querySelector('#editor-undo');redoButton=panel.querySelector('#editor-redo');
     for(const [id,label]of Object.entries(labels)){const button=document.createElement('button');button.textContent=label;button.dataset.tool=id;button.hidden=!['select','floor','erase'].includes(id);button.classList.toggle('active',tool===id);button.onclick=()=>{finishStroke();tool=id;const picker=panel.querySelector('#editor-tool-picker');if(picker)picker.value=tool;for(const b of brush.children)b.classList.toggle('active',b.dataset.tool===tool);};brush.append(button);}
     const toolPicker=document.createElement('select');toolPicker.id='editor-tool-picker';toolPicker.setAttribute('aria-label','배치할 블록');
     for(const [id,label]of Object.entries(labels)){const option=document.createElement('option');option.value=id;option.textContent=label;toolPicker.append(option);}toolPicker.value=tool;
     toolPicker.onchange=()=>{for(const button of brush.children)if(button.dataset.tool===toolPicker.value)button.click();};brush.append(toolPicker);
     let draft=null; // 브라우저 초안은 자동 복원하지 않습니다.
-    if(!draft&&typeof TEAM_UI_SOURCE!=='undefined')draft=JSON.stringify(TeamSource.fromScripts());
+    // 설정 파일 형식이 틀리면 여기서도 실패하므로, 편집기 전체가 멈추지 않게 경고로 남깁니다.
+    if(!draft&&typeof TEAM_UI_SOURCE!=='undefined'){try{draft=JSON.stringify(TeamSource.fromScripts());}catch(error){setStartupProblem(error.message);}}
     if(!draft&&typeof EDITOR_INITIAL_PROJECT!=='undefined')draft=JSON.stringify(EDITOR_INITIAL_PROJECT);
-    if(draft)queueMicrotask(()=>load({size:draft.length,text:async()=>draft}));
+    if(draft)queueMicrotask(()=>load({size:draft.length,text:async()=>draft},{startup:true}));
     const name=panel.querySelector('#editor-map-name');name.value=map.name;name.onchange=()=>{const before=snapshot();map.name=name.value.trim()||'내가 만든 맵';commit(before);};
     const question = panel.querySelector('#editor-quiz-question');
     const answer = panel.querySelector('#editor-quiz-answer');
@@ -431,5 +453,8 @@ const MapEditor = (() => {
   function getSelected(){const b=map.blocks.find(b=>b.id===selectedId);return b?clone(b):null;}
   /** 매개변수 없음. @returns {object[]} 맵 이름 목록. 에셋과 전체 프로젝트를 복사하지 않는 화면 갱신용 API. */
   function listMaps(){return maps.map((m,i)=>({name:i===activeMap?map.name:m.name}));}
-  return {listMaps, selectBlock,getSelected,setSelectedSkin:id=>updateProperty('skinAssetId',id),getActiveMap:()=>activeMap,open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
+  /** @param what {string} 내보낼 대상 이름. @returns {boolean} 내보내도 되면 true. 시작 실패 상태면 첫 번째 시도는 막고 경고합니다. */
+  let exportArmed='';
+  function confirmExport(what){if(!startupProblem||exportArmed===what)return true;exportArmed=what;status('지금은 설정 파일을 읽지 못해 예제 맵 상태입니다. 그래도 '+what+'을(를) 내보내려면 한 번 더 누르세요.',true);return false;}
+  return {confirmExport,startupProblem:()=>startupProblem,listMaps, selectBlock,getSelected,setSelectedSkin:id=>updateProperty('skinAssetId',id),getActiveMap:()=>activeMap,open, play, playProject, load, advance, manageMap, switchMap, exportProject, getMap: () => clone(map) };
 })();

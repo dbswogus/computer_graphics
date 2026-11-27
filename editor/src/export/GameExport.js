@@ -13,6 +13,7 @@ const GameExport = (() => {
 
   /** 매개변수 없음. @returns {Promise<void>} 현재 프로젝트의 폴더 ZIP을 다운로드. 실패 시 기존 프로젝트 유지. */
   async function download() {
+    if(!MapEditor.confirmExport('release ZIP'))return;
     const notice=document.getElementById('editor-status');
     try {
       notice.textContent='폴더형 게임 ZIP을 만드는 중입니다…';
