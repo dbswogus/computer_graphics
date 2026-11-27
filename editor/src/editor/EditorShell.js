@@ -10,7 +10,7 @@ const EditorShell = (() => {
     workspace=value;
     for(const [id,active]of [['workspace-map','map'],['editor-mapbar','map'],['studio-design','design'],['team-files','team']])document.getElementById(id).hidden=value!==active;
     document.getElementById('editor-workspace').value=value;
-    document.getElementById('editor-view-hint').textContent={map:'블록을 고르고 격자에 그리세요. 맵 추가·삭제는 맵 관리에 있습니다.',design:'에셋·효과음·물리·UI 중 필요한 탭만 선택하세요.',team:'설정 파일을 선택해 저장하거나 불러오세요.'}[value];
+    document.getElementById('editor-view-hint').textContent={map:'블록을 고르고 격자에 그리세요. 맵 추가·삭제는 맵 관리에 있습니다.',design:'에셋 관리·블록 외형·효과음·물리·UI 중 필요한 탭만 선택하세요. 사진과 글꼴은 UI 탭에서 넣습니다.',team:'설정 파일을 선택해 저장하거나 불러오세요.'}[value];
     if(value==='design'){StudioUI.preview();if(typeof PageDesigner!=='undefined')PageDesigner.refresh();}
   }
 
@@ -19,9 +19,11 @@ const EditorShell = (() => {
   function refreshAssetActions() {
     if(!actionSelect)return;
     const asset=AssetBank.list().find(a=>a.id===AssetBank.selected());
-    const choices={image:[['asset-place','맵 장식으로 배치'],['asset-image','UI 이미지로 사용'],['asset-hide-image','UI 이미지 숨기기']],model:[['asset-place','맵 장식으로 배치'],['asset-onggi','선택 옹기 모델로 사용'],['asset-onggi-reset','선택 옹기 기본 모델']],font:[['asset-font','게임 폰트로 사용']],audio:[['asset-sound','반복 미리 듣기'],['asset-bgm','BGM으로 지정']]}[asset?.kind] || [];
+    const choices={image:[['asset-place','맵 장식으로 배치']],model:[['asset-place','맵 장식으로 배치'],['asset-onggi','선택 옹기 모델로 사용'],['asset-onggi-reset','선택 옹기 기본 모델']],font:[],audio:[['asset-sound','반복 미리 듣기'],['asset-bgm','BGM으로 지정']]}[asset?.kind] || [];
     const previous=actionSelect.value;actionSelect.replaceChildren();
     for(const [id,title]of choices){const option=document.createElement('option');option.value=id;option.textContent=title;actionSelect.append(option);}
+    // 사진과 글꼴은 UI 문구·배치 탭에서 고르고 배치합니다.
+    if(asset&&!choices.length&&asset.kind==='font'){const option=document.createElement('option');option.value='';option.textContent='글꼴은 UI 문구·배치 탭에서 사용합니다';actionSelect.append(option);}
     actionSelect.value=choices.some(([id])=>id===previous)?previous:(choices[0]?.[0]||'');actionButton.disabled=!choices.length;
     updateTarget();
   }

@@ -3,6 +3,8 @@
  * 저장 데이터는 pageDesign 한 필드이며 UIConfig.js/프로젝트/릴리스에 함께 포함됩니다. */
 const PageDesigner = (() => {
   let host,canvas,mini,pageId='drawTitle',selectedId='',stageIndex=0,dialogueIndex=0,drag=null,rendering=false;
+  // 선택 요소 오른쪽 아래 모서리의 크기 조절 손잡이 크기(논리 픽셀).
+  const handleSize=34;
   const names=UIPageData.screens;
   const state={drawTitle:'title',drawSelect:'select',drawGuide:'guide',drawPlay:'play',drawFinish:'finish',drawStory:'story',drawMonologue:'monologue'};
   const labels={floor:'바닥',wall:'벽',hole:'구멍',sweeper:'왕복 장애물',crumble:'무너지는 바닥',checkpoint:'체크포인트',start:'출발',goal:'도착',asset:'장식'};
@@ -22,7 +24,7 @@ const PageDesigner = (() => {
     host.querySelector('#designer-font').value=StudioUI.settings.fontFamily;host.querySelector('#designer-font-scale').value=StudioUI.settings.fontScale;
     const p=current(d);host.querySelector('#designer-name').value=p.name||names[pageId]||'';
     for(const [key,id,fallback]of [['background','page-background','#f5efdf'],['textColor','page-text-color','#294732']]){host.querySelector('#'+id+'-enabled').checked=Boolean(p[key]);host.querySelector('#'+id).value=p[key]||fallback;}
-    drawPreview();refreshDialogue();renderMini();
+    drawPreview();refreshDialogue();renderMini();refreshMedia();
   }
   /** 매개변수 없음. @returns {void} 실제 drawUI 출력과 실제 요소 경계를 미리보기로 표시. 게임 상태는 finally에서 복구. */
   function drawPreview(){if(!canvas||rendering)return;rendering=true;
@@ -41,16 +43,120 @@ const PageDesigner = (() => {
       const items=PageUI.elements,picker=host.querySelector('#designer-element');picker.replaceChildren();
       if(!items.some(e=>e.id===selectedId))selectedId='';
       const empty=document.createElement('option');empty.value='';empty.textContent='미리보기에서 글자·버튼을 클릭하세요';picker.append(empty);
-      for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=(item.hidden?'숨김 · ':'')+({text:'글자',button:'버튼',shape:'배경 상자',image:'UI 이미지'}[item.type])+' · '+String(item.text||item.id).slice(0,38);picker.append(o);}picker.value=selectedId;
-      const item=items.find(e=>e.id===selectedId);if(item){let x=item.x,y=item.y;if(item.type==='text'){x-=item.align==='center'?item.width/2:item.align==='right'?item.width:0;y-=(item.size||24)*.65;}context.strokeStyle='#2875ce';context.lineWidth=2;context.strokeRect(x/2-2,y/2-2,item.width/2+4,item.height/2+4);}
+      for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=(item.hidden?'숨김 · ':'')+(item.id.startsWith('extra:')&&item.type==='image'?'사진':{text:'글자',button:'버튼',shape:'배경 상자',image:'UI 이미지'}[item.type])+' · '+String(item.text||item.id).slice(0,38);picker.append(o);}picker.value=selectedId;
+      const item=items.find(e=>e.id===selectedId);if(item){let x=item.x,y=item.y;if(item.type==='text'){x-=item.align==='center'?item.width/2:item.align==='right'?item.width:0;y-=(item.size||24)*.65;}context.strokeStyle='#2875ce';context.lineWidth=2;context.strokeRect(x/2-2,y/2-2,item.width/2+4,item.height/2+4);if(resizable(item)){context.fillStyle='#2875ce';context.fillRect((item.x+item.width)/2-handleSize/4,(item.y+item.height)/2-handleSize/4,handleSize/2,handleSize/2);}}
       refreshInspector(item);
     } finally {PageUI.setPreview('');screen=old.screen;buttons=old.buttons;portrait=old.portrait;stage=old.stage;dialoguePage=old.dialoguePage;dialogueTime=old.dialogueTime;storyIndex=old.storyIndex;if(oldStage)STAGES[stageIndex]=oldStage;else delete STAGES[stageIndex];STAGES.length=oldLength;STAGE_MONOLOGUES[stageIndex]=oldLines;dirty=true;rendering=false;}
+  }
+  /** @param item {object|undefined} 요소. @returns {boolean} 모서리를 끌어 크기를 바꿀 수 있는 요소(버튼·상자·사진). */
+  function resizable(item){return Boolean(item)&&['button','shape','image'].includes(item.type)&&item.id!=='image:1';}
+  /** @param item {object} 선택 요소. @param q {{x:number,y:number}} 논리 좌표. @returns {boolean} 크기 조절 손잡이를 눌렀으면 true. */
+  function onHandle(item,q){return resizable(item)&&Math.abs(q.x-(item.x+item.width))<=handleSize&&Math.abs(q.y-(item.y+item.height))<=handleSize;}
+  /** 매개변수 없음. @returns {void} 사진 고르기 목록을 현재 이미지 에셋으로 채움. */
+  function refreshPhotoChoices(item){const picker=host.querySelector('#element-photo');picker.replaceChildren();for(const a of AssetBank.list()){if(a.kind!=='image')continue;const o=document.createElement('option');o.value=a.id;o.textContent=a.name;picker.append(o);}picker.value=item?.assetId||'';}
+  /** @param factor {number} 배율. @param ratio {boolean} true면 원본 사진 비율로 높이를 맞춤. @returns {void} 가운데를 기준으로 사진 크기 변경. */
+  function scalePhoto(factor,ratio=false){
+    const item=PageUI.elements.find(e=>e.id===selectedId);if(!item)return;
+    const image=AssetBank.image(item.assetId);
+    const width=Math.max(20,item.width*factor),height=ratio&&image?width*image.height/image.width:Math.max(20,item.height*factor);
+    try{updateElement({x:Math.round(item.x+(item.width-width)/2),y:Math.round(item.y+(item.height-height)/2),width:Math.round(width),height:Math.round(height)});}catch(error){notice(error.message);}
+  }
+  /** @param op {string} back/down/up/front. @returns {void} 추가한 요소의 그리는 순서 변경.
+   * 사진은 "뒤(배경)"와 "앞" 두 층이 있어, 맨 앞으로 보내면 기본 글자·버튼보다 위에 그려집니다. */
+  function moveLayer(op){
+    const d=data(),p=current(d),index=p.extras.findIndex(e=>'extra:'+e.id===selectedId);
+    if(index<0){notice('기본 글자·버튼은 순서를 바꿀 수 없습니다. 사진을 뒤로 보내거나, 요소 추가로 새로 만들면 순서를 바꿀 수 있습니다.');return;}
+    const list=p.extras,[item]=list.splice(index,1),photo=item.type==='image';
+    let at=index;
+    if(op==='front'){at=list.length;if(photo)item.front=true;}
+    if(op==='back'){at=0;if(photo)item.front=false;}
+    if(op==='up'){if(photo&&!item.front&&!list.slice(index).some(e=>e.type==='image'&&!e.front)){item.front=true;at=0;}else at=Math.min(list.length,index+1);}
+    if(op==='down'){if(photo&&item.front&&index===0){item.front=false;at=list.length;}else at=Math.max(0,index-1);}
+    list.splice(at,0,item);
+    try{apply(d);notice(photo?(item.front?'사진을 글자·버튼 앞에 두었습니다.':'사진을 배경(뒤)에 두었습니다.'):'순서를 바꿨습니다.');}catch(error){notice(error.message);}
+  }
+  /** @param file {File} 사진 파일. @returns {Promise<File>} 가로·세로 1920px 또는 600KB를 넘으면 줄인 파일. 투명한 사진은 PNG, 아니면 JPG로 저장합니다. */
+  async function shrinkImage(file){
+    if(!/^image\/(png|jpeg|webp)$/.test(file.type)||typeof createImageBitmap!=='function')return file;
+    const bitmap=await createImageBitmap(file),limit=1920,scale=Math.min(1,limit/Math.max(bitmap.width,bitmap.height));
+    if(scale===1&&file.size<=600*1024)return file;
+    const out=document.createElement('canvas');out.width=Math.round(bitmap.width*scale);out.height=Math.round(bitmap.height*scale);
+    const c=out.getContext('2d');c.drawImage(bitmap,0,0,out.width,out.height);
+    let clear=false;if(file.type!=='image/jpeg'){const pixels=c.getImageData(0,0,out.width,out.height).data;for(let i=3;i<pixels.length;i+=4)if(pixels[i]<250){clear=true;break;}}
+    const type=clear?'image/png':'image/jpeg',blob=await new Promise(done=>out.toBlob(done,type,.85));
+    if(!blob||blob.size>=file.size)return file;
+    return new File([blob],file.name.replace(/\.[^.]+$/,'')+(clear?'.png':'.jpg'),{type});
+  }
+  /** @param files {File[]} 넣을 파일. @returns {Promise<string>} 큰 사진은 줄여서 넣고, 줄인 결과 안내 문구를 돌려줌. */
+  async function addMedia(files){
+    const ready=[],notes=[];
+    for(const file of files){const small=await shrinkImage(file);ready.push(small);if(small!==file)notes.push(file.name+' '+Math.round(file.size/1024)+'KB → '+Math.round(small.size/1024)+'KB');}
+    await AssetBank.addFiles(ready);StudioUI.refreshAssets();if(typeof EditorShell!=='undefined')EditorShell.refreshAssetActions();StudioUI.save();
+    return notes.length?' 큰 사진은 줄여서 넣었습니다: '+notes.join(', '):'';
+  }
+  /** 매개변수 없음. @returns {void} UI 탭 위쪽에 사진·글꼴 모음을 만듭니다. 파일을 넣고 바로 배경·글꼴로 씁니다. */
+  function mountMedia(){
+    const box=document.createElement('details');box.id='designer-media';box.open=true;
+    box.innerHTML='<summary>사진 · 글꼴</summary><p class="designer-hint">사진(PNG·JPG·WebP)과 글꼴(TTF·OTF·WOFF)을 넣고, 사진은 현재 페이지 배경으로, 글꼴은 게임 전체 글꼴로 씁니다.</p><button id="media-add">사진·글꼴 추가</button><input id="media-file" type="file" multiple hidden accept="image/png,image/jpeg,image/webp,image/gif,.ttf,.otf,.woff,.woff2"><p id="media-legacy" hidden></p><div id="media-list"></div>';
+    host.querySelector('.page-toolbar').after(box);
+    const input=host.querySelector('#media-file');host.querySelector('#media-add').onclick=()=>input.click();
+    input.onchange=async()=>{const files=Array.from(input.files||[]);input.value='';if(!files.length)return;
+      try{const note=await addMedia(files);notice(files.length+'개 파일을 넣었습니다. 아래 목록에서 사용하세요. 사진·글꼴은 assetConfig.js에 저장됩니다.'+note);}
+      catch(error){notice(error.message);}refreshMedia();};
+  }
+  /** 매개변수 없음. @returns {void} 사진·글꼴 목록. 사진은 작은 미리보기, 글꼴은 그 글꼴로 쓴 예시를 보여 줍니다. */
+  function refreshMedia(){
+    const list=host?.querySelector('#media-list');if(!list)return;list.replaceChildren();
+    const chosenItem=PageUI.elements.find(e=>e.id===selectedId),selectedPhoto=Boolean(chosenItem)&&(chosenItem.type==='image'?selectedId.startsWith('extra:'):['button','shape'].includes(chosenItem.type));
+    const button=(text,action,disabled=false)=>{const b=document.createElement('button');b.textContent=text;b.disabled=disabled;b.onclick=action;return b;};
+    const remove=id=>async()=>{AssetBank.select(id);StudioUI.refreshAssets();await StudioUI.deleteSelectedAsset();refresh();notice('삭제했습니다. 에셋 관리 탭에서 방금 삭제를 되돌릴 수 있습니다.');};
+    // 옹기 OBJ에 입히는 텍스처는 UI 사진이 아니므로 목록에서 뺍니다(블록 외형·에셋 관리 탭에서 다룹니다).
+    const textures=new Set(Object.values(StudioUI.settings.modelTextures||{}));
+    for(const a of AssetBank.list()){
+      if(!['image','font'].includes(a.kind)||textures.has(a.id))continue;
+      const tile=document.createElement('article');tile.className='media-tile';
+      const name=document.createElement('p');name.className='media-name';name.textContent=a.name;
+      if(a.kind==='image'){
+        const thumb=document.createElement('img');thumb.alt=a.name;thumb.src=AssetBank.image(a.id)?.src||'';
+        tile.append(thumb,name,button('배경으로 넣기',()=>placePhoto(a.id)),button('선택 요소에 적용',()=>updateElement({assetId:a.id}),!selectedPhoto),button('삭제',remove(a.id)));
+      } else {
+        const family=AssetBank.fontFamily(a.id),using=StudioUI.settings.fontFamily===family;
+        const sample=document.createElement('p');sample.className='media-font';sample.textContent='가나다 옹기 ABC 123';sample.style.fontFamily=family?'"'+family+'", sans-serif':'sans-serif';
+        tile.append(sample,name,button(using?'사용 중 · 기본 글꼴로':'글꼴로 사용',()=>setFont(using?'sans-serif':family)),button('삭제',remove(a.id)));
+        if(using)tile.classList.add('active');
+      }
+      list.append(tile);
+    }
+    if(!list.children.length){const empty=document.createElement('p');empty.textContent='아직 사진·글꼴이 없습니다. 위 버튼으로 넣으세요.';list.append(empty);}
+    // 예전 방식의 UI 이미지(화면 위에 고정된 한 장)가 켜져 있으면 알려 주고 끌 수 있게 합니다.
+    const legacy=host.querySelector('#media-legacy');legacy.replaceChildren();legacy.hidden=!StudioUI.settings.imageAssetId;
+    if(!legacy.hidden)legacy.append('예전 방식 UI 이미지가 켜져 있습니다. ',button('끄기',()=>{StudioUI.apply({...StudioUI.exportData(),imageAssetId:''},{refreshLegacy:false});StudioUI.save();refresh();}));
+  }
+  /** @param family {string} 글꼴 이름. @returns {void} 게임 전체 글꼴 변경. */
+  function setFont(family){try{StudioUI.apply({...StudioUI.exportData(),fontFamily:family},{refreshLegacy:false});StudioUI.save();refresh();notice(family==='sans-serif'?'기본 글꼴로 바꿨습니다.':'글꼴을 바꿨습니다.');}catch(error){notice(error.message);}}
+  /** @param id {string} 이미지 에셋. @returns {void} 현재 페이지에 화면 전체를 덮는 배경 사진으로 추가. 끌어서 옮기고 모서리로 크기를 바꿉니다. */
+  function placePhoto(id){try{const d=data(),p=current(d),key='photo-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);p.extras.unshift({id:key,type:'image',assetId:id,x:0,y:0,width:1600,height:1000,opacity:1});selectedId='extra:'+key;apply(d);notice('현재 페이지에 사진을 넣었습니다. 미리보기에서 옮기고 모서리로 크기를 바꾸세요.');}catch(error){notice(error.message);}}
+  /** @param file {File} 사진 파일. @param replace {boolean} true면 선택한 사진 요소의 사진만 바꿈. @returns {Promise<void>} 에셋으로 추가한 뒤 페이지에 배치. */
+  async function addPhoto(file,replace=false){
+    if(!file)return;
+    try{
+      const note=await addMedia([file]);
+      const id=AssetBank.selected();
+      if(!AssetBank.image(id))throw Error('이미지 파일(PNG·JPG·WebP)을 선택하세요.');
+      if(replace&&selectedId.startsWith('extra:'))updateElement({assetId:id});
+      else placePhoto(id);
+      notice('사진을 추가했습니다. 사진 파일은 assetConfig.js에 저장되니, 설정 파일 저장 시 함께 저장하세요.'+note);
+    }catch(error){notice(error.message);}
   }
   /** @param item {object|undefined} 선택 요소. @returns {void} 해당 글자/버튼의 문구·좌표·색만 편집. */
   function refreshInspector(item){const fields=host.querySelector('#designer-inspector');fields.hidden=!item;if(!item)return;
     host.querySelector('#designer-text').value=item.text||'';host.querySelector('#designer-text-row').hidden=!['text','button'].includes(item.type);
     for(const [key,id,fallback]of [['x','element-x',0],['y','element-y',0],['size','element-size',24],['width','element-width',300],['height','element-height',70]])host.querySelector('#'+id).value=Math.round(item[key]??fallback);
     host.querySelector('#element-color').value=/^#[0-9a-f]{6}$/i.test(item.color||'')?item.color:'#294732';host.querySelector('#element-background').value=/^#[0-9a-f]{6}$/i.test(item.background||'')?item.background:'#e0e9d9';
+    const fillable=['button','shape'].includes(item.type);host.querySelector('#element-fill-row').hidden=!fillable;
+    if(fillable){const fill=host.querySelector('#element-fill');fill.replaceChildren();const plain=document.createElement('option');plain.value='';plain.textContent='색으로 채우기';fill.append(plain);for(const a of AssetBank.list()){if(a.kind!=='image')continue;const o=document.createElement('option');o.value=a.id;o.textContent=a.name;fill.append(o);}fill.value=item.assetId||'';}
+    const movable=selectedId.startsWith('extra:');for(const id of ['layer-back','layer-down','layer-up','layer-front'])host.querySelector('#'+id).disabled=!movable;
+    const photo=item.type==='image'&&item.id.startsWith('extra:');host.querySelector('#element-photo-row').hidden=!photo;if(photo){refreshPhotoChoices(item);host.querySelector('#element-opacity').value=Math.round((item.opacity??1)*100);}
     host.querySelector('#element-action').value=item.action||'title';host.querySelector('#element-action').disabled=item.type!=='button';host.querySelector('#element-align').value=item.align||'left';host.querySelector('#element-visible').checked=!item.hidden;
   }
   /** @param event {PointerEvent} 미리보기 포인터. @returns {{x:number,y:number}} 1600×1000 논리 좌표. */
@@ -62,7 +168,7 @@ const PageDesigner = (() => {
     selectedId='';try{apply(d);}catch(e){notice(e.message);}
   }
   /** @param type {string} text/button/shape. @returns {void} 현재 페이지에 드래그 가능한 요소 추가. */
-  function addElement(type){const d=data(),p=current(d),id='item-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);p.extras.push({id,type,x:180,y:400,width:320,height:75,size:30,text:type==='button'?'버튼':'새 글자',color:'#294732',background:'#dfe8d8',action:'title',align:'left'});selectedId='extra:'+id;try{apply(d);}catch(e){notice(e.message);}}
+  function addElement(type){if(type==='image'){host.querySelector('#designer-photo-file').click();return;}const d=data(),p=current(d),id='item-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);p.extras.push({id,type,x:180,y:400,width:320,height:75,size:30,text:type==='button'?'버튼':'새 글자',color:'#294732',background:'#dfe8d8',action:'title',align:'left'});selectedId='extra:'+id;try{apply(d);}catch(e){notice(e.message);}}
   /** 매개변수 없음. @returns {void} 선택 맵에 속한 독백 페이지와 화자·내용만 표시. */
   function refreshDialogue(){const mapSelect=host.querySelector('#dialogue-map'),maps=MapEditor.listMaps();mapSelect.replaceChildren();maps.forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+m.name;mapSelect.append(o);});stageIndex=Math.min(stageIndex,maps.length-1);mapSelect.value=stageIndex;
     const d=data(),list=d.dialogues[stageIndex]??(STAGE_MONOLOGUES[stageIndex]||[]).map(lines=>({speaker:'',text:lines.join('\n')}));const select=host.querySelector('#dialogue-page');select.replaceChildren();
@@ -87,7 +193,7 @@ const PageDesigner = (() => {
   }
   /** 매개변수 없음. @returns {void} 새 페이지 편집 UI와 작은 격자 이벤트 구성. */
   function mount(){const pane=document.getElementById('pane-ui');for(const child of Array.from(pane.children))child.hidden=true;
-    host=document.createElement('section');host.id='page-designer';host.innerHTML='<div class="page-toolbar"><label>페이지 <select id="designer-page"></select></label><label>페이지 이름 <input id="designer-name" maxlength="60"></label><details><summary>페이지 관리</summary><button id="page-add">소개 페이지 추가</button><button id="page-delete">선택 페이지 삭제</button><button id="page-reset">설정 복원 / 다시 사용</button></details></div><p>현재 페이지의 글자·버튼만 표시합니다. 미리보기에서 클릭해 선택하고 드래그하세요. 추가 소개 페이지는 첫 맵 전에 순서대로 표시됩니다.</p><details><summary>공통 글꼴</summary><label>글꼴 이름<input id="designer-font"></label><label>글자 전체 배율<input id="designer-font-scale" type="number" min="0.5" max="2" step="0.1"></label><p>로컬 폰트 파일은 에셋 탭에서 추가해 게임 폰트로 적용할 수 있습니다.</p></details><div class="page-colors"><label><input id="page-background-enabled" type="checkbox">배경색 사용 <input id="page-background" type="color"></label><label><input id="page-text-color-enabled" type="checkbox">페이지 글자색 사용 <input id="page-text-color" type="color"></label></div><div class="page-designer-grid"><canvas id="page-preview" width="800" height="500"></canvas><aside><label>현재 페이지 요소 <select id="designer-element"></select></label><div id="designer-inspector" hidden><label id="designer-text-row">선택 문구<textarea id="designer-text" rows="3" maxlength="500"></textarea></label><div class="designer-numbers"><label>X<input id="element-x" type="number"></label><label>Y<input id="element-y" type="number"></label><label>글자 크기<input id="element-size" type="number" min="8" max="160"></label><label>너비<input id="element-width" type="number" min="1"></label><label>높이<input id="element-height" type="number" min="1"></label></div><label>글자색<input id="element-color" type="color"></label><label>상자·버튼색<input id="element-background" type="color"></label><label>버튼 동작<select id="element-action"><option value="title">시작 화면</option><option value="select">옹기 선택</option><option value="guide">설명 화면</option><option value="start">게임 시작</option><option value="replay">다시 시작</option><option value="page-next">다음 소개 페이지</option></select></label><label>정렬<select id="element-align"><option value="left">왼쪽</option><option value="center">가운데</option><option value="right">오른쪽</option></select></label><label><input id="element-visible" type="checkbox">표시</label><button id="element-delete">선택 요소 삭제</button></div><label>요소 추가<select id="designer-add-type"><option value="text">글자</option><option value="button">버튼</option><option value="shape">배경 상자</option></select></label><button id="element-add">추가</button></aside></div><details class="dialogue-settings"><summary>캐릭터 독백 · 맵별 페이지</summary><div class="page-toolbar"><label>맵<select id="dialogue-map"></select></label><label>독백 페이지<select id="dialogue-page"></select></label><button id="dialogue-add">독백 추가</button><button id="dialogue-delete">독백 삭제</button></div><div id="dialogue-editor"><label>화자 (비우면 선택 옹기 이름)<input id="dialogue-speaker" maxlength="60"></label><label>독백 내용<textarea id="dialogue-text" rows="4" maxlength="1000"></textarea></label></div><p>추가·수정한 독백은 해당 맵 시작에 표시됩니다. 모두 삭제하면 건너뜁니다. 독백 화면 배치는 위에서 캐릭터 독백 페이지를 선택하세요.</p></details><p id="designer-status" role="status">페이지별 변경 내용은 프로젝트와 유리 담당 UIConfig.js에 저장됩니다.</p>';pane.append(host);canvas=host.querySelector('#page-preview');canvas.tabIndex=0;
+    host=document.createElement('section');host.id='page-designer';host.innerHTML='<div class="page-toolbar"><label>페이지 <select id="designer-page"></select></label><label>페이지 이름 <input id="designer-name" maxlength="60"></label><details><summary>페이지 관리</summary><button id="page-add">소개 페이지 추가</button><button id="page-delete">선택 페이지 삭제</button><button id="page-reset">설정 복원 / 다시 사용</button></details></div><p>현재 페이지의 글자·버튼만 표시합니다. 미리보기에서 클릭해 선택하고 드래그하세요. 추가 소개 페이지는 첫 맵 전에 순서대로 표시됩니다.</p><details><summary>공통 글꼴</summary><label>글꼴 이름<input id="designer-font"></label><label>글자 전체 배율<input id="designer-font-scale" type="number" min="0.5" max="2" step="0.1"></label><p>로컬 폰트 파일은 에셋 탭에서 추가해 게임 폰트로 적용할 수 있습니다.</p></details><div class="page-colors"><label><input id="page-background-enabled" type="checkbox">배경색 사용 <input id="page-background" type="color"></label><label><input id="page-text-color-enabled" type="checkbox">페이지 글자색 사용 <input id="page-text-color" type="color"></label></div><div class="page-designer-grid"><canvas id="page-preview" width="800" height="500"></canvas><aside><label>현재 페이지 요소 <select id="designer-element"></select></label><div id="designer-inspector" hidden><label id="designer-text-row">선택 문구<textarea id="designer-text" rows="3" maxlength="500"></textarea></label><div class="designer-numbers"><label>X<input id="element-x" type="number"></label><label>Y<input id="element-y" type="number"></label><label>글자 크기<input id="element-size" type="number" min="8" max="160"></label><label>너비<input id="element-width" type="number" min="1"></label><label>높이<input id="element-height" type="number" min="1"></label></div><label>글자색<input id="element-color" type="color"></label><label>상자·버튼색<input id="element-background" type="color"></label><label>버튼 동작<select id="element-action"><option value="title">시작 화면</option><option value="select">옹기 선택</option><option value="guide">설명 화면</option><option value="start">게임 시작</option><option value="replay">다시 시작</option><option value="page-next">다음 소개 페이지</option></select></label><label>정렬<select id="element-align"><option value="left">왼쪽</option><option value="center">가운데</option><option value="right">오른쪽</option></select></label><label><input id="element-visible" type="checkbox">표시</label><div id="element-photo-row" hidden><label>사진<select id="element-photo"></select></label><button id="element-photo-new">새 사진으로 바꾸기</button><label>투명도 %<input id="element-opacity" type="number" min="0" max="100" step="5"></label><button id="element-photo-fill">화면 전체 채우기</button><button id="photo-shrink">작게 (-10%)</button><button id="photo-grow">크게 (+10%)</button><button id="photo-ratio">원본 비율로</button></div><div id="element-fill-row" hidden><label>사진으로 채우기<select id="element-fill"></select></label></div><div id="element-layer-row"><span>순서</span><button id="layer-back">맨 뒤로</button><button id="layer-down">뒤로</button><button id="layer-up">앞으로</button><button id="layer-front">맨 앞으로</button></div><p class="designer-hint">버튼·상자·사진은 오른쪽 아래 파란 점을 끌어 크기를 바꿉니다. 사진은 비율이 유지되며, Shift를 누르고 끌면 자유롭게 바뀝니다.</p><button id="element-delete">선택 요소 삭제</button></div><label>요소 추가<select id="designer-add-type"><option value="text">글자</option><option value="button">버튼</option><option value="shape">배경 상자</option><option value="image">사진 (배경)</option></select><input id="designer-photo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label><button id="element-add">추가</button></aside></div><details class="dialogue-settings"><summary>캐릭터 독백 · 맵별 페이지</summary><div class="page-toolbar"><label>맵<select id="dialogue-map"></select></label><label>독백 페이지<select id="dialogue-page"></select></label><button id="dialogue-add">독백 추가</button><button id="dialogue-delete">독백 삭제</button></div><div id="dialogue-editor"><label>화자 (비우면 선택 옹기 이름)<input id="dialogue-speaker" maxlength="60"></label><label>독백 내용<textarea id="dialogue-text" rows="4" maxlength="1000"></textarea></label></div><p>추가·수정한 독백은 해당 맵 시작에 표시됩니다. 모두 삭제하면 건너뜁니다. 독백 화면 배치는 위에서 캐릭터 독백 페이지를 선택하세요.</p></details><p id="designer-status" role="status">페이지별 변경 내용은 프로젝트와 유리 담당 UIConfig.js에 저장됩니다.</p>';pane.append(host);canvas=host.querySelector('#page-preview');canvas.tabIndex=0;
     for(const [id,key]of [['designer-font','fontFamily'],['designer-font-scale','fontScale']])host.querySelector('#'+id).onchange=e=>{try{StudioUI.apply({...StudioUI.exportData(),[key]:key==='fontScale'?Number(e.target.value):e.target.value},{refreshLegacy:false});StudioUI.save();refresh();}catch(error){notice(error.message);}};
     host.querySelector('#designer-page').onchange=e=>{pageId=e.target.value;selectedId='';refresh();};host.querySelector('#designer-name').onchange=e=>{const d=data();current(d).name=e.target.value;apply(d);};
     for(const [id,op]of [['page-add','add'],['page-delete','delete'],['page-reset','reset']])host.querySelector('#'+id).onclick=()=>managePage(op);
@@ -97,17 +203,27 @@ const PageDesigner = (() => {
     for(const [key,id]of [['x','element-x'],['y','element-y'],['size','element-size'],['width','element-width'],['height','element-height']])host.querySelector('#'+id).onchange=e=>{try{updateElement({[key]:Number(e.target.value)});}catch(error){notice(error.message);refresh();}};
     for(const [key,id]of [['color','element-color'],['background','element-background'],['align','element-align'],['action','element-action']])host.querySelector('#'+id).onchange=e=>updateElement({[key]:e.target.value});
     host.querySelector('#element-visible').onchange=e=>updateElement({hidden:!e.target.checked});host.querySelector('#element-delete').onclick=()=>{if(selectedId==='button:page-next'){notice('소개 페이지의 다음 버튼은 진행을 위해 유지됩니다. 위치와 색은 바꿀 수 있습니다.');return;}const d=data(),p=current(d);if(selectedId.startsWith('extra:'))p.extras=p.extras.filter(e=>e.id!==selectedId.slice(6));else p.elements[selectedId]={...(p.elements[selectedId]||{}),hidden:true};selectedId='';apply(d);};host.querySelector('#element-add').onclick=()=>addElement(host.querySelector('#designer-add-type').value||'text');
-    canvas.addEventListener('pointerdown',event=>{if(event.button!==undefined&&event.button!==0)return;finishDrag();canvas.focus();const q=point(event),item=PageUI.hit(q.x,q.y);selectedId=item?.id||'';drag=item?{x:q.x,y:q.y,oldX:item.x,oldY:item.y}:null;if(drag)UIHistory.begin();canvas.setPointerCapture(event.pointerId);drawPreview();});
-    canvas.addEventListener('pointermove',event=>{if(!drag)return;const q=point(event);updateElement({x:Math.round(drag.oldX+q.x-drag.x),y:Math.round(drag.oldY+q.y-drag.y)},false);});
+    let replacing=false;const photoFile=host.querySelector('#designer-photo-file');photoFile.onchange=()=>{addPhoto(photoFile.files[0],replacing);replacing=false;photoFile.value='';};
+    host.querySelector('#element-photo-new').onclick=()=>{replacing=true;photoFile.click();};
+    host.querySelector('#element-photo').onchange=e=>updateElement({assetId:e.target.value});
+    host.querySelector('#element-opacity').onchange=e=>{try{updateElement({opacity:Math.max(0,Math.min(100,Number(e.target.value)))/100});}catch(error){notice(error.message);refresh();}};
+    host.querySelector('#element-photo-fill').onclick=()=>updateElement({x:0,y:0,width:1600,height:1000});
+    host.querySelector('#photo-shrink').onclick=()=>scalePhoto(.9);host.querySelector('#photo-grow').onclick=()=>scalePhoto(1/.9);host.querySelector('#photo-ratio').onclick=()=>scalePhoto(1,true);
+    host.querySelector('#element-fill').onchange=e=>updateElement({assetId:e.target.value||undefined});
+    for(const [id,op]of [['layer-back','back'],['layer-down','down'],['layer-up','up'],['layer-front','front']])host.querySelector('#'+id).onclick=()=>moveLayer(op);
+    canvas.addEventListener('pointerdown',event=>{if(event.button!==undefined&&event.button!==0)return;finishDrag();canvas.focus();const q=point(event),chosen=PageUI.elements.find(e=>e.id===selectedId),resizing=onHandle(chosen,q),item=resizing?chosen:PageUI.hit(q.x,q.y);selectedId=item?.id||'';drag=item?{x:q.x,y:q.y,oldX:item.x,oldY:item.y,oldW:item.width,oldH:item.height,resizing,keepRatio:resizing&&item.type==='image'}:null;if(drag)UIHistory.begin();canvas.setPointerCapture(event.pointerId);drawPreview();});
+    canvas.addEventListener('pointermove',event=>{if(!drag)return;const q=point(event);if(drag.resizing){const width=Math.max(20,drag.oldW+q.x-drag.x),height=drag.keepRatio&&!event.shiftKey?width*drag.oldH/drag.oldW:Math.max(20,drag.oldH+q.y-drag.y);updateElement({width:Math.round(width),height:Math.round(Math.max(20,height))},false);}else updateElement({x:Math.round(drag.oldX+q.x-drag.x),y:Math.round(drag.oldY+q.y-drag.y)},false);});
     for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,finishDrag);
     host.querySelector('#dialogue-map').onchange=e=>{stageIndex=Number(e.target.value);dialogueIndex=0;refresh();};host.querySelector('#dialogue-page').onchange=e=>{dialogueIndex=Number(e.target.value);refresh();};for(const [id,op]of [['dialogue-add','add'],['dialogue-delete','delete']])host.querySelector('#'+id).onclick=()=>editDialogue(op);for(const id of ['dialogue-speaker','dialogue-text'])host.querySelector('#'+id).onchange=()=>editDialogue('edit');
-    const card=document.createElement('section');card.className='mini-map-card';card.innerHTML='<h3>한 블록만 외형 바꾸기</h3><label>맵<select id="mini-map-choice"></select></label><label>선택 층<select id="mini-layer"><option value="top">위쪽 블록</option><option value="floor">바닥</option></select></label><canvas id="asset-mini-map" width="408" height="288"></canvas><p id="mini-selected"></p><label>선택 블록의 개별 외형<select id="mini-skin"></select></label><p>작은 격자를 누른 뒤 외형을 선택하면 바로 적용됩니다. 맵 편집 화면의 선택과 동일하게 연결됩니다.</p>';document.getElementById('pane-assets').append(card);mini=document.getElementById('asset-mini-map');document.getElementById('mini-map-choice').onchange=e=>{MapEditor.switchMap(Number(e.target.value));renderMini();};document.getElementById('mini-skin').onchange=e=>MapEditor.setSelectedSkin(e.target.value);
+    const card=document.createElement('section');card.className='mini-map-card';card.innerHTML='<h3>한 블록만 외형 바꾸기</h3><label>맵<select id="mini-map-choice"></select></label><label>선택 층<select id="mini-layer"><option value="top">위쪽 블록</option><option value="floor">바닥</option></select></label><canvas id="asset-mini-map" width="408" height="288"></canvas><p id="mini-selected"></p><label>선택 블록의 개별 외형<select id="mini-skin"></select></label><p>작은 격자를 누른 뒤 외형을 선택하면 바로 적용됩니다. 맵 편집 화면의 선택과 동일하게 연결됩니다.</p>';document.getElementById('pane-blocks').append(card);mini=document.getElementById('asset-mini-map');document.getElementById('mini-map-choice').onchange=e=>{MapEditor.switchMap(Number(e.target.value));renderMini();};document.getElementById('mini-skin').onchange=e=>MapEditor.setSelectedSkin(e.target.value);
     mini.addEventListener('pointerdown',event=>{const r=mini.getBoundingClientRect(),x=Math.floor((event.clientX-r.left)/r.width*17)-8.5,z=Math.floor((event.clientY-r.top)/r.height*12)-5.5;const list=MapEditor.getMap().blocks.filter(b=>b.x===x&&b.z===z);const chosen=document.getElementById('mini-layer').value==='floor'?list.find(b=>b.type==='floor'):[...list].reverse().find(b=>b.type!=='floor')||list[0];MapEditor.selectBlock(chosen?.id||'');renderMini();});
     UIHistory.mount(host);
     document.getElementById('tab-ui').addEventListener('click',refresh);
+    document.getElementById('tab-blocks').addEventListener('click',renderMini);
+    mountMedia();
     refresh();
   }
   /** 매개변수 없음. @returns {void} 드래그를 한 개의 기록으로 확정하고 자동 저장. 포인터 취소/창 전환에도 사용. */
   function finishDrag(){if(!drag)return;drag=null;UIHistory.end();StudioUI.save();refresh();}
-  mount();return {finishDrag,refresh,drawPreview,renderMini,managePage,addElement,editDialogue,updateElement,get page(){return pageId;},get selection(){return selectedId;}};
+  mount();return {moveLayer,scalePhoto,addPhoto,placePhoto,setFont,refreshMedia,finishDrag,refresh,drawPreview,renderMini,managePage,addElement,editDialogue,updateElement,get page(){return pageId;},get selection(){return selectedId;}};
 })();

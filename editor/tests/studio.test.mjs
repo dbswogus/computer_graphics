@@ -205,6 +205,8 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   // 블록 외형/효과음이 실제 편집·맵 컴파일·플레이·내보내기를 통과하는지 검사.
   elements.get('tab-sound').click();assert(elements.get('pane-assets').hidden && !elements.get('pane-sound').hidden,'sound tab visibility');
   elements.get('tab-assets').click();assert(!elements.get('pane-assets').hidden && elements.get('pane-sound').hidden,'asset tab visibility');
+  elements.get('tab-blocks').click();assert(!elements.get('pane-blocks').hidden && elements.get('pane-assets').hidden,'block appearance tab visibility');
+  assert(elements.get('pane-blocks').children.includes(classes.get('studio-card-group')[0]),'block skins moved to block tab');elements.get('tab-assets').click();
   elements.get('skin-type').value='wall';elements.get('skin-type').onchange();elements.get('skin-asset').value='model-test';elements.get('skin-apply').click();
   check("StudioUI.settings.blockAssets.wall==='model-test'",'wall model UI assignment');
   elements.get('sfx-checkpoint').value='sound-test';elements.get('sfx-checkpoint').onchange();
@@ -430,5 +432,34 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   check("MapEditor.confirmExport('MapConfig.js')===false&&MapEditor.confirmExport('MapConfig.js')===true",'export needs a second click while in fallback state');
   await run('MapEditor.load({size:goodProject.length,text:async()=>goodProject})');
   assert.equal(elements.get('editor-startup-warning').hidden,true,'successful load clears warning');check("MapEditor.confirmExport('MapConfig.js')===true",'normal export after recovery');
+  // 페이지 배경 사진: 검증, 그리기 순서(글자·버튼보다 뒤), 에셋 삭제 시 정리.
+  assert.throws(()=>run("UIPageData.validate({pages:{drawTitle:{extras:[{id:'p1',type:'image'}]}}})"),/사진/,'photo needs an asset');
+  assert.throws(()=>run("UIPageData.validate({pages:{drawTitle:{extras:[{id:'p1',type:'image',assetId:'a',opacity:2}]}}})"),'opacity range');
+  check("UIPageData.validate({pages:{drawTitle:{extras:[{id:'p1',type:'image',assetId:'image-test',x:10,y:20,width:300,height:200,opacity:.5}]}}}).pages.drawTitle.extras[0].opacity===.5",'photo element accepted');
+  context.photoAsset=run("AssetBank.list().find(a=>a.kind==='image').id");
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,drawTitle:{elements:{},enabled:true,extras:[{id:'bg',type:'image',assetId:photoAsset,x:0,y:0,width:1600,height:1000,opacity:.8}]}}}},{refreshLegacy:false})");
+  run("screen='title';PageUI.setPreview('drawTitle');drawUI(true);PageUI.setPreview('')");
+  check("PageUI.elements[0].id==='extra:bg'&&PageUI.elements[0].type==='image'",'photo drawn first, behind text and buttons');
+  check("(()=>{const b=PageUI.elements.find(e=>e.type==='button'&&!e.hidden);return PageUI.hit(b.x+2,b.y+2).id===b.id&&PageUI.hit(5,5).id==='extra:bg'})()",'buttons are picked before the photo; empty area picks the photo');
+  context.photoProject=run("({...MapEditor.exportProject(),ui:StudioUI.exportData()})");
+  check("ProjectData.withoutAsset(photoProject,photoAsset).project.ui.pageDesign.pages.drawTitle.extras.length===0",'deleting the photo asset removes the photo element');
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,drawTitle:{elements:{},enabled:true,extras:[]}}}},{refreshLegacy:false})");
+  // UI 탭의 사진·글꼴 모음: 배경으로 넣기, 글꼴 바꾸기.
+  run("PageDesigner.placePhoto(AssetBank.list().find(a=>a.kind==='image').id)");
+  check("PageUI.elements.length>=0&&StudioUI.settings.pageDesign.pages[PageDesigner.page].extras[0].type==='image'",'media list places a photo on the current page');
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,[PageDesigner.page]:{elements:{},enabled:true,extras:[]}}}},{refreshLegacy:false})");
+  run("PageDesigner.setFont('serif')");check("StudioUI.settings.fontFamily==='serif'",'media list changes the game font');run("PageDesigner.setFont('sans-serif')");
+  // 사진으로 채운 버튼, 앞·뒤 순서, 비율 유지 크기 조절.
+  run("PageDesigner.placePhoto(photoAsset);PageDesigner.placePhoto(photoAsset)");
+  context.layerPage=run('PageDesigner.page');
+  check("StudioUI.settings.pageDesign.pages[layerPage].extras.filter(e=>e.type==='image').length===2",'two photos on page');
+  run("PageDesigner.moveLayer('front')");check("(()=>{const list=StudioUI.settings.pageDesign.pages[layerPage].extras;return list.at(-1).front===true&&'extra:'+list.at(-1).id===PageDesigner.selection})()",'bring to front puts the photo above page content');
+  run("PageDesigner.moveLayer('back')");check("(()=>{const list=StudioUI.settings.pageDesign.pages[layerPage].extras;return list[0].front===false&&'extra:'+list[0].id===PageDesigner.selection})()",'send to back returns the photo to the background');
+  run("PageDesigner.updateElement({width:800,height:500})");run("PageDesigner.scalePhoto(.5)");
+  check("(()=>{const e=StudioUI.settings.pageDesign.pages[layerPage].extras[0];return e.width===400&&e.height===250&&e.x===200&&e.y===125})()",'shrink keeps the centre');
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,[layerPage]:{elements:{'button:select':{assetId:photoAsset}},enabled:true,extras:[]}}}},{refreshLegacy:false})");
+  run("screen='title';PageUI.setPreview(layerPage);drawUI(true);PageUI.setPreview('')");
+  check("PageUI.elements.find(e=>e.id==='button:select')?.assetId===photoAsset",'built-in button can be filled with a photo');
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,[layerPage]:{elements:{},enabled:true,extras:[]}}}},{refreshLegacy:false})");
   return 'PASS: editor entry/default project; per-pot radius, acceleration, damping, speed cap, restitution, invalid UI input and export; unit blocks; placement/history; map add/copy/delete/undo; sequential multi-map completion; original-map restore/GPU cleanup; UI fonts/layout; project import/export; invalid-input atomicity; OBJ/image resources; gyro projection/staleness/manual fallback; original screens (mock DOM/GPU).';
 }
