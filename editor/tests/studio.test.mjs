@@ -100,6 +100,8 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
     answer.value = rightAnswer;
     answer.onchange();
     elements.get('editor-play').click();
+    check("screen==='select'&&MapEditor.isChoosing()",'test button opens onggi selection first');
+    run("action('pot2');action('guide')");check("screen!=='select'&&selected===2&&!MapEditor.isChoosing()",'departing from selection starts the test with the chosen onggi');
     check('STAGES[0].quiz.answer==='+JSON.stringify(rightAnswer),'editor answer is used by play test');
     run('drawPlay();px=-.5;pz=.5;tick(1/120);');
     check('checkpoint.index===1','quiz stage saves checkpoint');
@@ -461,5 +463,18 @@ export async function runStudioTests(base, {onExport,onFolderExport} = {}) {
   run("screen='title';PageUI.setPreview(layerPage);drawUI(true);PageUI.setPreview('')");
   check("PageUI.elements.find(e=>e.id==='button:select')?.assetId===photoAsset",'built-in button can be filled with a photo');
   run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,[layerPage]:{elements:{},enabled:true,extras:[]}}}},{refreshLegacy:false})");
+  // 추가 버튼의 동작: 페이지에 맞는 기본값, 소개 페이지 열고 돌아오기, 설정 창, 링크 검사.
+  assert.throws(()=>run("UIPageData.validate({pages:{drawTitle:{extras:[{id:'b',type:'button',action:'link',url:'http://bad'}]}}})"),/https/,'only https links');
+  assert.throws(()=>run("UIPageData.validate({pages:{drawTitle:{extras:[{id:'b',type:'button',action:'link',url:'javascript:alert(1)'}]}}})"),'script links rejected');
+  check("PageUI.command({action:'page',target:'p1'})==='page:p1'&&PageUI.command({action:'link',url:'https://a.b'})==='link:https://a.b'&&PageUI.command({})==='title'",'button commands');
+  run("PageDesigner.managePage('add')");context.introPage=run('PageDesigner.page');
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,drawTitle:{elements:{},enabled:true,extras:[{id:'go',type:'button',action:'page',target:introPage,x:10,y:10,width:200,height:60,text:'소개'}]}}}},{refreshLegacy:false})");
+  run("screen='title';drawUI();action(buttons.find(b=>b.id==='page:'+introPage).id)");
+  check("screen==='custom-ui'",'page button opens the intro page');
+  run("action('page-next')");check("screen==='title'",'next on a page opened from a button returns to where it came from');
+  run("action('settings')");check("SettingsMenu.isOpen()",'settings button opens the settings window');run('SettingsMenu.close()');
+  context.openedLinks=[];env.window.open=(url)=>{context.openedLinks.push(url);};run("action('link:https://www.bcmuseum.or.kr/ko/collection/')");assert.deepEqual(context.openedLinks,['https://www.bcmuseum.or.kr/ko/collection/'],'link button opens the museum page');
+  run("PageDesigner.managePage('delete')");
+  run("StudioUI.apply({...StudioUI.exportData(),pageDesign:{...StudioUI.settings.pageDesign,pages:{...StudioUI.settings.pageDesign.pages,drawTitle:{elements:{},enabled:true,extras:[]}}}},{refreshLegacy:false})");
   return 'PASS: editor entry/default project; per-pot radius, acceleration, damping, speed cap, restitution, invalid UI input and export; unit blocks; placement/history; map add/copy/delete/undo; sequential multi-map completion; original-map restore/GPU cleanup; UI fonts/layout; project import/export; invalid-input atomicity; OBJ/image resources; gyro projection/staleness/manual fallback; original screens (mock DOM/GPU).';
 }

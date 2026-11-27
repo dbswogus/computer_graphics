@@ -12,7 +12,7 @@
   document.head.append(style);
   const theme=document.createElement('link');theme.rel='stylesheet';theme.href='assets/styles/editor.css';document.head.append(theme);
   GyroInput.initialize();
-  const play=document.createElement('button');play.textContent='프로젝트 테스트';play.onclick=()=>{SettingsMenu.close();MapEditor.playProject();};SettingsMenu.add(play);
+  const play=document.createElement('button');play.textContent='프로젝트 테스트';play.onclick=()=>{SettingsMenu.close();MapEditor.chooseThenPlay(true);};SettingsMenu.add(play);
   // 편집기 진입점은 편집 화면으로 바로 시작. 조작 선택은 필요할 때 설정 창에서 열 수 있습니다.
   document.getElementById('control-dialog').hidden=true;
   MapEditor.open();

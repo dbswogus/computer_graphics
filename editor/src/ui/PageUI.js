@@ -2,7 +2,7 @@
  * 읽기: begin → resolve → finish → enterStage/action. */
 const PageUI = (() => {
   const mapping={title:'drawTitle',select:'drawSelect',guide:'drawGuide',play:'drawPlay',finish:'drawFinish',story:'drawStory',monologue:'drawMonologue'};
-  let pageId='',items=[],counts={},locked=0,previewId='',introIndex=-1;
+  let pageId='',items=[],counts={},locked=0,previewId='',introIndex=-1,returnTo=null;
   const design=()=>StudioUI.settings.pageDesign||{pages:{},extraPages:[],dialogues:{}};
   /** @param id {string} 페이지 ID. @returns {object} 해당 페이지 설정 또는 빈 기본 설정. */
   function page(id=pageId){return design().pages?.[id]||design().extraPages?.find(p=>p.id===id)||{};}
@@ -65,7 +65,7 @@ const PageUI = (() => {
       if(e.type==='text')text(item.text||'텍스트',item.x,item.y,item.size,item.color,500,item.align);
       const fill=()=>{if(!(item.assetId&&drawPhoto(item,12,false)))fillRound(item.x,item.y,item.width,item.height,item.background,12);};
       if(e.type==='shape')fill();
-      if(e.type==='button'){fill();text(item.text||'버튼',item.x+item.width/2,item.y+item.height/2,item.size,item.color,700,'center');buttons.push({id:item.action==='page-next'?'page-next':item.action||'title',x:item.x,y:item.y,w:item.width,h:item.height});}
+      if(e.type==='button'){fill();text(item.text||'버튼',item.x+item.width/2,item.y+item.height/2,item.size,item.color,700,'center');buttons.push({id:command(item),x:item.x,y:item.y,w:item.width,h:item.height});}
       lock(-1);
     }
     if((design().extraPages||[]).some(p=>p.id===pageId)&&!(page().extras||[]).some(e=>e.type==='button'&&e.action==='page-next'&&!e.hidden))btn('page-next',1280,880,240,65,'다음',true);
@@ -77,12 +77,16 @@ const PageUI = (() => {
   /** @param index {number} 맵 번호. @param n {number} 독백 페이지 번호. @returns {string} 입력한 화자 이름. */
   function speaker(index,n){return design().dialogues?.[index]?.[n]?.speaker||COLLECTION[selected].name;}
   /** @param first {boolean} 캠페인 첫 맵 여부. @returns {void} 추가 소개 페이지 → 맵별 독백 → 플레이 순으로 전환. */
-  function enterStage(first){const extras=(design().extraPages||[]);introIndex=first?extras.findIndex(p=>p.enabled!==false):-1;if(introIndex>=0)screen='custom-ui';else beginDialogue();dirty=true;}
+  /** @param item {object} 버튼 요소. @returns {string} action()에 넘길 명령. 페이지·링크는 대상까지 붙입니다. */
+  function command(item){const a=item.action||'title';return a==='page'?'page:'+(item.target||''):a==='link'?'link:'+(item.url||''):a;}
+  /** @param id {string} 소개 페이지 ID. @returns {boolean} 열었으면 true. 페이지의 "다음" 버튼은 원래 화면으로 돌아갑니다. */
+  function showPage(id){const index=(design().extraPages||[]).findIndex(p=>p.id===id);if(index<0)return false;if(screen!=='custom-ui')returnTo=screen;introIndex=index;screen='custom-ui';dirty=true;return true;}
+  function enterStage(first){returnTo=null;const extras=(design().extraPages||[]);introIndex=first?extras.findIndex(p=>p.enabled!==false):-1;if(introIndex>=0)screen='custom-ui';else beginDialogue();dirty=true;}
   /** 매개변수 없음. @returns {void} 명시적으로 편집한 독백이 있으면 표시하고 없으면 바로 플레이. */
   function beginDialogue(){const list=design().dialogues?.[stage];screen=list?.length&&page('drawMonologue').enabled!==false?'monologue':'play';dialoguePage=0;dialogueTime=0;}
   /** @param id {string} UI 버튼 명령. @returns {boolean} 추가 페이지 넘기기를 처리했으면 true. */
-  function action(id){if(id!=='page-next')return false;const extras=design().extraPages||[];introIndex=extras.findIndex((p,i)=>i>introIndex&&p.enabled!==false);if(introIndex<0)beginDialogue();dirty=true;return true;}
+  function action(id){if(id!=='page-next')return false;if(returnTo){screen=returnTo;returnTo=null;introIndex=-1;dirty=true;return true;}const extras=design().extraPages||[];introIndex=extras.findIndex((p,i)=>i>introIndex&&p.enabled!==false);if(introIndex<0)beginDialogue();dirty=true;return true;}
   /** @param id {string} 미리보기 페이지. @returns {void} 화면 상태를 바꾸지 않고 사용할 페이지 지정. */
   function setPreview(id){previewId=id||'';}
-  return {drawPhoto,begin,worldBackground,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
+  return {command,showPage,drawPhoto,begin,worldBackground,resolve,measureText,lock,finish,hit,page,syncNarrative,speaker,enterStage,action,setPreview,get elements(){return items.map(e=>({...e}));}};
 })();
